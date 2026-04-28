@@ -15,3 +15,4 @@
 /application/config/config.php
 /application/config/database.php
 .htaccess
+git_user_pass_token.txt
