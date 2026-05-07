@@ -1,0 +1,9 @@
+.tmp.driveupload
+.tmp.drivedownload
+/vendor
+/logs
+.htaccess
+/application/logs/
+/application/config/config.php
+/application/config/database.php
+.qodo

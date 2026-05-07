@@ -1,0 +1,144 @@
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[08-Mar-2025 23:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[09-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[10-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[11-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[12-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[13-Mar-2025 22:55:11 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[13-Mar-2025 22:55:12 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[14-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[15-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[16-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[17-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[18-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[19-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[20-Mar-2025 22:55:09 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[21-Mar-2025 22:55:08 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[22-Mar-2025 22:55:01 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[23-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[23-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[24-Mar-2025 22:55:06 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_path" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 128
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Deprecated:  file_exists(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Deprecated:  mkdir(): Passing null to parameter #1 ($directory) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  mkdir(): Invalid path in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 132
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Deprecated:  is_dir(): Passing null to parameter #1 ($filename) of type string is deprecated in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 134
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 139
+[25-Mar-2025 22:55:07 Asia/Dhaka] PHP Warning:  Undefined array key "log_threshold" in /home5/bijoylab/mgh.bijoylab.com/system/core/Log.php on line 143

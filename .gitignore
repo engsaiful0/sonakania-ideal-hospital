@@ -1,0 +1,14 @@
+.tmp.driveupload
+.tmp.drivedownload
+/vendor
+/vendor_old
+/logs
+.htaccess
+/application/logs/
+/application/config/config.php
+/application/config/database.php
+.qodo
+git_user_pass_token.txt
+.env
+/vendor
+.tmp.drivedownload

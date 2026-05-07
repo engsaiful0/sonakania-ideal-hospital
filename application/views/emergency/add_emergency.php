@@ -1,0 +1,779 @@
+<script>
+    function payable_calculate() {
+        var discount = $('#discount').val();
+        var grand_total = 0;
+        var visiting_fee = $('#visiting_fee').val();
+        var length = discount.length;
+
+        if (discount[length - 1] == '%') {
+            discount = discount.split("%");
+            grand_total = Math.ceil(visiting_fee - (visiting_fee * (Number(discount[0]) / 100)));
+        } else {
+            grand_total = Math.ceil(visiting_fee - discount);
+        }
+        $('#payable').val(Math.ceil(grand_total));
+    }
+
+    function patient_data_set(patient_unique_id) {
+        $('#img').show();
+        //alert(product_category_id);
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                var patient = xhttp.responseText;
+                var patient_array = patient.split('*');
+                document.getElementById("ipd_patient_id").value = patient_array[0];
+                document.getElementById("name").value = patient_array[1];
+                document.getElementById("phone").value = patient_array[2];
+                document.getElementById("age_year").value = patient_array[3];
+                document.getElementById("age_month").value = patient_array[4];
+                document.getElementById("age_day").value = patient_array[5];
+                document.getElementById("address").value = patient_array[6];
+
+                $('#img').hide();
+            }
+        }
+        //  alert(xhttp.responseText);
+        xhttp.open("POST", "<?php echo site_url('IpdPatientController/patient_data_load_by_unique_id'); ?>", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        //            xhttp.send("fname=Henry&lname=Ford");
+        xhttp.send("patient_unique_id=" + patient_unique_id);
+    }
+
+
+    $(document).ready(function() {
+        $('#gender').select2();
+        $('#doctor_id').select2();
+        $('#reference_media_id').select2();
+        $('#employee_nurse_id').select2();
+        $('#years_or_days').select2();
+
+
+        $('#emergency_service_id_0').select2();
+
+        $('#reference_director_id').select2();
+        $('#reference_doctor_id').select2();
+        $('#reference_employee_id').select2();
+
+        $("#patient_unique_id").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "<?php echo site_url('IpdPatientController/patient_unique_id_load'); ?>",
+                    data: {
+                        parameter: request.term
+                    },
+                    dataType: "json",
+                    type: "POST",
+                    success: function(data) {
+                        response(data);
+                    }
+                });
+            },
+            select: function(event, ui) {
+                $('#patient_unique_id').val(ui.item.label);
+                patient_data_set(ui.item.value);
+                return false;
+            }
+        });
+
+    });
+    jQuery(document).ready(function() {
+        jQuery('.alert-auto-hide').fadeTo(7500, 500, function() {
+            $(this).slideUp('slow', function() {
+                $(this).remove();
+            });
+        });
+    });
+    $(function() {
+        $('[name="visiting_time"]').timeselector()
+    });
+
+    function total_price_cal() {
+        var quantity = $('#quantity').val();
+        var unit_price = $('#unit_price').val();
+        $('#total_price').val(Number(quantity) * Number(unit_price));
+    }
+
+    $(document).ready(function() {
+
+        $("#discount_reference").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "<?php echo site_url('OpdPatientController/discount_reference_load'); ?>",
+                    data: {
+                        parameter: request.term
+                    },
+                    dataType: "json",
+                    type: "POST",
+                    success: function(data) {
+                        response(data);
+                    }
+                });
+            },
+            select: function(event, ui) {
+                $('#discount_reference').val(ui.item.label);
+
+                // Clear all reference IDs first
+                $('#discount_reference_doctor_id').val('');
+                $('#discount_reference_employee_id').val('');
+                $('#discount_reference_media_id').val('');
+                $('#discount_reference_director_id').val('');
+
+                // Set the appropriate ID based on type
+                if (ui.item.type === 'doctor') {
+                    $('#discount_reference_doctor_id').val(ui.item.value);
+                } else if (ui.item.type === 'director') {
+                    $('#discount_reference_director_id').val(ui.item.value);
+                } else if (ui.item.type === 'employee') {
+                    $('#discount_reference_employee_id').val(ui.item.value);
+                } else if (ui.item.type === 'reference_media') {
+                    $('#discount_reference_media_id').val(ui.item.value);
+                }
+
+                return false;
+            }
+        });
+        
+        // Validate the form
+        $("#emergency_data_entry_form").validate({
+            rules: {
+                name: "required",
+
+                phone: {
+                    required: true,
+                    minlength: 11
+                },
+                gender: "required",
+            },
+            messages: {
+                name: "Please Enter Patient Name",
+
+                phone: {
+                    required: "Please enter a valid mobile number",
+                    minlength: "Your mobile number must consist of at least 11 characters"
+                },
+                gender: "Select Gender",
+            }
+        });
+
+        // On form submission
+        $('#submit_button').click(function(e) {
+            e.preventDefault();
+
+            var submitBtn = $(this);
+            var formData = $('#emergency_data_entry_form').serialize();
+
+            // Check if the form is valid
+            if ($("#emergency_data_entry_form").valid()) {
+                $('#emergency_data_entry_form :input').prop('disabled', true);
+                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+
+                $.ajax({
+                    type: "POST",
+                    url: "<?php echo base_url('EmergencyController/save_emergency_data'); ?>",
+                    data: formData,
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.success) {
+                            $.toast({
+                                heading: 'Success',
+                                text: 'Data has been saved successfully.',
+                                showHideTransition: 'slide',
+                                position: 'top-right',
+                                hideAfter: 1000,
+                                icon: 'success'
+                            });
+                            $('#emergency_data_entry_form')[0].reset();
+                            $('#emergency_data_entry_form :input').prop('disabled', false);
+                            submitBtn.prop('disabled', false).html('Update');
+                            setTimeout(function() {
+                                window.location.href = "<?php echo base_url('print-emergency') ?>";
+                            }, 1002);
+                        } else {
+                            alert('Error: ' + response.message);
+                            $('#emergency_data_entry_form :input').prop('disabled', false);
+                            submitBtn.prop('disabled', false).html('Update');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert("An error occurred: " + error);
+                        $('#emergency_data_entry_form :input').prop('disabled', false);
+                        submitBtn.prop('disabled', false).html('Update');
+                    }
+                });
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    function emergency_service_price_load(emergency_service_id) {
+        var id = emergency_service_id.split('_');
+        var idIndex = id[3];
+
+        var emergency_service_id_value = $('#' + emergency_service_id).val();
+        console.log('emergency_service_id=', emergency_service_id_value);
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                $('#price_' + idIndex).val(xhttp.responseText);
+                $('#amount_' + idIndex).val(Number($('#price_' + idIndex).val()));
+                totalamount();
+                director_discaount_amount_calculate();
+                nettotalamount();
+            }
+        }
+
+        xhttp.open("POST", "<?php echo site_url('EmergencyController/emergency_service_price_load'); ?>", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+        xhttp.send("emergency_service_id=" + emergency_service_id_value);
+
+    }
+
+    function director_discount_load() {
+        var reference_director_id = $('#reference_director_id').val();
+        document.getElementById('director_discount_container').style.display = 'block';
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                $('#director_discount_percentage_show').text(xhttp.responseText);
+                $('#director_discount_percentage').val(xhttp.responseText);
+                totalamount();
+                director_discaount_amount_calculate();
+                nettotalamount();
+            }
+        }
+        xhttp.open("POST", "<?php echo site_url('CommonController/director_emergency_discount_load'); ?>", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("reference_director_id=" + reference_director_id);
+    }
+
+    function addMore() {
+        var id_control = document.getElementById('id_control').value * 1;
+        var next_id = id_control + 1;
+
+        document.getElementById('id_control').value = next_id;
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                // $('#cart_tab1').prepend(xhttp.responseText);
+                var newdiv = document.createElement('tr');
+                newdiv.innerHTML = xhttp.responseText;
+                document.getElementById('cart_tab1').appendChild(newdiv);
+                $("#emergency_service_id_" + next_id).select2();
+                director_discaount_amount_calculate();
+                totalamount();
+            }
+        }
+        xhttp.open("POST", "<?php echo site_url('EmergencyController/add_more_emergency_row'); ?>", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        //                                    xhttp.send("fname=Henry&lname=Ford");
+        xhttp.send('next_id=' + next_id);
+
+    }
+
+    function removetr(element, e) {
+        var seq = $(element).attr('sequence');
+        if (seq != 0)
+            $(element).parent().parent().remove();
+
+        totalamount();
+    }
+
+    function totalamount() {
+        var amount = $(".amount");
+        total = 0;
+        total = Number(total);
+        $.each(amount, function(k, elm) {
+            var camount = $(elm).val();
+            camount = Number(camount);
+            total += camount;
+        });
+        $("#total").val(total.toFixed(2));
+        nettotalamount();
+    }
+
+    function nettotalamount() {
+        var total = $("#total").val();
+        var director_discount = $("#director_discount").val();
+        var discount = $("#discount").val();
+        var len = discount.length;
+        var discountAmount = 0;
+
+        if (discount[len - 1] == '%') {
+            var disArray = discount.split('%');
+            discountAmount = disArray[0];
+            var discount = total * (discountAmount / 100);
+            var nettotal = total - discount - Number(director_discount);
+            $("#nettotal").val(nettotal.toFixed(2));
+            $("#paid").val(nettotal.toFixed(2));
+            var paid = $("#paid").val() * 1;
+            $("#due_sale").val((nettotal - paid).toFixed(2));
+            $('#total_discount').val(Number(discount) + Number(director_discount));
+        } else {
+            var nettotal = total - discount - Number(director_discount);
+            $("#nettotal").val(nettotal.toFixed(2));
+            $("#paid").val(nettotal.toFixed(2));
+            var paid = $("#paid").val() * 1;
+            $("#due_sale").val((nettotal - paid).toFixed(2));
+            $('#total_discount').val(Number(discount) + Number(director_discount));
+        }
+    }
+
+    function director_discaount_amount_calculate() {
+        var director_discount_percentage = $("#director_discount_percentage").val();
+        var total = $("#total").val();
+        var director_discount = Number(total) * (Number(director_discount_percentage) / 100);
+        $("#director_discount").val(director_discount.toFixed(2));
+        nettotalamount();
+    }
+
+    function getTotalAmount(element, e) {
+
+        var seq = $(element).attr('sequence');
+        var quantity = $("#quantity_" + seq).val();
+        var price = $("#price_" + seq).val();
+        $("#amount_" + seq).val(Number(quantity) * Number(price));
+        totalamount();
+    }
+
+    function getamount(element, e) {
+
+        var seq = $(element).attr('sequence');
+        var discount = $("#discounteach_" + seq).val();
+        //var discount = $("#discount").val();
+        var len = discount.length;
+        var discountAmount = 0;
+        if (discount[len - 1] == '%') {
+            var quantity = $("#quantity_" + seq).val();
+            var price = $("#price_" + seq).val();
+            var disArray = discount.split('%');
+            discountAmount = disArray[0];
+            var amount = $("#amount_" + seq).val();
+            var discount = (quantity * price) * (discountAmount / 100);
+            var amount = (quantity * price) - discount;
+            $("#amount_" + seq).val(amount.toFixed(2));
+            totalamount();
+        } else {
+            var quantity = $("#quantity_" + seq).val();
+            var price = $("#price_" + seq).val();
+            var amount = (price * quantity) - discount;
+            $("#amount_" + seq).val(amount.toFixed(2));
+            totalamount();
+
+        }
+    }
+
+    function dueCal() {
+        var paid = $("#paid").val() * 1;
+        var nettotal = $("#nettotal").val() * 1;
+        if (Number(paid) > Number(nettotal)) {
+            alert('Paid amount can not be greater thn total amount');
+            $('#paid').val(0);
+            $('#due_sale').val(0);
+        } else {
+            var due = nettotal - paid;
+            $("#due_sale").val(due.toFixed(2));
+        }
+    }
+
+    function resetFn() {
+        window.location.href = "<?php echo base_url('add-emergency') ?>";
+    }
+</script>
+<div class="container-fluid" style=" background-color: white;width: 100%;">
+    <div class="panel panel-primary" style="width: 100%;margin: 0 auto">
+        <div class="panel-heading">
+            <h3 style="text-align: center">Add Emergency</h3>
+        </div>
+        <div class="panel-body">
+
+            <form id="emergency_data_entry_form" action="" method="POST" class="form">
+
+                <fieldset style="background-color:whitesmoke;">
+                    <legend>Personal Info</legend>
+                    <?php
+                    $emergency_invoice = $this->db->select('*')
+                        ->order_by('emergency_invoice_id', 'DESC')
+                        ->limit(1)
+                        ->get('emergency_invoice')
+                        ->row();
+
+                    // Check if $emergency_invoice is null and set a default value
+                    $last_serial = isset($emergency_invoice->emergency_invoice_serial) ? $emergency_invoice->emergency_invoice_serial : 0;
+
+                    // Generate the new invoice number
+                    $emergency_invoice_no = 'Em' . time() . '0' . ($last_serial + 1);
+                    ?>
+
+
+                    <div class="row" style="margin-top:20px;">
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="pwd">Date</label>
+                                <div class="col-sm-8">
+                                    <input type="text" value="<?php echo date('Y-m-d'); ?>" id="datepicker" name="date" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="name">Time </label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="emergency_time" value="<?php date_default_timezone_set('Asia/Dhaka');
+                                                                                                        echo date("h:i:s A"); ?>" name="emergency_time">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="pwd">Patient Id</label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" class="form-control" id="ipd_patient_id" name="ipd_patient_id">
+                                    <input type="hidden" class="form-control" id="discount_reference_director_id" name="discount_reference_director_id">
+                                    <input type="hidden" class="form-control" id="discount_reference_doctor_id" name="discount_reference_doctor_id">
+                                    <input type="hidden" class="form-control" id="discount_reference_employee_id" name="discount_reference_employee_id">
+                                    <input type="hidden" class="form-control" id="discount_reference_media_id" name="discount_reference_media_id">
+                                    <input type="text" placeholder="Scan or Type Patient Id.." class="form-control" id="patient_unique_id" name="patient_unique_id">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:20px;">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="name">Name*</label>
+                                <div class="col-sm-8">
+                                    <input type="text" placeholder="Enter Name" required="" id="name" name="name" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="name">Age</label>
+                                <div class="col-sm-3">
+                                    <input type="text" placeholder="Year" oninput="validateIntegerInput(this)" class="form-control" id="age_year" name="age_year">
+                                </div>
+                                <div class="col-sm-3">
+                                    <input type="text" placeholder="Month" oninput="validateIntegerInput(this)" class="form-control" id="age_month" name="age_month">
+                                </div>
+                                <div class="col-sm-3">
+                                    <input type="text" placeholder="Day" oninput="validateIntegerInput(this)" class="form-control" id="age_day" name="age_day">
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="pwd">Gender*</label>
+                                <div class="col-sm-8">
+                                    <select class="form-control" name="gender" id="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:20px;">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="name">Phone*</label>
+                                <div class="col-sm-8">
+                                    <input type="text" placeholder="Enter Phone" id="phone" name="phone" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="pwd">Address</label>
+                                <div class="col-sm-9">
+                                    <textarea type="text" placeholder="Enter Address" id="address" name="address" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="pwd">Attendant</label>
+                                <div class="col-sm-8">
+                                    <input type="text" placeholder="Enter Attendant" id="attendant" name="attendant" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row" style="margin-top:30px;">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="name">Duty Doctor</label>
+                                <div class="col-sm-8">
+                                    <select type="text" class="form-control" id="doctor_id" name="doctor_id">
+                                        <option selected="" value="" disabled="">Select Duty Doctor</option>
+                                        <?php
+                                        $doctor = $this->db->select('*')->get('doctor')->result();
+                                        foreach ($doctor as $value) {
+                                        ?>
+                                            <option value="<?php echo $value->doctor_id; ?>"><?php echo $value->doctor_name . '-' . $value->doctor_unique_id; ?></option>
+                                        <?php
+                                        }
+                                        ?>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="name">Duty Nurse</label>
+                                <div class="col-sm-9">
+                                    <select type="text" class="form-control" id="employee_nurse_id" name="employee_nurse_id">
+                                        <option selected="" value="" disabled="">Select Nurse</option>
+                                        <?php
+                                        $nurses = getAllNurses();
+
+                                        foreach ($nurses as $value) {
+                                        ?>
+                                            <option value="<?php echo $value->employee_id; ?>"><?php echo $value->employee_name . '-' . $value->employee_unique_id; ?></option>
+                                        <?php
+                                        }
+                                        ?>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="name">Invoice No:</label>
+                                <div class="col-sm-8">
+
+                                    <input type="hidden" id="emergency_invoice_serial" name="emergency_invoice_serial" class="form-control" readonly=""
+                                        value="<?php echo htmlspecialchars($last_serial + 1, ENT_QUOTES, 'UTF-8'); ?>" />
+
+                                    <input type="text" id="emergency_invoice_no" name="emergency_invoice_no" class="form-control" readonly=""
+                                        value="<?php echo htmlspecialchars($emergency_invoice_no, ENT_QUOTES, 'UTF-8'); ?>" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <table width="100%" class="table-responsive table table-bordered table-striped " id="cart_tab1">
+                    <tr>
+                        <th style="padding-left:25px;width:240px;text-align: center;">
+                            Service Name
+                        </th>
+
+                        <th id="sale_rate_title" style="padding-left:10px;width: 190px;text-align: center;">
+                            Price
+                        </th>
+
+                        <th style="padding:5px;padding:5px;width: 200px;text-align: center;">
+                            Quantity
+                        </th>
+                        <th style="padding:5px;padding:5px;width: 210px;text-align: center;">
+                            Discount(%)
+                        </th>
+                        <th style="padding:5px;padding:5px;width: 170px;text-align: left;">
+                            Amount
+                        </th>
+                        <th style="padding:5px;">
+                            &nbsp;
+                        </th>
+                    </tr>
+                    <tr>
+                        <input type="hidden" value="0" name="id_control" id="id_control" class="form-control">
+
+                        <td style="padding:5px;">
+                            <select name="emergency_service_id[]" class="form-control" id="emergency_service_id_0" sequence=0 onchange="emergency_service_price_load(this.id)" required="" style="width:250px;">
+                                <option value="" selected="">Select Service*</option>
+                                <?php
+                                $emergency_services = $this->db->select('*')->get('emergency_service')->result();
+
+                                foreach ($emergency_services as $value) {
+                                ?>
+                                    <option value="<?php echo $value->emergency_service_id ?>"><?php echo $value->name ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </td>
+                        <td style="padding:5px;">
+                            <input readonly type="text" value="0" id="price_0" name="price[]" class="form-control" sequence=0 required="" onkeyup="getamount(this, event)">
+                        </td>
+                        <td style="padding:5px;">
+                            <input type="text" value="1" id="quantity_0" name="quantity[]" oninput="getTotalAmount(this, event)" onkeydown="validateNumberInput(event)" class="form-control" sequence=0 onkeyup="getamount(this, event)" required="" onkeyup="getamount(this, event)">
+                        </td>
+                        <td style="padding:5px;">
+                            <input type="text" value="" id="discounteach_0" name="discounteach[]" onkeydown="validateNumberInput(event)" class="form-control" sequence=0 onkeyup="getamount(this, event)">
+                        </td>
+
+                        <td style="padding:5px;">
+                            <input type="text" id="amount_0" name="amount[]" class="form-control amount" readonly="" sequence=0>
+                        </td>
+                        <td>
+
+                            <input type="button" onclick="addMore()" type="button" id="add_more" style="width:50px" id="add_more" title="Click TO Remove" value="+">
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="container-fluid">
+                    <div style="width: 70%;float:left">
+                        <fieldset style="background-color:whitesmoke;">
+                            <legend>Reference</legend>
+                            <div class="row" style="margin-top:20px;">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-4" for="name">Reference Director</label>
+                                        <div class="col-sm-8">
+                                            <select onchange="director_discount_load()" type="text" class="form-control" id="reference_director_id" name="reference_director_id">
+                                                <option selected="" disabled="" value="">Select Reference Director</option>
+                                                <?php
+                                                $directors = $this->db->select('*')->get('director')->result();
+                                                foreach ($directors as $director) {
+                                                ?>
+                                                    <option value="<?php echo $director->director_id ?>"><?php echo $director->name ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-4" for="pwd">Reference Doctor</label>
+                                        <div class="col-sm-8">
+                                            <select type="text" class="form-control" id="reference_doctor_id" name="reference_doctor_id">
+                                                <option selected="" value="">Select Reference Doctor</option>
+                                                <?php
+                                                $doctor = $this->db->select('*')->get('doctor')->result();
+                                                foreach ($doctor as $doctor_value) {
+                                                ?>
+                                                    <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:20px;">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-4" for="name">Reference Media</label>
+                                        <div class="col-sm-8">
+                                            <select type="text" class="form-control" id="reference_media_id" name="reference_media_id">
+                                                <option selected="" value="">Select Reference Media</option>
+                                                <?php
+                                                $reference_media = $this->db->select('*')->get('reference_media')->result();
+                                                foreach ($reference_media as $reference_media_value) {
+                                                ?>
+                                                    <option value="<?php echo $reference_media_value->reference_media_id ?>"><?php echo $reference_media_value->reference_media_name ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-4" for="name">Reference Officer</label>
+                                        <div class="col-sm-8">
+                                            <select style="width:100% ;" type="text" class="form-control" id="reference_employee_id" name="reference_employee_id">
+                                                <option selected="" value="">Select Employee</option>
+                                                <?php
+                                                $employees = $this->db->select('*')->get('employee')->result();
+                                                foreach ($employees as $employee) {
+                                                ?>
+                                                    <option value="<?php echo $employee->employee_id; ?>"><?php echo $employee->employee_name . '-' . $employee->employee_unique_id ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div style="width: 30%;float:left">
+                        <table>
+                            <tr>
+                                <td colspan="" align="right" valign="middle" style="padding:5px;">
+                                    <b>Total:&nbsp;</b>
+                                    <input type="text" readonly="" name="total" id="total" class="form-control" style="width:150px;float: right;" value="0">
+                                </td>
+                            </tr>
+                            <tr style="display: none;" id="director_discount_container">
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>D.Discount (<span id="director_discount_percentage_show"></span>)%</b>
+                                    <input type="text" va name="director_discount" id="director_discount" class="form-control" style="width:130px;float: right;">
+                                    <input type="hidden" value="" name="director_discount_percentage" id="director_discount_percentage">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>Discount(%):&nbsp;</b>
+                                    <input type="text" name="discount" style="width:150px;float: right;" id="discount" class="form-control" value="0" onkeyup="totalamount()">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>Total Discount:</b>
+                                    <input type="text" name="total_discount" style="width:150px;float: right;" id="total_discount" class="form-control" value="0">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>Dis. Reference</b>
+                                    <input type="text" style="width:150px;float: right;" class="form-control" id="discount_reference" placeholder="Enter Discount Ref.." name="discount_reference">
+                                </td>
+                            </tr>
+                            <tr>
+
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>Net Total:&nbsp;</b>
+                                    <input type="text" readonly="" name="nettotal" id="nettotal" class="form-control" style="width:150px;float: right;" value="0">
+                                </td>
+                            </tr>
+                            <tr>
+
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>Paid:&nbsp;</b>
+                                    <input style="width:150px;float: right;" type="text" name="paid" id="paid" onkeydown="validateNumberInput(event)" onkeyup="dueCal()" required="" class="form-control" style="width:200px;float: right;" value="">
+                                </td>
+                            </tr>
+                            <tr>
+
+                                <td align="right" valign="middle" style="padding:5px;">
+                                    <b>Due:&nbsp;</b>
+                                    <input style="width:150px;float: right;" type="text" name="due" id="due_sale" readonly="" class="form-control" style="width:200px;float: right;" value="0">
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="right" style="padding:5px;">
+                                    <img src="<?php echo base_url() ?>images/ajax-loader.gif" id="img" style="display:none" />
+                                    <button type="submit" name="submit_button" id="submit_button" class="btn btn-primary">Save</button>&nbsp;
+                                    <a onclick="resetFn()" class="btn btn-success">Reset</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </div>
+
+
+
+            </form>
+        </div>
+    </div>
+</div>
