@@ -46,5 +46,17 @@
         </li>
     <?php } ?>
 
+    <?php if (in_array('account_dashboard', $permissions)) { ?>
+        <li class="dropdown">
+        <i class="fas fa-building"></i>&nbsp;Fixed Assets <span class="icon">+</span>
+            <ul class="submenu">
+                <li><a class="box_a" href="<?php echo site_url('fixed-assets') ?>">Dashboard</a></li>
+                <li><a class="box_a" href="<?php echo site_url('fixed-assets/register') ?>">Asset Register</a></li>
+                <li><a class="box_a" href="<?php echo site_url('fixed-assets/categories') ?>">Categories</a></li>
+                <li><a class="box_a" href="<?php echo site_url('fixed-assets/reports') ?>">Reports</a></li>
+            </ul>
+        </li>
+    <?php } ?>
+
 
 </ul>
