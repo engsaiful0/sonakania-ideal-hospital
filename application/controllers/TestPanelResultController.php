@@ -10,7 +10,7 @@
  *
  * @author saiful
  */
-class TestResultController extends CI_Controller
+class TestPanelResultController extends CI_Controller
 {
 
     public function __construct()
@@ -186,11 +186,11 @@ class TestResultController extends CI_Controller
         $this->load->view('test_result/edit_biochemical_test', $data);
     }
 
-    public function add_biochemical_test()
+    public function add_panel_test()
     {
         $page_data = array(
-            'page_name' => 'test_result/add_biochemical_test',
-            'page_title' => 'Add Biochemical Test Data',
+            'page_name' => 'test_panel_result/add_panel_test',
+            'page_title' => 'Add Panel Test Data',
             'sidebar' => 'test_result/test_result_sidebar'
         );
         $this->load->view('content', $page_data);
