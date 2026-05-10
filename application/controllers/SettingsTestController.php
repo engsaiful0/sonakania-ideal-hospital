@@ -144,14 +144,14 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('test_name', 'price','test_category');
+        $crud->required_fields('test_name','setting_type', 'price','test_category');
         $crud->set_relation('test_group_id', 'test_group', '{test_group_code}-{test_group_name}');
         $crud->set_relation('test_sub_group_id', 'test_sub_group', 'sub_group_name');
         $crud->set_relation('test_category_id', 'test_categories', 'test_category_name');
-        $crud->columns('test_name','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
-        $crud->fields('test_name','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
+        $crud->columns('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
+        $crud->fields('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
         $crud->field_type('test_by_gender', 'dropdown', array('Male' => 'Male', 'Female' => 'Female', 'Both' => 'Both'));
-
+        $crud->field_type('setting_type', 'dropdown', array('Normal' => 'Normal', 'Unique' => 'Unique'));
         $crud->display_as('test_name', 'Test Name');
         $crud->display_as('test_category_id', 'Category Name');
 
