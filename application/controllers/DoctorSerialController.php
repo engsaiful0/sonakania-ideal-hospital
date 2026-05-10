@@ -269,13 +269,21 @@ class DoctorSerialController extends CI_Controller
     {
         $doctor_serial_id = $this->input->post('doctor_serial_id');
 
-        if ($this->db->where('doctor_serial_id', $doctor_serial_id)->delete('doctor_serial')) {
+        if ($doctor_serial_id === null || $doctor_serial_id === '' || !ctype_digit((string) $doctor_serial_id)) {
+            $response = array('status' => 'error', 'message' => 'Invalid record id.');
+            $this->output->set_content_type('application/json')->set_output(json_encode($response));
+            return;
+        }
+
+        $this->db->where('doctor_serial_id', (int) $doctor_serial_id)->delete('doctor_serial');
+
+        if ($this->db->affected_rows() > 0) {
             $response = array('status' => 'success', 'message' => 'Patient deleted successfully.');
         } else {
             $response = array('status' => 'error', 'message' => 'Failed to delete patient.');
         }
 
-        echo json_encode($response);
+        $this->output->set_content_type('application/json')->set_output(json_encode($response));
     }
 
 
