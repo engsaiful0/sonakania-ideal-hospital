@@ -58,7 +58,10 @@
                             <label>Next due date</label>
                             <input type="date" class="form-control" name="next_due_date" />
                         </div>
-                        <button type="submit" class="btn btn-primary" id="maintSaveBtn">Save record</button>
+                        <button type="submit" class="btn btn-primary" id="maintSaveBtn">
+                            <span class="maint-save-label">Save record</span>
+                            <span class="maint-save-spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -91,19 +94,40 @@
         ]
     });
 
+    function maintSetSaveLoading($btn, on) {
+        var $lab = $btn.find('.maint-save-label');
+        var $spin = $btn.find('.maint-save-spinner');
+        if (on) {
+            $lab.hide();
+            $spin.show();
+            $btn.prop('disabled', true);
+        } else {
+            $spin.hide();
+            $lab.show();
+            $btn.prop('disabled', false);
+        }
+    }
+
     $('#maintForm').on('submit', function(e) {
         e.preventDefault();
         var $btn = $('#maintSaveBtn');
-        var label = $btn.html();
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+        maintSetSaveLoading($btn, true);
         $.ajax({
             type: 'POST',
             url: '<?php echo site_url('fixed-assets/ajax/save-maintenance'); ?>',
             data: $(this).serialize(),
-            dataType: 'json'
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         }).done(function(res) {
             if (res.success) {
-                $.toast({ heading: 'Saved', text: res.message, icon: 'success', position: 'top-right' });
+                $.toast({
+                    heading: 'Success',
+                    text: res.message || 'Saved',
+                    icon: 'success',
+                    position: 'top-right',
+                    hideAfter: 2000,
+                    showHideTransition: 'slide'
+                });
                 $('#maintForm')[0].reset();
                 $('input[name="asset_id"]').val(assetId);
                 $('input[name="maintenance_date"]').val('<?php echo date('Y-m-d'); ?>');
@@ -115,7 +139,7 @@
         }).fail(function() {
             $.toast({ heading: 'Error', text: 'Request failed', icon: 'error', position: 'top-right' });
         }).always(function() {
-            $btn.prop('disabled', false).html(label);
+            maintSetSaveLoading($btn, false);
         });
     });
 
