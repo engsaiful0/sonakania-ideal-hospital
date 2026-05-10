@@ -2,23 +2,22 @@
 $permissions = $this->session->userdata('permissions');
 ?><script>
     function test_name_load(test_group_id) {
-
         $('#img').show();
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
-                document.getElementById("test_id").innerHTML = xhttp.responseText;
-                //                  var newdiv = document.createElement('tr');
-                //                newdiv.innerHTML = xhttp.responseText;
-                //                document.getElementById('due_history').appendChild(newdiv);
+                var $sel = $('#test_id');
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                    $sel.select2('destroy');
+                }
+                document.getElementById('test_id').innerHTML = xhttp.responseText;
+                $sel.select2({ width: '100%' });
                 $('#img').hide();
             }
-        }
-        //                    alert(xhttp.responseText);
-        xhttp.open("POST", "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        //            xhttp.send("fname=Henry&lname=Ford");
-        xhttp.send("test_group_id=" + test_group_id);
+        };
+        xhttp.open('POST', "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.send('test_group_id=' + encodeURIComponent(test_group_id));
     }
     jQuery(document).ready(function() {
         jQuery('.alert-auto-hide').fadeTo(800, 200, function() {
@@ -80,42 +79,39 @@ $permissions = $this->session->userdata('permissions');
     <div class="panel-body">
 
         <img src="<?php echo base_url() ?>assets/ajax-loader.gif" id="img" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;" />
-        <?php if (in_array('search_test_configuration', $permissions)) { ?>
-            <form method="post" action="<?php echo site_url('TestResultController/view_test_configuration') ?>">
+        <?php if (in_array('search_test_configuration', $permissions)) {
+            $sel_group = isset($selected_test_group_id) ? $selected_test_group_id : '';
+            $sel_test = isset($selected_test_id) ? $selected_test_id : '';
+            $filter_tests = isset($filter_tests) ? $filter_tests : array();
+        ?>
+            <form method="get" action="<?php echo site_url('TestResultController/view_test_configuration') ?>">
                 <table>
                     <tr>
-                        <td>Test Group Name</td>
-
-                        <td>Test Name</td>
-                        <td>
-
-
-
-                        </td>
+                        <td>Test group</td>
+                        <td>Test name</td>
+                        <td></td>
                     </tr>
                     <tr>
-
                         <td style="width: 300px;">
-                            <select type="text" class="form-control" onchange="test_name_load(this.value)" id="test_group_id" name="test_group_id">
-                                <option value="" disabled="" selected="">Select Test Group Name</option>
-
+                            <select class="form-control" onchange="test_name_load(this.value)" id="test_group_id" name="test_group_id">
+                                <option value="">All groups</option>
                                 <?php
-                                $test_group = $this->db->select('*')->get('test_group')->result();
+                                $test_group = $this->db->select('*')->order_by('test_category_name', 'ASC')->get('test_categories')->result();
                                 foreach ($test_group as $value) {
+                                    $g_sel = ($sel_group !== '' && (string) $value->test_category_id  === (string) $sel_group) ? ' selected' : '';
                                 ?>
-                                    <option value="<?php echo $value->test_group_id; ?>"><?php echo $value->test_group_name; ?></option>
-                                <?php
-                                }
-                                ?>
+                                    <option value="<?php echo (int) $value->test_category_id ; ?>"<?php echo $g_sel; ?>><?php echo html_escape($value->test_category_name); ?></option>
+                                <?php } ?>
                             </select>
                         </td>
-
                         <td style="width: 300px;">
-                            <select type="text" required="" class="form-control" id="test_id" name="test_id">
-                                <option value="" disabled="" selected="">Select Test Name</option>
-
-
-
+                            <select class="form-control" id="test_id" name="test_id">
+                                <option value="">All tests in group</option>
+                                <?php foreach ($filter_tests as $t) {
+                                    $t_sel = ($sel_test !== '' && (string) $t->test_id === (string) $sel_test) ? ' selected' : '';
+                                ?>
+                                    <option value="<?php echo (int) $t->test_id; ?>"<?php echo $t_sel; ?>><?php echo html_escape($t->test_name); ?></option>
+                                <?php } ?>
                             </select>
                         </td>
                         <td><input type="submit" class="btn btn-primary" value="Search"></td>
@@ -242,10 +238,7 @@ $permissions = $this->session->userdata('permissions');
 </div>
 <script>
     $(document).ready(function() {
-        // alert();
-        $('#test_group_id').select2();
-        $('#test_id').select2();
-
+        $('#test_group_id, #test_id').select2({ width: '100%' });
     });
 
     function modalLoadEdit(rowId) {

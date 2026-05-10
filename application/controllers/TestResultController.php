@@ -53,15 +53,19 @@ class TestResultController extends CI_Controller
 
     public function test_name_load()
     {
-        $test_group_id = $_POST['test_group_id'];
+        $test_group_id = $this->input->post('test_group_id', true);
+        if ($test_group_id === null || $test_group_id === '' || !ctype_digit((string) $test_group_id)) {
+            echo '<option value="">All tests in group</option>';
+            return;
+        }
 
-        $test = $this->db->where('test_group_id', $test_group_id)->get('test')->result();
-?>
-        <option value="" disabled="" selected="">Select Test Name</option>
+        $test = $this->db->where('test_group_id', (int) $test_group_id)->order_by('test_name', 'ASC')->get('test')->result();
+        ?>
+        <option value="">All tests in group</option>
         <?php
         foreach ($test as $value) {
         ?>
-            <option value="<?php echo $value->test_id; ?>"><?php echo $value->test_name; ?></option>
+            <option value="<?php echo (int) $value->test_id; ?>"><?php echo html_escape($value->test_name); ?></option>
             <?php
         }
     }
@@ -301,7 +305,7 @@ class TestResultController extends CI_Controller
         // Configure pagination
         $config['base_url'] = base_url() . "/index.php/TestResultController/view_test_result";
         $config["total_rows"] = $this->TestResultModel->count_all_test_result($test_group_id, $test_id, $patient_test_entry_id, $invoice_no);
-        $config["per_page"] = 20;
+        $config["per_page"] = 50;
         $config["uri_segment"] = 3;
         $config['full_tag_open'] = "<ul class='pagination'>";
         $config['full_tag_close'] = '</ul>';
@@ -767,14 +771,75 @@ class TestResultController extends CI_Controller
     public function view_test_configuration()
     {
         $config = array();
-        $test_group_id = $this->input->post('test_group_id');
-        $test_id = $this->input->post('test_id');
 
-        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
-        // Configure pagination
-        $config['base_url'] = base_url() . "/index.php/TestResultController/view_test_configuration";
+        $tc_filter_key = 'view_test_configuration_filters';
+        // Form submit sends filter keys in query/body; plain pagination URLs use session fallback.
+        $has_explicit = isset($_GET['test_group_id']) || isset($_GET['test_id']) || isset($_GET['group_id'])
+            || isset($_POST['test_group_id']) || isset($_POST['test_id']) || isset($_POST['group_id']);
+
+        $test_group_id = '';
+        $test_id = '';
+        if ($has_explicit) {
+            $raw_group = $this->input->get_post('test_group_id', true);
+            if (($raw_group === null || $raw_group === false || trim((string) $raw_group) === '')
+                && isset($_GET['group_id'])) {
+                $raw_group = $this->input->get('group_id', true);
+            }
+            $raw_test = $this->input->get_post('test_id', true);
+            $test_group_id = ($raw_group !== '' && $raw_group !== false && $raw_group !== null
+                && ctype_digit(trim((string) $raw_group))) ? trim((string) $raw_group) : '';
+            $test_id = ($raw_test !== '' && $raw_test !== false && $raw_test !== null
+                && ctype_digit(trim((string) $raw_test))) ? trim((string) $raw_test) : '';
+            if ($test_group_id === '' && $test_id === '') {
+                $this->session->unset_userdata($tc_filter_key);
+            } else {
+                $this->session->set_userdata($tc_filter_key, array(
+                    'test_group_id' => $test_group_id,
+                    'test_id' => $test_id,
+                ));
+            }
+        } else {
+            $saved = $this->session->userdata($tc_filter_key);
+            if (is_array($saved)) {
+                $gid = isset($saved['test_group_id']) ? trim((string) $saved['test_group_id']) : '';
+                $tid = isset($saved['test_id']) ? trim((string) $saved['test_id']) : '';
+                $test_group_id = ($gid !== '' && ctype_digit($gid)) ? $gid : '';
+                $test_id = ($tid !== '' && ctype_digit($tid)) ? $tid : '';
+                if ($test_group_id === '' && $test_id === '') {
+                    $this->session->unset_userdata($tc_filter_key);
+                }
+            }
+        }
+
+        if ($test_group_id !== '' && $test_id !== '') {
+            $this->db->reset_query()->where('test_id', $test_id)->where('test_group_id', $test_group_id);
+            $ok = ((int) $this->db->count_all_results('test')) > 0;
+            if (!$ok) {
+                $test_id = '';
+                if ($has_explicit || $this->session->userdata($tc_filter_key)) {
+                    $this->session->set_userdata($tc_filter_key, array(
+                        'test_group_id' => $test_group_id,
+                        'test_id' => '',
+                    ));
+                }
+            }
+        }
+
+        $seg = $this->uri->segment(3);
+        $page = ($seg !== null && $seg !== '' && ctype_digit((string) $seg)) ? (int) $seg : 0;
+
+        $data['selected_test_group_id'] = $test_group_id;
+        $data['selected_test_id'] = $test_id;
+        $data['filter_tests'] = array();
+        if ($test_group_id !== '') {
+            $data['filter_tests'] = $this->db->where('test_group_id', $test_group_id)->order_by('test_name', 'ASC')->get('test')->result();
+        }
+
+        // Configure pagination — site_url respects index_page; reuse_query_string keeps filter params on page links.
+        $config['base_url'] = site_url('TestResultController/view_test_configuration');
+        $config['reuse_query_string'] = true;
         $config["total_rows"] = $this->TestResultModel->count_all_test_configuration($test_group_id, $test_id);
-        $config["per_page"] = 20;
+        $config["per_page"] = 100;
         $config["uri_segment"] = 3;
         $config['full_tag_open'] = "<ul class='pagination'>";
         $config['full_tag_close'] = '</ul>';
