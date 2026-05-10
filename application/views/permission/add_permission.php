@@ -785,6 +785,16 @@
             $('.lab_dashboard').prop('checked', this.checked);
         });
 
+        // Select/Deselect all checkboxes for Panel Test Result
+        $('#select_all_panel_test_result').on('change', function() {
+            $('.select_all_panel_test_result_checkbox').prop('checked', this.checked);
+            $('.panel_test_result_checkbox').prop('checked', this.checked);
+            $('.panel_test_result_dashboard').prop('checked', this.checked);
+            $('.panel_test_result_checkbox').prop('checked', this.checked);
+            $('.panel_test_result_dashboard').prop('checked', this.checked);
+            $('.panel_test_result_checkbox').prop('checked', this.checked);
+        });
+
         // Select/Deselect all checkboxes for Pharmacy options
         $('#select_all_pharmacy_options').on('change', function() {
             $('.select_pharmacy_dashboard_checkbox').prop('checked', this.checked);
@@ -1271,7 +1281,15 @@
                                     <td><input type="checkbox" class="test_result_checkbox permission_checkbox" name="permissions[test_result][]" value="print_test_result"> Print</td>
                                     <td><input type="checkbox" class="test_result_checkbox permission_checkbox" name="permissions[test_result][]" value="delete_test_result"> Delete</td>
                                     <td><input type="checkbox" class="test_result_checkbox permission_checkbox" name="permissions[test_result][]" value="search_test_result"> Search </td>
-                                </tr>
+   </tr>
+   <tr>
+    <td class="bg-primary">Panel Test Result</td>
+    <td class="bg-success"><input type="checkbox" class="select_all_panel_test_result_checkbox permission_checkbox" id="select_all_panel_test_result"> All</td>
+    <td><input type="checkbox" class="panel_test_result_checkbox permission_checkbox" name="permissions[panel_test_result][]" value="add_panel_test_result"> Add </td>
+    <td><input type="checkbox" class="panel_test_result_checkbox permission_checkbox" name="permissions[panel_test_result][]" value="edit_panel_test_result"> Edit</td>
+    <td><input type="checkbox" class="panel_test_result_checkbox permission_checkbox" name="permissions[panel_test_result][]" value="view_panel_test_result"> View</td>
+    <td><input type="checkbox" class="panel_test_result_checkbox permission_checkbox" name="permissions[panel_test_result][]" value="print_panel_test_result"> Print</td>
+    <td><input type="checkbox" class="panel_test_result_checkbox permission_checkbox" name="permissions[panel_test_result][]" value="delete_panel_test_result"> Delete</td>
                                 <tr>
                                     <td class="bg-primary">Test Configuration</td>
                                     <td class="bg-success"><input type="checkbox" class="select_all_test_configuration_checkbox permission_checkbox" id="select_all_test_configuration"> All</td>

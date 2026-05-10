@@ -16,6 +16,12 @@
                 <?php if (in_array('view_test_result', $permissions)) { ?>
                     <li><a class="box_a" href="<?php echo base_url() . "index.php/TestResultController/view_test_result"; ?>">View</a></li>
                 <?php } ?>
+                <?php if (in_array('add_panel_test_result', $permissions)) { ?>
+                    <li><a class="box_a" href="<?php echo base_url() ?>add-test-result">Add Panel Test</a></li>
+                <?php } ?>
+                <?php if (in_array('view_panel_test_result', $permissions)) { ?>
+                    <li><a class="box_a" href="<?php echo base_url() . "index.php/TestResultController/view_panel_test_result"; ?>">View Panel Test</a></li>
+                <?php } ?>
                
             </ul>
         </li>
