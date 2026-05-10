@@ -267,6 +267,12 @@
              <?php if (in_array('test_setting_test_name', $permissions)) { ?>
                  <li><a class="box_a" href="<?php echo base_url('test-name') ?>">Test Name</a></li>
              <?php } ?>
+             
+             <li><a class="box_a" href="<?php echo base_url('panel') ?>">Panel</a></li>
+             <li><a class="box_a" href="<?php echo base_url('section') ?>">Section</a></li>
+             <li><a class="box_a" href="<?php echo base_url('parameter') ?>">Parameter</a></li>
+             <li><a class="box_a" href="<?php echo base_url('report-result') ?>">Report Result</a></li>
+             
          </ul>
      </li>
  <?php } 
@@ -278,9 +284,11 @@
      <li class="dropdown">
          <i class="fa fa-cog"></i> User Management <span class="icon">+</span>
          <ul class="submenu">
+
              <?php if (in_array('user_management_setting_user', $permissions)) { ?>
                  <li><a class="box_a" href="<?php echo base_url('user') ?>">User</a></li>
              <?php } ?>
+
              <?php if (in_array('user_management_setting_user_permissions', $permissions)) { ?>
                  <li><a class="box_a" href="<?php echo base_url('add-permission') ?>">User Permissions</a></li>
              <?php } ?>
