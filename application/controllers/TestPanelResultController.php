@@ -197,6 +197,92 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
+     * Listing page for panel-test (lab_reports) entries.
+     * Filters: patient (name/id), panel_id, date_from, date_to. Pagination via CI library.
+     */
+    public function view_panel_test()
+    {
+        $this->load->model('Report_model');
+
+        $patient = trim((string) $this->input->get_post('patient', true));
+        $panel_id = (int) $this->input->get_post('panel_id', true);
+        $date_from = trim((string) $this->input->get_post('date_from', true));
+        $date_to = trim((string) $this->input->get_post('date_to', true));
+
+        $filters = array(
+            'patient' => $patient,
+            'panel_id' => $panel_id,
+            'date_from' => $date_from,
+            'date_to' => $date_to,
+        );
+
+        $seg = $this->uri->segment(3);
+        $offset = ($seg !== null && $seg !== '' && ctype_digit((string) $seg)) ? (int) $seg : 0;
+
+        $config = array();
+        $config['base_url'] = site_url('TestPanelResultController/view_panel_test');
+        $config['reuse_query_string'] = true;
+        $config['total_rows'] = $this->Report_model->count_panel_reports($filters);
+        $config['per_page'] = 25;
+        $config['uri_segment'] = 3;
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['prev_link'] = '<i class="fa fa-long-arrow-left"></i> Previous';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['next_link'] = 'Next <i class="fa fa-long-arrow-right"></i>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $this->pagination->initialize($config);
+
+        $rows = $this->Report_model->panel_reports_filtered($filters, $offset, $config['per_page'], 'lr.id', 'desc');
+
+        $page_data = array(
+            'page_name' => 'test_panel_result/view_panel_test',
+            'page_title' => 'View Panel Test',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'panels' => $this->Report_model->get_all_panels(),
+            'rows' => $rows,
+            'pagination' => $this->pagination->create_links(),
+            'total_rows' => (int) $config['total_rows'],
+            'per_page' => (int) $config['per_page'],
+            'offset' => $offset,
+            'sl_start' => $offset + 1,
+            'filter_patient' => $patient,
+            'filter_panel_id' => $panel_id,
+            'filter_date_from' => $date_from,
+            'filter_date_to' => $date_to,
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
+     * Delete a panel-test report and its result rows.
+     */
+    public function delete_panel_test($id = 0)
+    {
+        $this->load->model('Report_model');
+        $id = (int) $id;
+        if ($id < 1) {
+            redirect('TestPanelResultController/view_panel_test');
+        }
+        $this->Report_model->delete_report_with_results($id);
+        $back = $this->input->get('back');
+        if (!empty($back)) {
+            redirect($back);
+        }
+        redirect('TestPanelResultController/view_panel_test');
+    }
+
+    /**
      * Returns the HTML fragment of section headings + parameter inputs for the chosen panel.
      * POST: panel_test_id
      */
