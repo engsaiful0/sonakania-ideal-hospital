@@ -98,7 +98,7 @@ $back_url = uri_string() . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STR
                         <?php if (!empty($rows)) {
                             $sl = $sl_start;
                             foreach ($rows as $r) {
-                                $view_url = site_url('report/view_report/' . (int) $r->id);
+                                $view_url = site_url('TestPanelResultController/panel_test_print/' . (int) $r->id);
                                 $print_url = $view_url . '?print=1';
                                 $delete_url = site_url('TestPanelResultController/delete_panel_test/' . (int) $r->id)
                                     . '?back=' . urlencode($back_url);

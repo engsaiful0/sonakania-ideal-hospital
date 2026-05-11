@@ -278,6 +278,32 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
+     * Renders the structured panel-test print view for a saved lab_reports row.
+     * URL: TestPanelResultController/panel_test_print/{id}[?print=1]
+     */
+    public function panel_test_print($id = 0)
+    {
+        $this->load->model('Report_model');
+        $id = (int) $id;
+        $report = $this->Report_model->get_report_with_panel($id);
+        if (!$report) {
+            show_404();
+        }
+
+        $auto_print = (int) $this->input->get('print') === 1;
+
+        $page_data = array(
+            'page_name' => 'test_panel_result/panel_test_print',
+            'page_title' => 'Panel Test Report',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'report' => $report,
+            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'auto_print' => $auto_print,
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
      * Delete a panel-test report and its result rows.
      */
     public function delete_panel_test($id = 0)
@@ -442,7 +468,7 @@ class TestPanelResultController extends CI_Controller
             $saved_rows++;
         }
 
-        $print_url = site_url('report/view_report/' . $report_id) . '?print=1';
+        $print_url = site_url('TestPanelResultController/panel_test_print/' . $report_id) . '?print=1';
 
         $this->output->set_content_type('application/json')->set_output(json_encode(array(
             'success' => true,

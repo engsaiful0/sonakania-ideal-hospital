@@ -1,3 +1,36 @@
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #report,
+        #report * {
+            visibility: visible;
+            overflow: visible;
+        }
+
+        #report {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+
+
+        .p1 {
+            line-height: 80% !important;
+        }
+
+        #entry_by {
+            margin-top: 5px !important;
+        }
+    }
+
+    .p1 {
+        line-height: 80% !important;
+    }
+</style>
 <?php
 /**
  * Maps stored status to Bootstrap 3 labels (color badges).
@@ -23,6 +56,13 @@ if (!function_exists('lab_report_status_badge')) {
     }
 }
 ?>
+<div class="row">
+    <div class="col-md-12">
+        <button onclick="window.print()" id="sumbit_button" class="btn btn-primary">Print</button>
+    </div>
+
+</div>
+<div id="report" style="width: 90%;margin:0 auto;margin-left:45px;;margin-top:50px;">
 
 <div class="panel panel-primary" id="lab-report-view">
     <div class="panel-heading clearfix">
@@ -90,14 +130,12 @@ if (!function_exists('lab_report_status_badge')) {
                 <p class="text-muted">No result rows stored for this report.</p>
             <?php } ?>
 
-            <p style="margin-top:16px;" class="hidden-print">
-                <button type="button" class="btn btn-primary" onclick="window.print()"><i class="fa fa-print"></i> Print</button>
-                <a href="<?php echo site_url('report/create_report'); ?>" class="btn btn-default">New report</a>
-            </p>
+          
         <?php } else { ?>
             <p class="text-danger">Report not found.</p>
         <?php } ?>
     </div>
+</div>
 </div>
 
 <?php if (!empty($auto_print)) { ?>
