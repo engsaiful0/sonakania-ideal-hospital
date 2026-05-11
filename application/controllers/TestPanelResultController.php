@@ -426,7 +426,9 @@ class TestPanelResultController extends CI_Controller
 
         $report_data = array(
             'patient_name' => $patient_name,
-            'age' => (string) $this->input->post('age', true),
+            'age_year' => (string) $this->input->post('age_year', true),
+            'age_month' => (string) $this->input->post('age_month', true),
+            'age_day' => (string) $this->input->post('age_day', true),
             'sex' => (string) $this->input->post('gender', true),
             'patient_id' => (string) $this->input->post('invoice_no', true),
             'panel_id' => $panel_id,

@@ -67,8 +67,8 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 
 <div class="panel panel-primary" id="lab-report-view">
 <div class="" style="width: 100%;margin-bottom: 10px;">
-            <div style="width: 15%;float: left;margin-top:20px">
-                <img style="width:90%;padding-left: 30px;" src="<?php echo base_url() ?>assets/images/<?php echo $compnay->logo ?>">
+            <div style="width: 15%;float: left;margin-top:5px">
+                <img style="width:70%;padding-left: 30px;height: 100px;" src="<?php echo base_url() ?>assets/images/<?php echo $compnay->logo ?>">
             </div>
             <div style="width: 70%;float: left;text-align: center">
                 <p style="text-align: center"><span style="text-align: center;font-size: 20px;text-align: center "> <?php echo $compnay->company_name ?><br><?php echo $compnay->address ?></span><br>
@@ -94,32 +94,53 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                     <tr>
                         <td style="width:140px;"><strong>Name</strong></td>
                         <td><?php echo html_escape($report->patient_name); ?></td>
-                    </tr>
-                    <tr>
+                   
                         <td><strong>Age</strong></td>
-                        <td><?php echo isset($report->age) ? html_escape((string) $report->age) : '—'; ?></td>
+                        <td>
+                        <b>
+                            <?php
+                            $age_parts = [];
+
+                            if ($report->age_year > 0) {
+                                $age_parts[] = $report->age_year . ' ' . ($report->age_year == 1 ? 'Year' : 'Years');
+                            }
+
+                            if ($report->age_month > 0) {
+                                $age_parts[] = $report->age_month . ' ' . ($report->age_month == 1 ? 'Month' : 'Months');
+                            }
+
+                            if ($report->age_day > 0) {
+                                $age_parts[] = $report->age_day . ' ' . ($report->age_day == 1 ? 'Day' : 'Days');
+                            }
+
+                            echo implode(' ', $age_parts);
+                            ?>
+                        </b>
+                        </td>
                     </tr>
                     <tr>
                         <td><strong>Sex</strong></td>
                         <td><?php echo isset($report->sex) ? html_escape((string) $report->sex) : '—'; ?></td>
-                    </tr>
-                    <tr>
+                  
                         <td><strong>Patient ID</strong></td>
                         <td><?php echo isset($report->patient_id) && $report->patient_id !== '' ? html_escape((string) $report->patient_id) : '—'; ?></td>
                     </tr>
-                    <tr>
-                        <td><strong>Panel</strong></td>
-                        <td><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></td>
-                    </tr>
+                
                     <tr>
                         <td><strong>Report date</strong></td>
-                        <td><?php echo isset($report->report_date) ? html_escape($report->report_date) : '—'; ?></td>
-                    </tr>
-                    <tr>
+                        <td><?php echo date('d-m-Y', strtotime($report->report_date)); ?></td>
+                    
                         <td><strong>Report #</strong></td>
                         <td><?php echo (int) $report->id; ?></td>
                     </tr>
                 </table>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                 
+                    <h4 style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></h4>
+                </div>
+               
             </div>
 
             <hr>

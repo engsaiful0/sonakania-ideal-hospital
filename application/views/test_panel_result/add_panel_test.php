@@ -51,24 +51,33 @@
 
     function patient_data_set(invoice_no) {
         $('#img').show();
-        //alert(product_category_id);
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
                 var patient = xhttp.responseText;
                 var patient_array = patient.split('*');
-                //alert(patient_array);
-                document.getElementById("patient_test_entry_id").value = patient_array[0];
-                document.getElementById("patient_name").value = patient_array[1];
-                document.getElementById("mobile_number").value = patient_array[2];
-                document.getElementById("age").value = patient_array[3];
-                document.getElementById("gender").value = patient_array[4];
-                document.getElementById("invoice_date").value = patient_array[5];
-                document.getElementById("invoice_time").value = patient_array[6];
-                document.getElementById("age_year").value = patient_array[7];
-                document.getElementById("age_month").value = patient_array[8];
-                document.getElementById("age_day").value = patient_array[9];
-                
+
+                // Safely assign a value to an input by id; ignore inputs that
+                // don't exist on this form (e.g. plain `age` is omitted here
+                // because age is split into age_year/age_month/age_day).
+                var setValue = function(id, value) {
+                    var el = document.getElementById(id);
+                    if (el) {
+                        el.value = (value === undefined || value === null) ? '' : value;
+                    }
+                };
+
+                setValue('patient_test_entry_id', patient_array[0]);
+                setValue('patient_name',          patient_array[1]);
+                setValue('mobile_number',         patient_array[2]);
+                setValue('age',                   patient_array[3]);
+                setValue('gender',                patient_array[4]);
+                setValue('invoice_date',          patient_array[5]);
+                setValue('invoice_time',          patient_array[6]);
+                setValue('age_year',              patient_array[7]);
+                setValue('age_month',             patient_array[8]);
+                setValue('age_day',               patient_array[9]);
+
                 $('#img').hide();
             }
         }
