@@ -110,20 +110,22 @@ $back_url = uri_string() . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STR
                                     <td>
                                         <strong><?php echo html_escape($r->patient_name); ?></strong>
                                         <?php
-                                        $sub = array();
-                                        if (isset($r->age) && $r->age !== '') {
-                                            $sub[] = 'Age ' . html_escape((string) $r->age);
-                                        }
-                                        if (isset($r->sex) && $r->sex !== '') {
-                                            $sub[] = html_escape((string) $r->sex);
-                                        }
-                                        if (isset($r->patient_id) && $r->patient_id !== '') {
-                                            $sub[] = '#' . html_escape((string) $r->patient_id);
-                                        }
-                                        if (!empty($sub)) {
-                                            echo '<br><small class="text-muted">' . implode(' · ', $sub) . '</small>';
-                                        }
-                                        ?>
+                            $age_parts = [];
+
+                            if ($r->age_year > 0) {
+                                $age_parts[] = $r->age_year . ' ' . ($r->age_year == 1 ? 'Year' : 'Years');
+                            }
+
+                            if ($r->age_month > 0) {
+                                $age_parts[] = $r->age_month . ' ' . ($r->age_month == 1 ? 'Month' : 'Months');
+                            }
+
+                                if ($r->age_day > 0) {
+                                $age_parts[] = $r->age_day . ' ' . ($r->age_day == 1 ? 'Day' : 'Days');
+                            }
+
+                            echo implode(' ', $age_parts);
+                            ?>
                                     </td>
                                     <td><?php echo isset($r->panel_name) ? html_escape($r->panel_name) : '—'; ?></td>
                                     <td class="text-right"><?php echo (int) $r->result_count; ?></td>

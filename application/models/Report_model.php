@@ -119,7 +119,18 @@ class Report_model extends CI_Model
             return '—';
         }
         if (isset($row->normal_range) && trim((string) $row->normal_range) !== '') {
-            return (string) $row->normal_range;
+            // The normal_range column may have been entered through a rich-text
+            // editor and arrive wrapped in tags like <p>…</p> (or contain &nbsp;,
+            // <br>, etc.). Strip all HTML and collapse stray whitespace so the
+            // printed cell shows clean text only.
+            $raw   = (string) $row->normal_range;
+            $clean = strip_tags($raw);
+            $clean = html_entity_decode($clean, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $clean = preg_replace('/\s+/u', ' ', $clean);
+            $clean = trim($clean);
+            if ($clean !== '') {
+                return $clean;
+            }
         }
         $unit = isset($row->unit) ? trim((string) $row->unit) : '';
         $hmin = isset($row->min_value) && $row->min_value !== null && $row->min_value !== '';
@@ -249,7 +260,7 @@ class Report_model extends CI_Model
     public function panel_reports_filtered($filters, $start, $length, $order_col = 'lr.id', $order_dir = 'desc')
     {
         $this->db->reset_query();
-        $this->db->select('lr.id, lr.patient_name, lr.age, lr.sex, lr.patient_id, lr.report_date, pp.panel_name,
+        $this->db->select('lr.id, lr.patient_name, lr.age_year, lr.age_month, lr.age_day, lr.sex, lr.patient_id, lr.report_date, pp.panel_name,
             (SELECT COUNT(*) FROM lab_report_results lrr WHERE lrr.report_id = lr.id) AS result_count')
             ->from($this->table_reports . ' lr')
             ->join('test_panels pp', 'pp.id = lr.panel_id', 'left');
