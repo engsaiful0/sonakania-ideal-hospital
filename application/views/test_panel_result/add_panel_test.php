@@ -346,7 +346,22 @@
                             </div>
                         </div>
 
-
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4" for="name">Report Type</label>
+                            <div class="col-sm-8">
+                                <?php
+                                $panel_test = getAllPanelTest();
+                                ?>
+                                <select class="form-control" onchange="panel_test_load(this.value)" id="panel_test_id" name="panel_test_id">
+                                    <option value="">Select Panel Test</option>
+                                    <?php foreach ($panel_test as $value) { ?>
+                                        <option value="<?php echo $value->id; ?>"><?php echo $value->panel_name; ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6" id="manual_report_container" style="display: none;">
                         <div class="form-group">
