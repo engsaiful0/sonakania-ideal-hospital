@@ -193,7 +193,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
            
                  
                     <h4 style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></h4>
-
+<p style="text-align: center;"><?php echo isset($report->description) ? html_escape($report->description) : '—'; ?></p>
 
             <hr>
 

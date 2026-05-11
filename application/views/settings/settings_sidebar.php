@@ -271,7 +271,7 @@
              <li><a class="box_a" href="<?php echo base_url('panel') ?>">Panel</a></li>
              <li><a class="box_a" href="<?php echo base_url('section') ?>">Section</a></li>
              <li><a class="box_a" href="<?php echo base_url('parameter') ?>">Parameter</a></li>
-             <li><a class="box_a" href="<?php echo base_url('report-result') ?>">Report Result</a></li>
+          
              
          </ul>
      </li>

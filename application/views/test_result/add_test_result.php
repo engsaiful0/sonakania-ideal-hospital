@@ -57,6 +57,9 @@
                 document.getElementById("gender").value = patient_array[4];
                 document.getElementById("invoice_date").value = patient_array[5];
                 document.getElementById("invoice_time").value = patient_array[6];
+                document.getElementById("age_year").value = patient_array[7];
+                document.getElementById("age_month").value = patient_array[8];
+                document.getElementById("age_day").value = patient_array[9];
                 test_configuration_load();
                 $('#img').hide();
             }
@@ -246,7 +249,10 @@
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Age</label>
                             <div class="col-sm-8">
-                                <input type="text" readonly="" class="form-control" placeholder="Age" id="age" name="age">
+                                
+                                <input type="text" readonly="" class="form-control" placeholder="Year" id="age_year" name="age_year">
+                                <input type="text" readonly="" class="form-control" placeholder="Month" id="age_month" name="age_month">
+                                <input type="text" readonly="" class="form-control" placeholder="Day" id="age_day" name="age_day">
                             </div>
                         </div>
                     </div>

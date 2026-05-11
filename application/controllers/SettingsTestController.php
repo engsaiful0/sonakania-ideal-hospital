@@ -213,10 +213,11 @@ class SettingsTestController extends CI_Controller
         //        endif;
         $crud->required_fields('panel_name','panel_name_bangla');
         
-        $crud->columns('panel_name', 'panel_name_bangla');
-        $crud->fields('panel_name', 'panel_name_bangla');
+        $crud->columns('panel_name', 'panel_name_bangla','description');
+        $crud->fields('panel_name', 'panel_name_bangla','description');
         $crud->display_as('panel_name', 'Panel Name');
         $crud->display_as('panel_name_bangla', 'Panel Name Bangla');
+        $crud->display_as('description', 'Description');
         $output = $crud->render();
         $this->load->view('frame/grocery_crud_view.php', $output);
     }

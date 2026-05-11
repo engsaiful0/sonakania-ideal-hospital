@@ -71,14 +71,23 @@ class TestPanelResultController extends CI_Controller
     }
     public function print_panel_test_with_id($id)
     {
-        $data['report'] = $this->db->where('id', $id)->get('lab_reports')->row();
-        $this->load->view('test_panel_result/panel_test_print', $data, TRUE);
-        $sdata['success'] = 'saved successully';
-        $this->session->set_userdata($sdata);
+        $this->load->model('Report_model');
+        $id = (int) $id;
+
+        $report = $this->Report_model->get_report_with_panel($id);
+        if (!$report) {
+            show_404();
+        }
+
+        $auto_print = (int) $this->input->get('print') === 1;
+
         $page_data = array(
-            'page_name' => 'test_panel_result/panel_test_print',
-            'page_title' => 'Print Panel Test',
-            'sidebar' => 'test_result/test_result_sidebar'
+            'page_name'      => 'test_panel_result/panel_test_print',
+            'page_title'     => 'Print Panel Test',
+            'sidebar'        => 'test_result/test_result_sidebar',
+            'report'         => $report,
+            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'auto_print'     => $auto_print,
         );
         $this->load->view('content', $page_data);
     }
@@ -348,44 +357,60 @@ class TestPanelResultController extends CI_Controller
         <h4 class="text-primary" style="margin-top:0;">
             <?php echo html_escape($panel->panel_name); ?>
         </h4>
-        <?php foreach ($sections as $s) { ?>
-            <div class="well well-sm" style="margin-bottom:14px;">
-                <h4 style="margin-top:0;border-bottom:1px solid #ddd;padding-bottom:6px;">
-                    <?php echo html_escape($s->section_name); ?>
-                </h4>
-                <?php if (empty($s->parameters)) { ?>
-                    <p class="text-muted">No parameters in this section.</p>
-                <?php } else { ?>
-                    <div class="row">
-                        <?php foreach ($s->parameters as $p) {
-                            $pname = 'parameters[' . (int) $p->id . ']';
-                            $unit = isset($p->unit) && $p->unit !== '' ? ' <span class="text-muted">(' . html_escape($p->unit) . ')</span>' : '';
-                            $type = isset($p->input_type) ? $p->input_type : 'text';
-                        ?>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
-                                    <div class="col-sm-7">
-                                        <?php if ($type === 'numeric') {
-                                            $min = isset($p->min_value) && $p->min_value !== null && $p->min_value !== '' ? ' min="' . html_escape($p->min_value) . '"' : '';
-                                            $max = isset($p->max_value) && $p->max_value !== null && $p->max_value !== '' ? ' max="' . html_escape($p->max_value) . '"' : '';
-                                            echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '"' . $min . $max . '>';
-                                        } elseif ($type === 'boolean') {
-                                            echo '<select class="form-control panel-param" name="' . $pname . '">'
-                                                . '<option value="">—</option>'
-                                                . '<option value="Negative">Negative</option>'
-                                                . '<option value="Positive">Positive</option>'
-                                                . '</select>';
-                                        } else {
-                                            echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500">';
-                                        } ?>
-                                    </div>
+        <?php foreach ($sections as $s) {
+            // Each section sits inside its own full-width row + clearfix so
+            // section blocks always start on a fresh line and parameter
+            // columns from different sections can never float into each other.
+        ?>
+            <div class="row panel-section-row" style="clear:both;">
+                <div class="col-md-12">
+                    <div class="well well-sm panel-section-well" style="margin-bottom:18px;">
+                        <h4 style="margin-top:0;border-bottom:1px solid #ddd;padding-bottom:6px;">
+                            <?php echo html_escape($s->section_name); ?>
+                        </h4>
+                        <?php if (empty($s->parameters)) { ?>
+                            <p class="text-muted">No parameters in this section.</p>
+                        <?php } else {
+                            // Chunk parameters two-per-row so each pair lives
+                            // in its own .row container — this prevents
+                            // float-height differences from spilling a
+                            // following parameter alongside a previous one.
+                            $pairs = array_chunk($s->parameters, 2);
+                            foreach ($pairs as $pair) { ?>
+                                <div class="row">
+                                    <?php foreach ($pair as $p) {
+                                        $pname = 'parameters[' . (int) $p->id . ']';
+                                        $unit = isset($p->unit) && $p->unit !== '' ? ' <span class="text-muted">(' . html_escape($p->unit) . ')</span>' : '';
+                                        $type = isset($p->input_type) ? $p->input_type : 'text';
+                                    ?>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
+                                                <div class="col-sm-7">
+                                                    <?php if ($type === 'numeric') {
+                                                        $min = isset($p->min_value) && $p->min_value !== null && $p->min_value !== '' ? ' min="' . html_escape($p->min_value) . '"' : '';
+                                                        $max = isset($p->max_value) && $p->max_value !== null && $p->max_value !== '' ? ' max="' . html_escape($p->max_value) . '"' : '';
+                                                        echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '"' . $min . $max . '>';
+                                                    } elseif ($type === 'boolean') {
+                                                        echo '<select class="form-control panel-param" name="' . $pname . '">'
+                                                            . '<option value="">—</option>'
+                                                            . '<option value="Negative">Negative</option>'
+                                                            . '<option value="Positive">Positive</option>'
+                                                            . '</select>';
+                                                    } else {
+                                                        echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500">';
+                                                    } ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
                                 </div>
-                            </div>
-                        <?php } ?>
+                            <?php }
+                        } ?>
                     </div>
-                <?php } ?>
+                </div>
             </div>
+            <div class="clearfix"></div>
         <?php }
     }
 

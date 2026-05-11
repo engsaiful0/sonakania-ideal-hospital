@@ -74,7 +74,25 @@
             <tr>
                 <td>Age</td>
                 <td>
-                    <b><?php echo $patient_test_entry->age ?></b>
+                    <b>
+                    <?php
+                            $age_parts = [];
+
+                            if ($patient_test_entry->age_year > 0) {
+                                $age_parts[] = $patient_test_entry->age_year . ' ' . ($patient_test_entry->age_year == 1 ? 'Year' : 'Years');
+                            }
+
+                            if ($patient_test_entry->age_month > 0) {
+                                $age_parts[] = $patient_test_entry->age_month . ' ' . ($patient_test_entry->age_month == 1 ? 'Month' : 'Months');
+                            }
+
+                            if ($patient_test_entry->age_day > 0) {
+                                $age_parts[] = $patient_test_entry->age_day . ' ' . ($patient_test_entry->age_day == 1 ? 'Day' : 'Days');
+                            }
+
+                            echo implode(' ', $age_parts);
+                            ?>
+                    </b>
                 </td>
                 <td>Gender</td>
                 <td>
