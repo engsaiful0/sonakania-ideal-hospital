@@ -88,10 +88,16 @@ class Report_model extends CI_Model
 
     /**
      * Flat list of result rows with section metadata (ordered).
+     * Also returns min_value / max_value (always) and normal_range (if the column exists).
      */
     public function get_report_results($report_id)
     {
-        $this->db->select('lrr.*, tp.parameter_name, tp.unit, tp.input_type, ts.id AS section_id, ts.section_name')
+        $select = 'lrr.*, tp.parameter_name, tp.unit, tp.input_type, tp.min_value, tp.max_value,'
+            . ' ts.id AS section_id, ts.section_name';
+        if ($this->db->field_exists('normal_range', 'test_parameters')) {
+            $select .= ', tp.normal_range';
+        }
+        $this->db->select($select)
             ->from('lab_report_results lrr')
             ->join('test_parameters tp', 'tp.id = lrr.parameter_id')
             ->join('test_sections ts', 'ts.id = tp.section_id')
@@ -99,6 +105,39 @@ class Report_model extends CI_Model
             ->order_by('ts.id', 'ASC')
             ->order_by('tp.id', 'ASC');
         return $this->db->get()->result();
+    }
+
+    /**
+     * Best-effort "Normal range" string for a result row:
+     *  - Prefer literal `normal_range` text on test_parameters when present.
+     *  - Else compose from min_value/max_value (with unit appended when available).
+     *  - Returns '—' when no info is available.
+     */
+    public function format_normal_range($row)
+    {
+        if (!is_object($row)) {
+            return '—';
+        }
+        if (isset($row->normal_range) && trim((string) $row->normal_range) !== '') {
+            return (string) $row->normal_range;
+        }
+        $unit = isset($row->unit) ? trim((string) $row->unit) : '';
+        $hmin = isset($row->min_value) && $row->min_value !== null && $row->min_value !== '';
+        $hmax = isset($row->max_value) && $row->max_value !== null && $row->max_value !== '';
+        $fmt = function ($v) {
+            $s = rtrim(rtrim((string) $v, '0'), '.');
+            return $s === '' ? '0' : $s;
+        };
+        if ($hmin && $hmax) {
+            return $fmt($row->min_value) . ' – ' . $fmt($row->max_value) . ($unit !== '' ? ' ' . $unit : '');
+        }
+        if ($hmin) {
+            return '≥ ' . $fmt($row->min_value) . ($unit !== '' ? ' ' . $unit : '');
+        }
+        if ($hmax) {
+            return '≤ ' . $fmt($row->max_value) . ($unit !== '' ? ' ' . $unit : '');
+        }
+        return '—';
     }
 
     /**

@@ -55,6 +55,7 @@ if (!function_exists('lab_report_status_badge')) {
         return '<span class="label label-default">' . html_escape((string) $status) . '</span>';
     }
 }
+$compnay = $this->db->where('company_id', '1')->get('company')->row();
 ?>
 <div class="row">
     <div class="col-md-12">
@@ -65,9 +66,26 @@ if (!function_exists('lab_report_status_badge')) {
 <div id="report" style="width: 90%;margin:0 auto;margin-left:45px;;margin-top:50px;">
 
 <div class="panel panel-primary" id="lab-report-view">
-    <div class="panel-heading clearfix">
-        <h3 class="text-center" style="margin:0;">Lab report</h3>
-    </div>
+<div class="" style="width: 100%;margin-bottom: 10px;">
+            <div style="width: 15%;float: left;margin-top:20px">
+                <img style="width:90%;padding-left: 30px;" src="<?php echo base_url() ?>assets/images/<?php echo $compnay->logo ?>">
+            </div>
+            <div style="width: 70%;float: left;text-align: center">
+                <p style="text-align: center"><span style="text-align: center;font-size: 20px;text-align: center "> <?php echo $compnay->company_name ?><br><?php echo $compnay->address ?></span><br>
+                    <span style="text-align: center">
+                        Email: <?php echo $compnay->email ?>,Web:<?php echo $compnay->web ?>
+                    </span>
+                </p>
+            </div>
+          
+            <div style="clear: left;">
+                <p style="text-align: left;font-weight:bold">
+                    <?php if (!empty($duplicate_or_main)) {
+                        echo $duplicate_or_main;
+                    } ?></p>
+            </div>
+
+        </div>
     <div class="panel-body">
         <?php if (!empty($report)) { ?>
             <div class="well well-sm" style="background:#f9f9f9;">
@@ -113,14 +131,23 @@ if (!function_exists('lab_report_status_badge')) {
                             <?php echo html_escape($block['section_name']); ?>
                         </h4>
                         <table class="table table-bordered table-hover table-condensed">
+                            <thead>
+                                <tr>
+                                    <th style="width:32%;">Parameter</th>
+                                    <th style="width:18%;">Result</th>
+                                    
+                                    <th style="width:35%;">Normal Range</th>
+                                </tr>
+                            </thead>
                             <?php foreach ($block['rows'] as $row) {
                                 $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                 $badge = lab_report_status_badge($row->status);
+                                $normal_range = $this->Report_model->format_normal_range($row);
                             ?>
                                 <tr>
-                                    <td style="width:35%;"><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
-                                    <td style="width:35%;"><?php echo html_escape((string) $row->result_value); ?></td>
-                                    <td style="width:30%;"><?php echo $badge; ?></td>
+                                    <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                    <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                    <td><?php echo html_escape($normal_range); ?></td>
                                 </tr>
                             <?php } ?>
                         </table>

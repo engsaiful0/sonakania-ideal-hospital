@@ -356,7 +356,7 @@ class TestResultController extends CI_Controller
         $invoice_no = $_POST['invoice_no'];
         $patient_test_entry = $this->db->where('invoice_no', $invoice_no)->get('patient_test_entry')->row();
 
-        echo $patient_test_entry->patient_test_entry_id . '*' . $patient_test_entry->patient_name . '*' . $patient_test_entry->mobile_number . '*' . $patient_test_entry->age . '*' . $patient_test_entry->gender . '*' . date('Y-m-d', strtotime($patient_test_entry->date)) . '*' . $patient_test_entry->time;
+        echo $patient_test_entry->patient_test_entry_id . '*' . $patient_test_entry->patient_name . '*' . $patient_test_entry->mobile_number . '*' . $patient_test_entry->age . '*' . $patient_test_entry->gender . '*' . date('Y-m-d', strtotime($patient_test_entry->date)) . '*' . $patient_test_entry->time . '*' . $patient_test_entry->age_year . '*' . $patient_test_entry->age_month . '*' . $patient_test_entry->age_day;
     }
 
     public function edit_biomedical_data_save()
