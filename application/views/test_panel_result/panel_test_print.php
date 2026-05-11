@@ -66,7 +66,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 <div id="report" style="width: 90%;margin:0 auto;margin-left:45px;;margin-top:50px;">
 
 <div class="panel panel-primary" id="lab-report-view">
-<div class="" style="width: 100%;margin-bottom: 10px;">
+<!-- <div class="" style="width: 100%;margin-bottom: 10px;">
             <div style="width: 15%;float: left;margin-top:5px">
                 <img style="width:70%;padding-left: 30px;height: 100px;" src="<?php echo base_url() ?>assets/images/<?php echo $compnay->logo ?>">
             </div>
@@ -85,12 +85,12 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                     } ?></p>
             </div>
 
-        </div>
+        </div> -->
     <div class="panel-body">
         <?php if (!empty($report)) { ?>
             <div class="well well-sm" style="background:#f9f9f9;">
                 <h4 style="margin-top:0;">Patient information</h4>
-                <table class="table table-condensed" style="margin-bottom:0;">
+                <table class="table table-bordered table-hover table-striped">
                     <tr>
                         <td style="width:140px;"><strong>Name</strong></td>
                         <td><?php echo html_escape($report->patient_name); ?></td>
@@ -151,7 +151,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                         <h4 style="border-bottom:2px solid #337ab7;padding-bottom:6px;color:#337ab7;">
                             <?php echo html_escape($block['section_name']); ?>
                         </h4>
-                        <table class="table table-bordered table-hover table-condensed">
+                        <table class="table table-bordered table-hover table-striped">
                             <thead>
                                 <tr>
                                     <th style="width:32%;">Parameter</th>
