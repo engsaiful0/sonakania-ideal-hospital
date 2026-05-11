@@ -69,6 +69,19 @@ class TestPanelResultController extends CI_Controller
             <?php
         }
     }
+    public function print_panel_test_with_id($id)
+    {
+        $data['report'] = $this->db->where('id', $id)->get('lab_reports')->row();
+        $this->load->view('test_panel_result/panel_test_print', $data, TRUE);
+        $sdata['success'] = 'saved successully';
+        $this->session->set_userdata($sdata);
+        $page_data = array(
+            'page_name' => 'test_panel_result/panel_test_print',
+            'page_title' => 'Print Panel Test',
+            'sidebar' => 'test_result/test_result_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
 
     public function patient_unique_id_load_load()
     {

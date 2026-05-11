@@ -128,11 +128,11 @@ $back_url = uri_string() . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STR
                                     <td><?php echo isset($r->panel_name) ? html_escape($r->panel_name) : '—'; ?></td>
                                     <td class="text-right"><?php echo (int) $r->result_count; ?></td>
                                     <td class="text-nowrap">
-                                        <a class="btn btn-xs btn-primary" href="<?php echo $view_url; ?>" title="View">
-                                            <i class="glyphicon glyphicon-eye-open"></i>
-                                        </a>
-                                        <a class="btn btn-xs btn-info" target="_blank" href="<?php echo $print_url; ?>" title="Print">
+                                        <a class="btn btn-xs btn-primary" href="<?php echo base_url("print-panel-test-with-id/$r->id") ?>" title="View">
                                             <i class="glyphicon glyphicon-print"></i>
+                                        </a>
+                                        <a class="btn btn-xs btn-info"  href="<?php echo base_url("test-result-edit/$r->id") ?>" title="Edit">
+                                            <i class="glyphicon glyphicon-pencil"></i>
                                         </a>
                                         <a class="btn btn-xs btn-danger" href="<?php echo $delete_url; ?>"
                                             onclick="return confirm('Delete this report and its results?');" title="Delete">

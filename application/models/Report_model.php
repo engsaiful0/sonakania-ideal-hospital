@@ -227,7 +227,7 @@ class Report_model extends CI_Model
         $start = max(0, (int) $start);
         $length = max(1, (int) $length);
 
-        return $this->db->get(null, $length, $start)->result();
+        return $this->db->limit($length, $start)->get()->result();
     }
 
     public function delete_report_with_results($id)
