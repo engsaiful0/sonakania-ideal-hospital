@@ -16,7 +16,49 @@
             top: 0;
         }
 
+        /*
+         * Bootstrap 3's print stylesheet weakens table borders to #ddd, which
+         * many printers render as nearly invisible. Force solid black borders
+         * for every table inside the printed report so the grid stays crisp.
+         */
+        #report table,
+        #report .table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
 
+        #report table,
+        #report .table,
+        #report .table > thead > tr > th,
+        #report .table > tbody > tr > th,
+        #report .table > tfoot > tr > th,
+        #report .table > thead > tr > td,
+        #report .table > tbody > tr > td,
+        #report .table > tfoot > tr > td,
+        #report .table-bordered,
+        #report .table-bordered > thead > tr > th,
+        #report .table-bordered > tbody > tr > th,
+        #report .table-bordered > tfoot > tr > th,
+        #report .table-bordered > thead > tr > td,
+        #report .table-bordered > tbody > tr > td,
+        #report .table-bordered > tfoot > tr > td {
+            border: 1px solid #000 !important;
+            border-color: #000 !important;
+        }
+
+        #report .well {
+            border: 1px solid #000 !important;
+            background: transparent !important;
+        }
+
+        /* Make sure background fills (e.g. status badges) and panel borders
+         * are actually printed by Chrome/Edge. */
+        #report,
+        #report * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
 
         .p1 {
             line-height: 80% !important;
@@ -25,6 +67,19 @@
         #entry_by {
             margin-top: 5px !important;
         }
+    }
+
+    /* On-screen: keep the existing look but darken table borders so the
+     * "Print preview" / browser view also has a clearer grid. */
+    #report .table,
+    #report .table-bordered,
+    #report .table > thead > tr > th,
+    #report .table > tbody > tr > th,
+    #report .table > tfoot > tr > th,
+    #report .table > thead > tr > td,
+    #report .table > tbody > tr > td,
+    #report .table > tfoot > tr > td {
+        border-color: #555 !important;
     }
 
     .p1 {
@@ -135,13 +190,10 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                     </tr>
                 </table>
             </div>
-            <div class="row">
-                <div class="col-md-12">
+           
                  
                     <h4 style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></h4>
-                </div>
-               
-            </div>
+
 
             <hr>
 
