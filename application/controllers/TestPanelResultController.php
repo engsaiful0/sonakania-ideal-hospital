@@ -196,6 +196,164 @@ class TestPanelResultController extends CI_Controller
         $this->load->view('content', $page_data);
     }
 
+    /**
+     * Returns the HTML fragment of section headings + parameter inputs for the chosen panel.
+     * POST: panel_test_id
+     */
+    public function panel_test_load()
+    {
+        $this->load->model('Report_model');
+
+        $panel_id = (int) $this->input->post('panel_test_id', true);
+        if ($panel_id < 1) {
+            echo '<p class="text-warning">Select a valid panel.</p>';
+            return;
+        }
+        $panel = $this->Report_model->get_panel($panel_id);
+        if (!$panel) {
+            echo '<p class="text-danger">Panel not found.</p>';
+            return;
+        }
+        $sections = $this->Report_model->get_sections_with_parameters($panel_id);
+        if (empty($sections)) {
+            echo '<p class="text-muted">No sections/parameters defined for "' . html_escape($panel->panel_name) . '".</p>';
+            return;
+        }
+        ?>
+        <h4 class="text-primary" style="margin-top:0;">
+            <?php echo html_escape($panel->panel_name); ?>
+        </h4>
+        <?php foreach ($sections as $s) { ?>
+            <div class="well well-sm" style="margin-bottom:14px;">
+                <h4 style="margin-top:0;border-bottom:1px solid #ddd;padding-bottom:6px;">
+                    <?php echo html_escape($s->section_name); ?>
+                </h4>
+                <?php if (empty($s->parameters)) { ?>
+                    <p class="text-muted">No parameters in this section.</p>
+                <?php } else { ?>
+                    <div class="row">
+                        <?php foreach ($s->parameters as $p) {
+                            $pname = 'parameters[' . (int) $p->id . ']';
+                            $unit = isset($p->unit) && $p->unit !== '' ? ' <span class="text-muted">(' . html_escape($p->unit) . ')</span>' : '';
+                            $type = isset($p->input_type) ? $p->input_type : 'text';
+                        ?>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
+                                    <div class="col-sm-7">
+                                        <?php if ($type === 'numeric') {
+                                            $min = isset($p->min_value) && $p->min_value !== null && $p->min_value !== '' ? ' min="' . html_escape($p->min_value) . '"' : '';
+                                            $max = isset($p->max_value) && $p->max_value !== null && $p->max_value !== '' ? ' max="' . html_escape($p->max_value) . '"' : '';
+                                            echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '"' . $min . $max . '>';
+                                        } elseif ($type === 'boolean') {
+                                            echo '<select class="form-control panel-param" name="' . $pname . '">'
+                                                . '<option value="">—</option>'
+                                                . '<option value="Negative">Negative</option>'
+                                                . '<option value="Positive">Positive</option>'
+                                                . '</select>';
+                                        } else {
+                                            echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500">';
+                                        } ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                <?php } ?>
+            </div>
+        <?php }
+    }
+
+    /**
+     * AJAX save for a panel test entry. Inserts into lab_reports + lab_report_results
+     * via Report_model, evaluates status using the Report_engine library.
+     * Returns JSON { success, message, report_id, print_url }.
+     */
+    public function save_panel_test()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $this->load->model('Report_model');
+
+        $panel_id = (int) $this->input->post('panel_test_id', true);
+        if ($panel_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Please select a panel test.')));
+            return;
+        }
+        $panel = $this->Report_model->get_panel($panel_id);
+        if (!$panel) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Panel not found.')));
+            return;
+        }
+
+        $patient_name = trim((string) $this->input->post('patient_name', true));
+        if ($patient_name === '') {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Patient name is required.')));
+            return;
+        }
+
+        $report_data = array(
+            'patient_name' => $patient_name,
+            'age' => (string) $this->input->post('age', true),
+            'sex' => (string) $this->input->post('gender', true),
+            'patient_id' => (string) $this->input->post('invoice_no', true),
+            'panel_id' => $panel_id,
+            'report_date' => date('Y-m-d'),
+        );
+        $report_id = (int) $this->Report_model->insert_report($report_data);
+        if ($report_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Could not save the report.')));
+            return;
+        }
+
+        $parameters = $this->input->post('parameters');
+        if (!is_array($parameters)) {
+            $parameters = array();
+        }
+        $saved_rows = 0;
+        foreach ($parameters as $parameter_id => $value) {
+            $parameter_id = (int) $parameter_id;
+            if ($parameter_id < 1) {
+                continue;
+            }
+            $parameter = $this->Report_model->get_parameter($parameter_id);
+            if (!$parameter) {
+                continue;
+            }
+            if (is_array($value)) {
+                $value = '';
+            }
+            $value = trim((string) $value);
+            $status = $this->report_engine->evaluate($value, $parameter);
+
+            $this->Report_model->insert_result(array(
+                'report_id' => $report_id,
+                'parameter_id' => $parameter_id,
+                'result_value' => $value,
+                'status' => $status,
+            ));
+            $saved_rows++;
+        }
+
+        $print_url = site_url('report/view_report/' . $report_id) . '?print=1';
+
+        $this->output->set_content_type('application/json')->set_output(json_encode(array(
+            'success' => true,
+            'message' => 'Panel test report saved.',
+            'report_id' => $report_id,
+            'rows' => $saved_rows,
+            'print_url' => $print_url,
+        )));
+    }
+
     public function add_hormone_test()
     {
         $page_data = array(

@@ -5,22 +5,7 @@
         $('#invoice_no').focus();
     });
 
-    function test_configuration_load() {
-        var test_group_id = $('#test_group_id').val();
-        var patient_test_entry_id = $('#patient_test_entry_id').val();
-
-        $('#img').show();
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                document.getElementById("test_configuration").innerHTML = xhttp.responseText;
-                $('#img').hide();
-            }
-        }
-        xhttp.open("POST", "<?php echo site_url('TestResultController/test_configuration_load'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send("test_group_id=" + test_group_id + "&patient_test_entry_id=" + patient_test_entry_id);
-    }
+    
 
     function test_name_load(test_group_id) {
 
@@ -35,6 +20,29 @@
         xhttp.open("POST", "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send("test_group_id=" + test_group_id);
+    }
+
+    function panel_test_load(panel_test_id) {
+        var $cfg = $('#test_configuration');
+        $cfg.empty();
+        if (!panel_test_id) {
+            return;
+        }
+        $('#img').show();
+        $.ajax({
+            url: "<?php echo site_url('TestPanelResultController/panel_test_load'); ?>",
+            type: 'POST',
+            data: { panel_test_id: panel_test_id },
+            dataType: 'html'
+        }).done(function(html) {
+            $cfg.html(html).show();
+            $('#manual_or_dynamic_report').val('Dynamic');
+            $('#manual_report_container').hide();
+        }).fail(function() {
+            $cfg.html('<p class="text-danger">Could not load panel test inputs.</p>');
+        }).always(function() {
+            $('#img').hide();
+        });
     }
 
 
@@ -57,7 +65,7 @@
                 document.getElementById("gender").value = patient_array[4];
                 document.getElementById("invoice_date").value = patient_array[5];
                 document.getElementById("invoice_time").value = patient_array[6];
-                test_configuration_load();
+                
                 $('#img').hide();
             }
         }
@@ -108,6 +116,80 @@
             e.preventDefault();
             var manual_or_dynamic_report = $('#manual_or_dynamic_report').val();
             var formData = new FormData($('#test_result_entry_form')[0]); // Create FormData object with form data
+            var panel_test_id = $('#panel_test_id').val();
+
+            // Panel-test mode: when a panel is selected, save via the panel endpoint and print.
+            if (panel_test_id) {
+                var $btn = $(this);
+                var hasAnyValue = false;
+                $('.panel-param').each(function() {
+                    if ($.trim($(this).val() || '') !== '') {
+                        hasAnyValue = true;
+                        return false;
+                    }
+                });
+                if (!hasAnyValue) {
+                    $.toast({
+                        heading: 'Error',
+                        text: 'Enter at least one parameter value before saving.',
+                        showHideTransition: 'slide',
+                        position: 'top-right',
+                        hideAfter: 3000,
+                        icon: 'error'
+                    });
+                    return;
+                }
+
+                $('#test_result_entry_form :input').prop('disabled', true);
+                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: "<?php echo site_url('TestPanelResultController/save_panel_test'); ?>",
+                    data: formData,
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).done(function(res) {
+                    if (res && res.success) {
+                        $.toast({
+                            heading: 'Success',
+                            text: res.message || 'Saved',
+                            showHideTransition: 'slide',
+                            position: 'top-right',
+                            hideAfter: 1200,
+                            icon: 'success'
+                        });
+                        setTimeout(function() {
+                            window.location.href = res.print_url;
+                        }, 700);
+                    } else {
+                        $.toast({
+                            heading: 'Error',
+                            text: (res && res.message) ? res.message : 'Save failed.',
+                            showHideTransition: 'slide',
+                            position: 'top-right',
+                            hideAfter: 3000,
+                            icon: 'error'
+                        });
+                        $('#test_result_entry_form :input').prop('disabled', false);
+                        $btn.prop('disabled', false).html('Submit');
+                    }
+                }).fail(function() {
+                    $.toast({
+                        heading: 'Error',
+                        text: 'Request failed.',
+                        showHideTransition: 'slide',
+                        position: 'top-right',
+                        hideAfter: 3000,
+                        icon: 'error'
+                    });
+                    $('#test_result_entry_form :input').prop('disabled', false);
+                    $btn.prop('disabled', false).html('Submit');
+                });
+                return;
+            }
 
             // Check if the form is valid
             if ($("#test_result_entry_form").valid()) {
@@ -315,25 +397,7 @@
                 </div>
 
                 <div class="row" style="margin-top:20px">
-                    <div class="col-md-6" style="display:none">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Test Group Name</label>
-                            <div class="col-sm-8">
-                                <select type="text" required="" class="form-control" onchange="test_configuration_load()" id="test_group_id" name="test_group_id">
-                                    <option value="" disabled="" selected="">Select Test Group Name</option>
-
-                                    <?php
-                                    $test_group = $this->db->select('*')->get('test_group')->result();
-                                    foreach ($test_group as $value) {
-                                    ?>
-                                        <option value="<?php echo $value->test_group_id; ?>"><?php echo $value->test_group_name; ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                    
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Test No</label>
@@ -349,7 +413,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Report Type</label>
+                            <label class="control-label col-sm-4" for="name">Panel Test</label>
                             <div class="col-sm-8">
                                 <?php
                                 $panel_test = getAllPanelTest();

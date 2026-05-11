@@ -141,12 +141,15 @@ class Report extends CI_Controller
             show_404();
         }
 
+        $auto_print = (int) $this->input->get('print') === 1;
+
         $page_data = array(
             'page_name' => 'report/view_report',
             'page_title' => 'View lab report',
             'sidebar' => 'report/report_sidebar',
             'report' => $report,
             'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'auto_print' => $auto_print,
         );
         $this->load->view('content', $page_data);
     }

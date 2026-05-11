@@ -90,7 +90,8 @@ if (!function_exists('lab_report_status_badge')) {
                 <p class="text-muted">No result rows stored for this report.</p>
             <?php } ?>
 
-            <p style="margin-top:16px;">
+            <p style="margin-top:16px;" class="hidden-print">
+                <button type="button" class="btn btn-primary" onclick="window.print()"><i class="fa fa-print"></i> Print</button>
                 <a href="<?php echo site_url('report/create_report'); ?>" class="btn btn-default">New report</a>
             </p>
         <?php } else { ?>
@@ -98,3 +99,11 @@ if (!function_exists('lab_report_status_badge')) {
         <?php } ?>
     </div>
 </div>
+
+<?php if (!empty($auto_print)) { ?>
+    <script>
+        jQuery(function($) {
+            setTimeout(function() { window.print(); }, 400);
+        });
+    </script>
+<?php } ?>

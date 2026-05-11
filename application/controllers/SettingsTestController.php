@@ -256,8 +256,8 @@ class SettingsTestController extends CI_Controller
         //        endif;
         $crud->required_fields('parameter_name','unit','input_type','min_value','max_value');
         $crud->set_relation('section_id', 'test_sections', 'section_name');
-        $crud->columns('section_id', 'parameter_name', 'unit', 'input_type', 'min_value', 'max_value');
-        $crud->fields('section_id', 'parameter_name', 'unit', 'input_type', 'min_value', 'max_value');
+        $crud->columns('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range');
+        $crud->fields('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range');
         $crud->display_as('section_id', 'Section Name');
         $crud->display_as('parameter_name', 'Parameter Name');
         $crud->display_as('unit', 'Unit');
