@@ -113,21 +113,25 @@ class TestResultController extends CI_Controller
 
     public function test_configuration_load()
     {
-        $test_group_id = $_POST['test_group_id'];
-        $patient_test_entry_id = $_POST['patient_test_entry_id'];
+        $test_group_id = $this->input->post('test_group_id', true);
+        $patient_test_entry_id = $this->input->post('patient_test_entry_id', true);
 
-        // $test_configuration = $this->db
-        //     ->where('name_only', 'no')
-        //     ->where('test_group_id', $test_group_id)
-        //     ->get('test')->result();
+        if ($patient_test_entry_id === null || $patient_test_entry_id === '' || !ctype_digit((string) $patient_test_entry_id)) {
+            echo '<p class="text-warning">Enter a valid invoice to load patient tests.</p>';
+            return;
+        }
+
+        $apply_group = ($test_group_id !== null && $test_group_id !== '' && ctype_digit((string) $test_group_id));
 
         $this->db->select('test.test_name,test.test_id');
         $this->db->from('test');
         $this->db->join('patient_test_entry_details', 'patient_test_entry_details.test_id = test.test_id');
-        $this->db->where('patient_test_entry_details.patient_test_entry_id', $patient_test_entry_id);
+        $this->db->where('patient_test_entry_details.patient_test_entry_id', (int) $patient_test_entry_id);
+        if ($apply_group) {
+            $this->db->where('test.test_group_id', (int) $test_group_id);
+        }
         $this->db->where('test.name_only', 'no');
         $this->db->where('test.setting_type', 'Normal');
-        // $this->db->where('test.test_group_id', $test_group_id);
 
         $query = $this->db->get();
         $test_configuration = $query->result();

@@ -2,12 +2,41 @@
     $(document).ready(function() {
         $('#test_id').select2();
         $('#test_group_id').select2();
-        $('#invoice_no').focus();
     });
+
+    function clearPatientAndTests() {
+        $('#patient_test_entry_id').val('');
+        $('#patient_name').val('');
+        $('#mobile_number').val('');
+        $('#age').val('');
+        $('#gender').val('');
+        $('#invoice_date').val('');
+        $('#invoice_time').val('');
+        $('#invoice_no').val('');
+        $('#test_configuration').empty();
+    }
+
+    function setInvoiceEnabled(enabled) {
+        var $inv = $('#invoice_no');
+        if (enabled) {
+            $inv.prop('disabled', false).attr('placeholder', 'Enter or Scan invoice no ...');
+        } else {
+            $inv.prop('disabled', true).attr('placeholder', 'Select test group first...');
+        }
+    }
 
     function test_configuration_load() {
         var test_group_id = $('#test_group_id').val();
         var patient_test_entry_id = $('#patient_test_entry_id').val();
+
+        if (!test_group_id) {
+            $('#test_configuration').html('<p class="text-muted">Select a test group, then choose an invoice.</p>');
+            return;
+        }
+        if (!patient_test_entry_id) {
+            $('#test_configuration').empty();
+            return;
+        }
 
         $('#img').show();
         var xhttp = new XMLHttpRequest();
@@ -42,6 +71,9 @@
 
 
     function patient_data_set(invoice_no) {
+        if (!$('#test_group_id').val()) {
+            return;
+        }
         $('#img').show();
         //alert(product_category_id);
         var xhttp = new XMLHttpRequest();
@@ -71,6 +103,10 @@
 
         $("#invoice_no").autocomplete({
             source: function(request, response) {
+                if (!$('#test_group_id').val()) {
+                    response([]);
+                    return;
+                }
                 $.ajax({
                     url: "<?php echo site_url('TestController/invoice_no_load'); ?>",
                     data: {
@@ -84,9 +120,24 @@
                 });
             },
             select: function(event, ui) {
+                if (!$('#test_group_id').val()) {
+                    return false;
+                }
                 $('#invoice_no').val(ui.item.label);
                 patient_data_set(ui.item.value);
                 return false;
+            }
+        });
+
+        setInvoiceEnabled(false);
+        $('#test_group_id').on('change', function() {
+            if (!$(this).val()) {
+                clearPatientAndTests();
+                setInvoiceEnabled(false);
+            } else {
+                clearPatientAndTests();
+                setInvoiceEnabled(true);
+                $('#invoice_no').focus();
             }
         });
 
@@ -110,6 +161,7 @@
             var formData = new FormData($('#test_result_entry_form')[0]); // Create FormData object with form data
 
             // Check if the form is valid
+            $('#invoice_no').prop('disabled', false);
             if ($("#test_result_entry_form").valid()) {
 
                 // Manual report file check
@@ -178,6 +230,7 @@
                                 icon: 'success'
                             });
                             $('#test_result_entry_form')[0].reset();
+                            $('#test_group_id').trigger('change');
                             $('#test_result_entry_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Save');
                             setTimeout(function() {
@@ -218,6 +271,7 @@
         <div class="panel-body">
             <?php
             error_reporting(0);
+            $sel_group = isset($sel_group) ? $sel_group : '';
             $biomedical_test = $this->db->where('biomedical_test_id', $biomedical_test_id)
                 ->get('biomedical_test')->row();
             $patient_test_entry = $this->db->where('patient_test_entry_id', $biomedical_test->patient_test_entry_id)
@@ -229,9 +283,9 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Invoice No</label>
+                            <label class="control-label col-sm-4" for="test_group_id">Test Group *</label>
                             <div class="col-sm-8">
-                                <select class="form-control"  id="test_group_id" name="test_group_id">
+                                <select required class="form-control"  id="test_group_id" name="test_group_id">
                                     <option value="" selected>Select Test Group</option>
                                     <?php
                                     $test_group = $this->db->select('*')->order_by('test_group_name', 'ASC')->get('test_group')->result();
@@ -247,10 +301,10 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Invoice No</label>
+                            <label class="control-label col-sm-4" for="pwd">Invoice No *</label>
                             <div class="col-sm-4">
                                 <input type="hidden" id="patient_test_entry_id" name="patient_test_entry_id">
-                                <input type="text" class="form-control" placeholder="Enter or Scan invoice no ..." id="invoice_no" name="invoice_no">
+                                <input type="text" class="form-control" placeholder="Select test group first..." id="invoice_no" name="invoice_no" disabled autocomplete="off">
                             </div>
                             <div class="col-sm-4">
                                 <select class="form-control" onchange="manual_or_dynamic_report_data(this.value)" id="manual_or_dynamic_report" name="manual_or_dynamic_report">
@@ -334,25 +388,6 @@
                 </div>
 
                 <div class="row" style="margin-top:20px">
-                    <div class="col-md-6" style="display:none">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Test Group Name</label>
-                            <div class="col-sm-8">
-                                <select type="text" required="" class="form-control" onchange="test_configuration_load()" id="test_group_id" name="test_group_id">
-                                    <option value="" disabled="" selected="">Select Test Group Name</option>
-
-                                    <?php
-                                    $test_group = $this->db->select('*')->get('test_group')->result();
-                                    foreach ($test_group as $value) {
-                                    ?>
-                                        <option value="<?php echo $value->test_group_id; ?>"><?php echo $value->test_group_name; ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Test No</label>
