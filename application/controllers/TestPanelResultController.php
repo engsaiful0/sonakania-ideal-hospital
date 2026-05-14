@@ -32,6 +32,24 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
+     * Panel names that use the urine-style print layout.
+     *
+     * @param object|null $report Row from Report_model::get_report_with_panel()
+     * @return bool
+     */
+    private function uses_urine_examination_print_layout($report)
+    {
+        $name = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
+        static $panels = array(
+            'Urine Examination Report',
+            'Urine R/E',
+            'Urine R/M/E',
+        );
+
+        return in_array($name, $panels, true);
+    }
+
+    /**
      * Which `test_panel_result/*` view to use for printing a lab report.
      *
      * @param object|null $report Row from Report_model::get_report_with_panel()
@@ -39,12 +57,42 @@ class TestPanelResultController extends CI_Controller
      */
     private function panel_test_print_view($report)
     {
-        $name = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
-        if ($name === 'Urine R/E' || $name === 'Urine R/M/E') {
+        if ($this->uses_urine_examination_print_layout($report)) {
             return 'test_panel_result/panel_test_print_urine_examination';
         }
 
         return 'test_panel_result/panel_test_print';
+    }
+
+    /**
+     * Section blocks for the print view; Urine R/E omits microscopic deposit sections.
+     *
+     * @param object      $report   Row from Report_model::get_report_with_panel()
+     * @param int         $report_id
+     * @return array
+     */
+    private function panel_test_print_section_blocks($report, $report_id)
+    {
+        $blocks = $this->Report_model->get_report_results_grouped_by_section($report_id);
+        $panel = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
+        if ($panel !== 'Urine R/E') {
+            return $blocks;
+        }
+
+        $skip = array(
+            'Microscopic Examination(Unorganised Deposits)',
+            'Microscopic Examination(Organised Deposits)',
+        );
+        $out = array();
+        foreach ($blocks as $b) {
+            $sec = isset($b['section_name']) ? trim((string) $b['section_name']) : '';
+            if (in_array($sec, $skip, true)) {
+                continue;
+            }
+            $out[] = $b;
+        }
+
+        return $out;
     }
 
     public function patient_unique_id_load()
@@ -103,7 +151,7 @@ class TestPanelResultController extends CI_Controller
             'page_title'     => 'Print Panel Test',
             'sidebar'        => 'test_result/test_result_sidebar',
             'report'         => $report,
-            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'section_blocks' => $this->panel_test_print_section_blocks($report, $id),
             'auto_print'     => $auto_print,
         );
         $this->load->view('content', $page_data);
@@ -323,7 +371,7 @@ class TestPanelResultController extends CI_Controller
             'page_title' => 'Panel Test Report',
             'sidebar' => 'test_result/test_result_sidebar',
             'report' => $report,
-            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'section_blocks' => $this->panel_test_print_section_blocks($report, $id),
             'auto_print' => $auto_print,
         );
         $this->load->view('content', $page_data);
