@@ -78,6 +78,29 @@
     .p1 {
         line-height: 80% !important;
     }
+
+    /* Two-column parameter blocks (urine layout): tighter type, stable print columns */
+    #report .urine-two-col-section .urine-col-table {
+        margin-bottom: 0;
+        font-size: 11px;
+    }
+
+    #report .urine-two-col-section .urine-col-table > thead > tr > th,
+    #report .urine-two-col-section .urine-col-table > tbody > tr > td {
+        padding: 4px 6px;
+        vertical-align: top;
+    }
+
+    #report .urine-two-col-section .urine-col-wrap {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    @media print {
+        #report .urine-two-col-section .row {
+            page-break-inside: avoid;
+        }
+    }
 </style>
 <?php
 /**
@@ -155,32 +178,86 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
             
 
             <?php if (!empty($section_blocks)) { ?>
-                <?php foreach ($section_blocks as $block) { ?>
-                    <div class="report-section-block" style="margin-bottom:5px;">
+                <?php foreach ($section_blocks as $block) {
+                    $block_rows = isset($block['rows']) && is_array($block['rows']) ? $block['rows'] : array();
+                    $n = count($block_rows);
+                    $use_two_cols = $n > 1;
+                    if ($use_two_cols) {
+                        $mid = (int) ceil($n / 2);
+                        $left_rows = array_slice($block_rows, 0, $mid);
+                        $right_rows = array_slice($block_rows, $mid);
+                    } else {
+                        $left_rows = $block_rows;
+                        $right_rows = array();
+                    }
+                    ?>
+                    <div class="report-section-block urine-two-col-section" style="margin-bottom:8px;">
                         <h4 style="border-bottom:1px solid black;padding-bottom:2px;color:black;">
                             <?php echo html_escape($block['section_name']); ?>
                         </h4>
-                        <table class="table  table-hover table-striped">
+                        <?php if ($use_two_cols) { ?>
+                        <div class="row" style="margin-left:-6px;margin-right:-6px;">
+                            <div class="col-xs-6 urine-col-wrap">
+                                <table class="table table-bordered table-condensed urine-col-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:46%;text-align:left;">Parameter</th>
+                                            <th style="width:54%;text-align:left;">Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($left_rows as $row) {
+                                            $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
+                                            ?>
+                                            <tr>
+                                                <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-xs-6 urine-col-wrap">
+                                <table class="table table-bordered table-condensed urine-col-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:46%;text-align:left;">Parameter</th>
+                                            <th style="width:54%;text-align:left;">Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($right_rows as $row) {
+                                            $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
+                                            ?>
+                                            <tr>
+                                                <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <?php } else { ?>
+                        <table class="table table-bordered table-condensed urine-col-table">
                             <thead>
-                                <tr style="margin-bottom:5px;">
-                                    <th style="width:32%;text-align: left;">Parameter</th>
-                                    <th style="width:18%;text-align: left;">Result</th>
-                                    
-                                
+                                <tr>
+                                    <th style="width:32%;text-align:left;">Parameter</th>
+                                    <th style="width:68%;text-align:left;">Result</th>
                                 </tr>
                             </thead>
-                            <?php foreach ($block['rows'] as $row) {
-                                $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
-                                $badge = lab_report_status_badge($row->status);
-                                $normal_range = $this->Report_model->format_normal_range($row);
-                            ?>
-                                <tr>
-                                    <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
-                                    <td><?php echo html_escape((string) $row->result_value); ?></td>
-                                    
-                                </tr>
-                            <?php } ?>
+                            <tbody>
+                                <?php foreach ($left_rows as $row) {
+                                    $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
+                                    ?>
+                                    <tr>
+                                        <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                        <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
                         </table>
+                        <?php } ?>
                     </div>
                 <?php } ?>
             <?php } else { ?>
