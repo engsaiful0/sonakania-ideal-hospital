@@ -1,5 +1,6 @@
 <style>
     @media print {
+
         /* Hide layout chrome; keep #report in normal flow for correct page breaks. */
         #tray,
         #menu,
@@ -77,19 +78,19 @@
 
         #report table,
         #report .table,
-        #report .table > thead > tr > th,
-        #report .table > tbody > tr > th,
-        #report .table > tfoot > tr > th,
-        #report .table > thead > tr > td,
-        #report .table > tbody > tr > td,
-        #report .table > tfoot > tr > td,
+        #report .table>thead>tr>th,
+        #report .table>tbody>tr>th,
+        #report .table>tfoot>tr>th,
+        #report .table>thead>tr>td,
+        #report .table>tbody>tr>td,
+        #report .table>tfoot>tr>td,
         #report .table-bordered,
-        #report .table-bordered > thead > tr > th,
-        #report .table-bordered > tbody > tr > th,
-        #report .table-bordered > tfoot > tr > th,
-        #report .table-bordered > thead > tr > td,
-        #report .table-bordered > tbody > tr > td,
-        #report .table-bordered > tfoot > tr > td {
+        #report .table-bordered>thead>tr>th,
+        #report .table-bordered>tbody>tr>th,
+        #report .table-bordered>tfoot>tr>th,
+        #report .table-bordered>thead>tr>td,
+        #report .table-bordered>tbody>tr>td,
+        #report .table-bordered>tfoot>tr>td {
             border: 1px solid #000 !important;
             border-color: #000 !important;
         }
@@ -121,12 +122,12 @@
      * "Print preview" / browser view also has a clearer grid. */
     #report .table,
     #report .table-bordered,
-    #report .table > thead > tr > th,
-    #report .table > tbody > tr > th,
-    #report .table > tfoot > tr > th,
-    #report .table > thead > tr > td,
-    #report .table > tbody > tr > td,
-    #report .table > tfoot > tr > td {
+    #report .table>thead>tr>th,
+    #report .table>tbody>tr>th,
+    #report .table>tfoot>tr>th,
+    #report .table>thead>tr>td,
+    #report .table>tbody>tr>td,
+    #report .table>tfoot>tr>td {
         border-color: #555 !important;
     }
 
@@ -170,76 +171,12 @@
     ?>
 
     <div class="name" style="width: 100%;margin-bottom: 10px;">
-        <table border="1" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
-            <tr>
-                <td>Patient Name</td>
+        <p>
 
-                <td>
+            <b>Patient Name:</b> <?php echo $patient_test_entry->patient_name ?>, <b>Date:</b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?>, <b>Age:</b> <?php echo $patient_test_entry->age ?>, <b>Gender:</b> <?php echo $patient_test_entry->gender ?>, <b>Mobile:</b> <?php echo $patient_test_entry->mobile ?>, <b>Invoice No:</b> <?php echo $patient_test_entry->invoice_no ?>, <b>Ref.Doctor:</b> <?php echo $doctor->doctor_name ?>
+        </p>
 
-                    <b> <?php echo $patient_test_entry->patient_name ?></b>
-                </td>
-                <td>Date</td>
-
-                <td>
-
-                    <b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?> </b>
-                </td>
-
-
-            </tr>
-            <tr>
-                <td>Age</td>
-                <td>
-                    <b>
-                    <?php
-                            $age_parts = [];
-
-                            if ($patient_test_entry->age_year > 0) {
-                                $age_parts[] = $patient_test_entry->age_year . ' ' . ($patient_test_entry->age_year == 1 ? 'Year' : 'Years');
-                            }
-
-                            if ($patient_test_entry->age_month > 0) {
-                                $age_parts[] = $patient_test_entry->age_month . ' ' . ($patient_test_entry->age_month == 1 ? 'Month' : 'Months');
-                            }
-
-                            if ($patient_test_entry->age_day > 0) {
-                                $age_parts[] = $patient_test_entry->age_day . ' ' . ($patient_test_entry->age_day == 1 ? 'Day' : 'Days');
-                            }
-
-                            echo implode(' ', $age_parts);
-                            ?>
-                    </b>
-                </td>
-                <td>Gender</td>
-                <td>
-
-                    <b> <?php echo $patient_test_entry->gender ?> </b>
-                </td>
-            </tr>
-            <tr>
-                <td>Mobile</td>
-
-                <td>
-                    <b> <?php echo $patient_test_entry->mobile ?> </b>
-                </td>
-                <td>Invoice No</td>
-
-                <td>
-
-                    <b> <?php echo $patient_test_entry->invoice_no ?> </b>
-                </td>
-
-            </tr>
-            <tr>
-                <td>Ref.Doctor</td>
-
-                <td>
-                    <b> <?php echo $doctor->doctor_name ?> </b>
-                </td>
-
-
-            </tr>
-        </table>
+       
     </div>
     <div class="product" style="height: 600px;margin-top: 20px; ">
         <?php
@@ -268,9 +205,9 @@
 
 
             ?>
-                <table border="1" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black">
+                <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black">
                     <tr style="font-weight: bold;">
-                        <td>Sl</td>
+
                         <td>Test Name</td>
                         <td>Result</td>
                         <td>Unit</td>
@@ -306,7 +243,7 @@
                             }
                             ?>
                             <tr>
-                                <td><?php echo $sl++ ?></td>
+
                                 <td><?php echo $test->test_name ?></td>
                                 <td><?php
                                     if ($test_result_details_value->bold == 'Yes') {
@@ -518,7 +455,7 @@
         <?php
         $report_footer = $this->db->where('report_footer_id', '1')->get('report_footer')->row();
         ?>
-       
+
 
 
 
