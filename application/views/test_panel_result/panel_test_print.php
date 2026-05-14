@@ -175,7 +175,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                 $normal_range = $this->Report_model->format_normal_range($row);
                             ?>
                                 <tr>
-                                    <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                    <td><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                     <td><?php echo html_escape((string) $row->result_value); ?></td>
                                     <td><?php echo html_escape($normal_range); ?></td>
                                 </tr>

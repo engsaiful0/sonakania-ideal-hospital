@@ -226,7 +226,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                                         ?>
                                                             <tr>
-                                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                                             </tr>
                                                         <?php } ?>
@@ -246,7 +246,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                                         ?>
                                                             <tr>
-                                                                <td style="width: 80%;" ><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                                <td style="width: 80%;" ><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                                             </tr>
                                                         <?php } ?>
@@ -269,7 +269,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                         ?>
                                             <tr>
-                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                             </tr>
                                         <?php } ?>
