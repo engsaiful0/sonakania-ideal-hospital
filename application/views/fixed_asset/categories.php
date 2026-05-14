@@ -65,7 +65,10 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="catSaveBtn">Save</button>
+                    <button type="submit" class="btn btn-primary" id="catSaveBtn">
+                        <span class="cat-save-label">Save</span>
+                        <span class="cat-save-spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -116,6 +119,20 @@
         $('#catModal').modal('show');
     });
 
+    function catSetSaveLoading($btn, on) {
+        var $lab = $btn.find('.cat-save-label');
+        var $spin = $btn.find('.cat-save-spinner');
+        if (on) {
+            $lab.hide();
+            $spin.show();
+            $btn.prop('disabled', true);
+        } else {
+            $spin.hide();
+            $lab.show();
+            $btn.prop('disabled', false);
+        }
+    }
+
     $('#catForm').on('submit', function(e) {
         e.preventDefault();
         var $btn = $('#catSaveBtn');
@@ -125,12 +142,13 @@
         if (id) {
             data += '&id=' + encodeURIComponent(id);
         }
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+        catSetSaveLoading($btn, true);
         $.ajax({
             type: 'POST',
             url: url,
             data: data,
-            dataType: 'json'
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         }).done(function(res) {
             if (res.success) {
                 $.toast({
@@ -138,7 +156,8 @@
                     text: res.message || 'Saved',
                     icon: 'success',
                     position: 'top-right',
-                    hideAfter: 2000
+                    hideAfter: 2000,
+                    showHideTransition: 'slide'
                 });
                 $('#catModal').modal('hide');
                 catTable.ajax.reload(null, false);
@@ -148,7 +167,7 @@
         }).fail(function() {
             $.toast({ heading: 'Error', text: 'Request failed', icon: 'error', position: 'top-right' });
         }).always(function() {
-            $btn.prop('disabled', false).html('Save');
+            catSetSaveLoading($btn, false);
         });
     });
 

@@ -3,24 +3,34 @@ class TestResultModel extends CI_Model
 {
     public function count_all_test_configuration($test_group_id = '', $test_id = '')
     {
-        if ($test_group_id != '' && $test_id != '') {
+        $this->db->reset_query();
+        $test_group_id = $test_group_id !== null && $test_group_id !== false ? (string) $test_group_id : '';
+        $test_id = $test_id !== null && $test_id !== false ? (string) $test_id : '';
+        $test_group_id = trim($test_group_id);
+        $test_id = trim($test_id);
+        if ($test_group_id !== '' && $test_id !== '') {
             $this->db->where('test_group_id', $test_group_id)
                 ->where('test_id', $test_id);
-        } else if ($test_group_id == '' && $test_id != '') {
+        } elseif ($test_group_id === '' && $test_id !== '') {
             $this->db->where('test_id', $test_id);
-        } else if ($test_group_id != ''  && $test_id == '') {
+        } elseif ($test_group_id !== '' && $test_id === '') {
             $this->db->where('test_group_id', $test_group_id);
         }
         return $this->db->count_all_results('test_configuration');
     }
     public function get_test_configuration_details($limit, $offset, $test_group_id = '', $test_id = '')
     {
-        if ($test_group_id != '' && $test_id != '') {
+        $this->db->reset_query();
+        $test_group_id = $test_group_id !== null && $test_group_id !== false ? (string) $test_group_id : '';
+        $test_id = $test_id !== null && $test_id !== false ? (string) $test_id : '';
+        $test_group_id = trim($test_group_id);
+        $test_id = trim($test_id);
+        if ($test_group_id !== '' && $test_id !== '') {
             $this->db->where('test_group_id', $test_group_id)
                 ->where('test_id', $test_id);
-        } else if ($test_group_id == '' && $test_id != '') {
+        } elseif ($test_group_id === '' && $test_id !== '') {
             $this->db->where('test_id', $test_id);
-        } else if ($test_group_id != ''  && $test_id == '') {
+        } elseif ($test_group_id !== '' && $test_id === '') {
             $this->db->where('test_group_id', $test_group_id);
         }
         $query = $this->db->order_by('test_configuration_id', 'DESC')->get('test_configuration', $limit, $offset);

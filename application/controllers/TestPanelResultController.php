@@ -10,7 +10,7 @@
  *
  * @author saiful
  */
-class TestResultController extends CI_Controller
+class TestPanelResultController extends CI_Controller
 {
 
     public function __construct()
@@ -68,6 +68,28 @@ class TestResultController extends CI_Controller
             <option value="<?php echo (int) $value->test_id; ?>"><?php echo html_escape($value->test_name); ?></option>
             <?php
         }
+    }
+    public function print_panel_test_with_id($id)
+    {
+        $this->load->model('Report_model');
+        $id = (int) $id;
+
+        $report = $this->Report_model->get_report_with_panel($id);
+        if (!$report) {
+            show_404();
+        }
+
+        $auto_print = (int) $this->input->get('print') === 1;
+
+        $page_data = array(
+            'page_name'      => 'test_panel_result/panel_test_print',
+            'page_title'     => 'Print Panel Test',
+            'sidebar'        => 'test_result/test_result_sidebar',
+            'report'         => $report,
+            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'auto_print'     => $auto_print,
+        );
+        $this->load->view('content', $page_data);
     }
 
     public function patient_unique_id_load_load()
@@ -145,7 +167,7 @@ class TestResultController extends CI_Controller
                                 <!--<input type="hidden"  class="form-control" value="<?php echo $value->test_configuration_id ?>"  id="test_configuration_id"  name="test_configuration_id[]">-->
                                 <input type="text" class="form-control" id="test_configuration_value" name="test_configuration_value[]">
                             </div>
-                            <div class="col-sm-3" style="display: none;">
+                            <div class="col-sm-3">
                                 <select class="form-control" name="bold[]">
                                     <option>No</option>
                                     <option>Yes</option>
@@ -186,14 +208,305 @@ class TestResultController extends CI_Controller
         $this->load->view('test_result/edit_biochemical_test', $data);
     }
 
-    public function add_biochemical_test()
+    public function add_panel_test()
     {
         $page_data = array(
-            'page_name' => 'test_result/add_biochemical_test',
-            'page_title' => 'Add Biochemical Test Data',
+            'page_name' => 'test_panel_result/add_panel_test',
+            'page_title' => 'Add Panel Test Data',
             'sidebar' => 'test_result/test_result_sidebar'
         );
         $this->load->view('content', $page_data);
+    }
+
+    /**
+     * Listing page for panel-test (lab_reports) entries.
+     * Filters: patient (name/id), panel_id, date_from, date_to. Pagination via CI library.
+     */
+    public function view_panel_test()
+    {
+        $this->load->model('Report_model');
+
+        $patient = trim((string) $this->input->get_post('patient', true));
+        $panel_id = (int) $this->input->get_post('panel_id', true);
+        $date_from = trim((string) $this->input->get_post('date_from', true));
+        $date_to = trim((string) $this->input->get_post('date_to', true));
+
+        $filters = array(
+            'patient' => $patient,
+            'panel_id' => $panel_id,
+            'date_from' => $date_from,
+            'date_to' => $date_to,
+        );
+
+        $seg = $this->uri->segment(3);
+        $offset = ($seg !== null && $seg !== '' && ctype_digit((string) $seg)) ? (int) $seg : 0;
+
+        $config = array();
+        $config['base_url'] = site_url('TestPanelResultController/view_panel_test');
+        $config['reuse_query_string'] = true;
+        $config['total_rows'] = $this->Report_model->count_panel_reports($filters);
+        $config['per_page'] = 25;
+        $config['uri_segment'] = 3;
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['prev_link'] = '<i class="fa fa-long-arrow-left"></i> Previous';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['next_link'] = 'Next <i class="fa fa-long-arrow-right"></i>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $this->pagination->initialize($config);
+
+        $rows = $this->Report_model->panel_reports_filtered($filters, $offset, $config['per_page'], 'lr.id', 'desc');
+
+        $page_data = array(
+            'page_name' => 'test_panel_result/view_panel_test',
+            'page_title' => 'View Panel Test',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'panels' => $this->Report_model->get_all_panels(),
+            'rows' => $rows,
+            'pagination' => $this->pagination->create_links(),
+            'total_rows' => (int) $config['total_rows'],
+            'per_page' => (int) $config['per_page'],
+            'offset' => $offset,
+            'sl_start' => $offset + 1,
+            'filter_patient' => $patient,
+            'filter_panel_id' => $panel_id,
+            'filter_date_from' => $date_from,
+            'filter_date_to' => $date_to,
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
+     * Renders the structured panel-test print view for a saved lab_reports row.
+     * URL: TestPanelResultController/panel_test_print/{id}[?print=1]
+     */
+    public function panel_test_print($id = 0)
+    {
+        $this->load->model('Report_model');
+        $id = (int) $id;
+        $report = $this->Report_model->get_report_with_panel($id);
+        if (!$report) {
+            show_404();
+        }
+
+        $auto_print = (int) $this->input->get('print') === 1;
+
+        $page_data = array(
+            'page_name' => 'test_panel_result/panel_test_print',
+            'page_title' => 'Panel Test Report',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'report' => $report,
+            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'auto_print' => $auto_print,
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
+     * Delete a panel-test report and its result rows.
+     */
+    public function delete_panel_test($id = 0)
+    {
+        $this->load->model('Report_model');
+        $id = (int) $id;
+        if ($id < 1) {
+            redirect('TestPanelResultController/view_panel_test');
+        }
+        $this->Report_model->delete_report_with_results($id);
+        $back = $this->input->get('back');
+        if (!empty($back)) {
+            redirect($back);
+        }
+        redirect('TestPanelResultController/view_panel_test');
+    }
+
+    /**
+     * Returns the HTML fragment of section headings + parameter inputs for the chosen panel.
+     * POST: panel_test_id
+     */
+    public function panel_test_load()
+    {
+        $this->load->model('Report_model');
+
+        $panel_id = (int) $this->input->post('panel_test_id', true);
+        if ($panel_id < 1) {
+            echo '<p class="text-warning">Select a valid panel.</p>';
+            return;
+        }
+        $panel = $this->Report_model->get_panel($panel_id);
+        if (!$panel) {
+            echo '<p class="text-danger">Panel not found.</p>';
+            return;
+        }
+        $sections = $this->Report_model->get_sections_with_parameters($panel_id);
+        if (empty($sections)) {
+            echo '<p class="text-muted">No sections/parameters defined for "' . html_escape($panel->panel_name) . '".</p>';
+            return;
+        }
+        ?>
+        <h4 class="text-primary" style="margin-top:0;">
+            <?php echo html_escape($panel->panel_name); ?>
+        </h4>
+        <?php foreach ($sections as $s) {
+            // Each section sits inside its own full-width row + clearfix so
+            // section blocks always start on a fresh line and parameter
+            // columns from different sections can never float into each other.
+        ?>
+            <div class="row panel-section-row" style="clear:both;">
+                <div class="col-md-12">
+                    <div class="well well-sm panel-section-well" style="margin-bottom:18px;">
+                        <h4 style="margin-top:0;border-bottom:1px solid #ddd;padding-bottom:6px;">
+                            <?php echo html_escape($s->section_name); ?>
+                        </h4>
+                        <?php if (empty($s->parameters)) { ?>
+                            <p class="text-muted">No parameters in this section.</p>
+                        <?php } else {
+                            // Chunk parameters two-per-row so each pair lives
+                            // in its own .row container — this prevents
+                            // float-height differences from spilling a
+                            // following parameter alongside a previous one.
+                            $pairs = array_chunk($s->parameters, 2);
+                            foreach ($pairs as $pair) { ?>
+                                <div class="row">
+                                    <?php foreach ($pair as $p) {
+                                        $pname = 'parameters[' . (int) $p->id . ']';
+                                        $unit = isset($p->unit) && $p->unit !== '' ? ' <span class="text-muted">(' . html_escape($p->unit) . ')</span>' : '';
+                                        $type = isset($p->input_type) ? $p->input_type : 'text';
+                                    ?>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
+                                                <div class="col-sm-7">
+                                                    <?php if ($type === 'numeric') {
+                                                        // NOTE: do NOT emit min/max attributes here. jQuery Validate
+                                                        // (loaded globally for this form) would auto-enforce them and
+                                                        // surface errors like "Please enter a value less than or
+                                                        // equal to 5.9." The normal range is purely informational
+                                                        // for the lab and is shown on the printed report.
+                                                        echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '">';
+                                                    } elseif ($type === 'boolean') {
+                                                        echo '<select class="form-control panel-param" name="' . $pname . '">'
+                                                            . '<option value="">—</option>'
+                                                            . '<option value="Negative">Negative</option>'
+                                                            . '<option value="Positive">Positive</option>'
+                                                            . '</select>';
+                                                    } else {
+                                                        echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500">';
+                                                    } ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                            <?php }
+                        } ?>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        <?php }
+    }
+
+    /**
+     * AJAX save for a panel test entry. Inserts into lab_reports + lab_report_results
+     * via Report_model, evaluates status using the Report_engine library.
+     * Returns JSON { success, message, report_id, print_url }.
+     */
+    public function save_panel_test()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $this->load->model('Report_model');
+
+        $panel_id = (int) $this->input->post('panel_test_id', true);
+        if ($panel_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Please select a panel test.')));
+            return;
+        }
+        $panel = $this->Report_model->get_panel($panel_id);
+        if (!$panel) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Panel not found.')));
+            return;
+        }
+
+        $patient_name = trim((string) $this->input->post('patient_name', true));
+        if ($patient_name === '') {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Patient name is required.')));
+            return;
+        }
+
+        $report_data = array(
+            'patient_name' => $patient_name,
+            'age_year' => (string) $this->input->post('age_year', true),
+            'age_month' => (string) $this->input->post('age_month', true),
+            'age_day' => (string) $this->input->post('age_day', true),
+            'sex' => (string) $this->input->post('gender', true),
+            'patient_id' => (string) $this->input->post('invoice_no', true),
+            'panel_id' => $panel_id,
+            'report_date' => date('Y-m-d'),
+        );
+        $report_id = (int) $this->Report_model->insert_report($report_data);
+        if ($report_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Could not save the report.')));
+            return;
+        }
+
+        $parameters = $this->input->post('parameters');
+        if (!is_array($parameters)) {
+            $parameters = array();
+        }
+        $saved_rows = 0;
+        foreach ($parameters as $parameter_id => $value) {
+            $parameter_id = (int) $parameter_id;
+            if ($parameter_id < 1) {
+                continue;
+            }
+            $parameter = $this->Report_model->get_parameter($parameter_id);
+            if (!$parameter) {
+                continue;
+            }
+            if (is_array($value)) {
+                $value = '';
+            }
+            $value = trim((string) $value);
+            $status = $this->report_engine->evaluate($value, $parameter);
+
+            $this->Report_model->insert_result(array(
+                'report_id' => $report_id,
+                'parameter_id' => $parameter_id,
+                'result_value' => $value,
+                'status' => $status,
+            ));
+            $saved_rows++;
+        }
+
+        $print_url = site_url('TestPanelResultController/panel_test_print/' . $report_id) . '?print=1';
+
+        $this->output->set_content_type('application/json')->set_output(json_encode(array(
+            'success' => true,
+            'message' => 'Panel test report saved.',
+            'report_id' => $report_id,
+            'rows' => $saved_rows,
+            'print_url' => $print_url,
+        )));
     }
 
     public function add_hormone_test()
@@ -356,7 +669,7 @@ class TestResultController extends CI_Controller
         $invoice_no = $_POST['invoice_no'];
         $patient_test_entry = $this->db->where('invoice_no', $invoice_no)->get('patient_test_entry')->row();
 
-        echo $patient_test_entry->patient_test_entry_id . '*' . $patient_test_entry->patient_name . '*' . $patient_test_entry->mobile_number . '*' . $patient_test_entry->age . '*' . $patient_test_entry->gender . '*' . date('Y-m-d', strtotime($patient_test_entry->date)) . '*' . $patient_test_entry->time . '*' . $patient_test_entry->age_year . '*' . $patient_test_entry->age_month . '*' . $patient_test_entry->age_day;
+        echo $patient_test_entry->patient_test_entry_id . '*' . $patient_test_entry->patient_name . '*' . $patient_test_entry->mobile_number . '*' . $patient_test_entry->age . '*' . $patient_test_entry->gender . '*' . date('Y-m-d', strtotime($patient_test_entry->date)) . '*' . $patient_test_entry->time;
     }
 
     public function edit_biomedical_data_save()

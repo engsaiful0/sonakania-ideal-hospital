@@ -135,7 +135,15 @@ function getShelf($shelf_id)
     $shelf = $CI->db->where('shelf_id', $shelf_id)->get('shelfs')->row();
     return $shelf;
 }
-
+function getAllPanelTest()
+{
+    // Get CodeIgniter instance
+    $CI = get_instance();
+    // Load the database if not already loaded
+    $CI->load->database();
+    $panel_tests = $CI->db->order_by('panel_name','asc')->get('test_panels')->result();
+    return $panel_tests;    
+}
 function getAllNurses()
 {
     // Get CodeIgniter instance

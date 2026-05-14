@@ -107,7 +107,7 @@
                 xhttp.send("department_id=" + department_id);
             }
 
-            function deletePatient(opd_patient_id, row_id) {
+            function deletePatient(doctor_serial_id, row_id) {
                 Swal.fire({
                     title: 'Do you want to delete this?',
                     icon: 'warning',
@@ -124,7 +124,7 @@
                                 doctor_serial_id: doctor_serial_id
                             },
                             success: function(response) {
-                                var res = JSON.parse(response);
+                                var res = typeof response === 'string' ? JSON.parse(response) : response;
                                 if (res.status == 'success') {
                                     $.toast({
                                         heading: 'Success',

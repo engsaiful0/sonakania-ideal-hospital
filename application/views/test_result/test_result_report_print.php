@@ -1,28 +1,144 @@
 <style>
     @media print {
-        body * {
-            visibility: hidden;
+        /* Hide layout chrome; keep #report in normal flow for correct page breaks. */
+        #tray,
+        #menu,
+        #aside,
+        #footer,
+        #img,
+        hr.noscreen,
+        .no-print {
+            display: none !important;
         }
 
-        #report,
-        #report * {
-            visibility: visible;
-            overflow: visible;
+        #main,
+        #cols,
+        #content {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            float: none !important;
+            display: block !important;
+        }
+
+        #content {
+            margin-left: 0 !important;
+        }
+
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
         }
 
         #report {
-            position: absolute;
-            left: 0;
-            top: 0;
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            margin-top: 40mm !important;
+            margin-left: 0 !important;
+            box-sizing: border-box !important;
+            padding: 0 8mm !important;
+            overflow: visible !important;
         }
+
+        #report .product {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+        }
+
+        #report table {
+            table-layout: auto !important;
+        }
+
+        #report td,
+        #report th {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+
+        /*
+         * Bootstrap 3's print stylesheet weakens table borders to #ddd, which
+         * many printers render as nearly invisible. Force solid black borders
+         * for every table inside the printed report so the grid stays crisp.
+         */
+        #report table,
+        #report .table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+
+        #report table,
+        #report .table,
+        #report .table > thead > tr > th,
+        #report .table > tbody > tr > th,
+        #report .table > tfoot > tr > th,
+        #report .table > thead > tr > td,
+        #report .table > tbody > tr > td,
+        #report .table > tfoot > tr > td,
+        #report .table-bordered,
+        #report .table-bordered > thead > tr > th,
+        #report .table-bordered > tbody > tr > th,
+        #report .table-bordered > tfoot > tr > th,
+        #report .table-bordered > thead > tr > td,
+        #report .table-bordered > tbody > tr > td,
+        #report .table-bordered > tfoot > tr > td {
+            border: 1px solid #000 !important;
+            border-color: #000 !important;
+        }
+
+        #report .well {
+            border: 1px solid #000 !important;
+            background: transparent !important;
+        }
+
+        /* Make sure background fills (e.g. status badges) and panel borders
+         * are actually printed by Chrome/Edge. */
+        #report,
+        #report * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        .p1 {
+            line-height: 80% !important;
+        }
+
+        #entry_by {
+            margin-top: 5px !important;
+        }
+    }
+
+    /* On-screen: keep the existing look but darken table borders so the
+     * "Print preview" / browser view also has a clearer grid. */
+    #report .table,
+    #report .table-bordered,
+    #report .table > thead > tr > th,
+    #report .table > tbody > tr > th,
+    #report .table > tfoot > tr > th,
+    #report .table > thead > tr > td,
+    #report .table > tbody > tr > td,
+    #report .table > tfoot > tr > td {
+        border-color: #555 !important;
+    }
+
+    .p1 {
+        line-height: 80% !important;
     }
 </style>
 
-<div class="row">
+<div class="row no-print">
     <div class="col-md-12">
         <button onclick="window.print()" id="sumbit_button" class="btn btn-primary">Print</button>
     </div>
-
 </div>
 <div id="report" style="width: 90%;margin:0 auto;margin-left:45px;;margin-top:20px;">
     <?php
@@ -54,7 +170,7 @@
     ?>
 
     <div class="name" style="width: 100%;margin-bottom: 10px;">
-        <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
+        <table border="1" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
             <tr>
                 <td>Patient Name</td>
 
@@ -74,7 +190,25 @@
             <tr>
                 <td>Age</td>
                 <td>
-                    <b><?php echo $patient_test_entry->age ?></b>
+                    <b>
+                    <?php
+                            $age_parts = [];
+
+                            if ($patient_test_entry->age_year > 0) {
+                                $age_parts[] = $patient_test_entry->age_year . ' ' . ($patient_test_entry->age_year == 1 ? 'Year' : 'Years');
+                            }
+
+                            if ($patient_test_entry->age_month > 0) {
+                                $age_parts[] = $patient_test_entry->age_month . ' ' . ($patient_test_entry->age_month == 1 ? 'Month' : 'Months');
+                            }
+
+                            if ($patient_test_entry->age_day > 0) {
+                                $age_parts[] = $patient_test_entry->age_day . ' ' . ($patient_test_entry->age_day == 1 ? 'Day' : 'Days');
+                            }
+
+                            echo implode(' ', $age_parts);
+                            ?>
+                    </b>
                 </td>
                 <td>Gender</td>
                 <td>
@@ -135,7 +269,7 @@
 
             ?>
                 <table border="1" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black">
-                    <tr>
+                    <tr style="font-weight: bold;">
                         <td>Sl</td>
                         <td>Test Name</td>
                         <td>Result</td>
@@ -311,12 +445,12 @@
                             <td><?php echo $sl++ ?></td>
                             <td><?php echo $test_value->test_name ?></td>
                             <td><?php
-                                if ($test_result_details_value->bold == 'Yes') {
+                                if ($test_result_details->bold == 'Yes') {
                                 ?>
-                                    <p style=" font-weight: bold"><?php echo $test_result_details_value->test_configuration_value ?></p>
+                                    <p style=" font-weight: bold"><?php echo $test_result_details->test_configuration_value ?></p>
                                 <?php
                                 } else {
-                                    echo $test_result_details_value->test_configuration_value;
+                                    echo $test_result_details->test_configuration_value;
                                 }
                                 ?>
                             </td>
@@ -380,18 +514,11 @@
         }
         ?>
     </div>
-    <div class="report-footer row">
+    <div class="report-footer row" style="margin-top: 150px;">
         <?php
         $report_footer = $this->db->where('report_footer_id', '1')->get('report_footer')->row();
         ?>
-        <table border="0" style="width: 100%; ">
-            <tr>
-                <td style="width: 50% "><?php //echo $report_footer->report_footer_1                                                  
-                                        ?></td>
-                <!--<td style="width: 33% "><?php echo $report_footer->report_footer_2 ?></td>-->
-                <td style="width: 50% "> <?php echo $report_footer->report_footer_3 ?></td>
-            </tr>
-        </table>
+       
 
 
 

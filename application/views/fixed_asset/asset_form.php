@@ -4,13 +4,16 @@ $purchase_d = $is_edit ? $asset->purchase_date : '';
 $war_d = $is_edit && $asset->warranty_expiry ? $asset->warranty_expiry : '';
 ?>
 
-<div class="container-fluid">
+<div class="container-fluid" id="fa-asset-root">
     <div class="panel panel-primary" style="width: 100%;margin: 0 auto">
         <div class="panel-heading">
-            <h3 style="text-align: center">Add Goods Usage</h3>
+            <h3 style="text-align: center"><?php echo $is_edit ? 'Edit fixed asset' : 'Add fixed asset'; ?></h3>
         </div>
         <div class="panel-body">
             <form id="fa_asset_form" class="form-horizontal" enctype="multipart/form-data">
+                <?php if ($is_edit) { ?>
+                    <input type="hidden" name="id" value="<?php echo (int) $asset->id; ?>" />
+                <?php } ?>
                 <div class="row">
                     <h4 class="text-muted" style="margin-top:0;">Asset details</h4>
                     <div class="col-md-6">
@@ -188,7 +191,7 @@ $war_d = $is_edit && $asset->warranty_expiry ? $asset->warranty_expiry : '';
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Image</label>
                                 <div class="col-sm-10">
-                                    <input type="file" class="form-control" name="image" id="image" />
+                                    <input type="file" class="form-control" name="asset_image" id="asset_image" accept="image/gif,image/jpeg,image/png" />
                                     <?php if ($is_edit && $asset->image_path) { ?>
                                         <img src="<?php echo base_url($this->upload_rel_path . $asset->image_path); ?>" alt="" class="img-thumbnail" style="max-width:100px;margin-top:5px;" />
                                     <?php } ?>
@@ -203,7 +206,8 @@ $war_d = $is_edit && $asset->warranty_expiry ? $asset->warranty_expiry : '';
                             <div class="form-group">
                                 <div class="col-sm-offset-2 col-sm-10">
                                     <button type="submit" class="btn btn-primary" id="fa_save_btn">
-                                        <?php echo $is_edit ? 'Update asset' : 'Save asset'; ?>
+                                        <span class="fa-save-label"><?php echo $is_edit ? 'Update asset' : 'Save asset'; ?></span>
+                                        <span class="fa-save-spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> <span class="fa-save-spinner-text"></span></span>
                                     </button>
                                 </div>
                             </div>
@@ -257,16 +261,32 @@ $war_d = $is_edit && $asset->warranty_expiry ? $asset->warranty_expiry : '';
         });
     });
 
+    var faIsEdit = <?php echo $is_edit ? 'true' : 'false'; ?>;
+
+    function faSetSaveLoading(on) {
+        var $btn = $('#fa_save_btn');
+        var $lab = $btn.find('.fa-save-label');
+        var $spin = $btn.find('.fa-save-spinner');
+        var $spinTxt = $btn.find('.fa-save-spinner-text');
+        if (on) {
+            $spinTxt.text(faIsEdit ? 'Updating...' : 'Saving...');
+            $lab.hide();
+            $spin.show();
+            $btn.prop('disabled', true);
+        } else {
+            $spin.hide();
+            $lab.show();
+            $btn.prop('disabled', false);
+        }
+    }
+
     $('#fa_asset_form').on('submit', function(e) {
         e.preventDefault();
-        var $btn = $('#fa_save_btn');
-        var isEdit = $('input[name="id"]').length > 0;
-        var url = isEdit
+        var url = faIsEdit
             ? '<?php echo site_url('fixed-assets/ajax/update-asset'); ?>'
             : '<?php echo site_url('fixed-assets/ajax/save-asset'); ?>';
 
-        var label = $btn.html();
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo $is_edit ? 'Updating...' : 'Saving...'; ?>');
+        faSetSaveLoading(true);
 
         var fd = new FormData(this);
         $.ajax({
@@ -275,7 +295,8 @@ $war_d = $is_edit && $asset->warranty_expiry ? $asset->warranty_expiry : '';
             data: fd,
             processData: false,
             contentType: false,
-            dataType: 'json'
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         }).done(function(res) {
             if (res.success) {
                 $.toast({
@@ -283,22 +304,26 @@ $war_d = $is_edit && $asset->warranty_expiry ? $asset->warranty_expiry : '';
                     text: res.message || 'Saved',
                     icon: 'success',
                     position: 'top-right',
-                    hideAfter: 1500
+                    hideAfter: 2000,
+                    showHideTransition: 'slide'
                 });
                 if (res.redirect) {
                     window.setTimeout(function() {
                         window.location.href = res.redirect;
-                    }, 600);
+                    }, 800);
                 }
             } else {
                 $.toast({ heading: 'Error', text: res.message || 'Failed', icon: 'error', position: 'top-right' });
             }
         }).fail(function(xhr) {
             var msg = 'Request failed';
-            if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+            try {
+                var j = xhr.responseJSON || JSON.parse(xhr.responseText || '{}');
+                if (j && j.message) msg = j.message;
+            } catch (err) {}
             $.toast({ heading: 'Error', text: msg, icon: 'error', position: 'top-right' });
         }).always(function() {
-            $btn.prop('disabled', false).html(label);
+            faSetSaveLoading(false);
         });
     });
 })(jQuery);

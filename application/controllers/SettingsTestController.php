@@ -144,14 +144,14 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('test_name', 'price','test_category');
+        $crud->required_fields('test_name','setting_type', 'price','test_category');
         $crud->set_relation('test_group_id', 'test_group', '{test_group_code}-{test_group_name}');
         $crud->set_relation('test_sub_group_id', 'test_sub_group', 'sub_group_name');
         $crud->set_relation('test_category_id', 'test_categories', 'test_category_name');
-        $crud->columns('test_name','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
-        $crud->fields('test_name','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
+        $crud->columns('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
+        $crud->fields('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
         $crud->field_type('test_by_gender', 'dropdown', array('Male' => 'Male', 'Female' => 'Female', 'Both' => 'Both'));
-
+        $crud->field_type('setting_type', 'dropdown', array('Normal' => 'Normal', 'Unique' => 'Unique'));
         $crud->display_as('test_name', 'Test Name');
         $crud->display_as('test_category_id', 'Category Name');
 
@@ -163,4 +163,118 @@ class SettingsTestController extends CI_Controller
         $this->load->view('frame/grocery_crud_view.php', $output);
     }
 
+    public function panel()
+    {
+        $page_data = array(
+            'page_name' => 'settings_test/panel',
+            'page_title' => 'Panel',
+             'sidebar' => 'settings/settings_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
+    public function section()
+    {
+        $page_data = array(
+            'page_name' => 'settings_test/section',
+            'page_title' => 'Section',
+             'sidebar' => 'settings/settings_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
+    public function parameter()
+    {
+        $page_data = array(
+            'page_name' => 'settings_test/parameter',
+            'page_title' => 'Parameter',
+             'sidebar' => 'settings/settings_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
+    public function report_result()
+    {
+        $page_data = array(
+            'page_name' => 'settings_test/report_result',
+            'page_title' => 'Report Result',
+             'sidebar' => 'settings/settings_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
+    public function panel_iframe()
+    {
+        error_reporting(0);
+        $crud = new Grocery_crud();
+        $crud->set_table('test_panels');
+        $crud->set_subject('Test Panel');
+        $user_type = $this->session->userdata('user_type');
+        //        if ($user_type != 'admin'):
+        //            $crud->unset_add();
+        //            $crud->unset_edit();
+        //            $crud->unset_delete();
+        //        endif;
+        $crud->required_fields('panel_name','panel_name_bangla');
+        
+        $crud->columns('panel_name', 'panel_name_bangla','description');
+        $crud->fields('panel_name', 'panel_name_bangla','description');
+        $crud->display_as('panel_name', 'Panel Name');
+        $crud->display_as('panel_name_bangla', 'Panel Name Bangla');
+        $crud->display_as('description', 'Description');
+        $output = $crud->render();
+        $this->load->view('frame/grocery_crud_view.php', $output);
+    }
+    public function section_iframe()
+    {
+        error_reporting(0);
+        $crud = new Grocery_crud();
+        $crud->set_table('test_sections');
+        $crud->set_subject('Test Section');
+        $user_type = $this->session->userdata('user_type');
+        //        if ($user_type != 'admin'):
+        //            $crud->unset_add();
+        //            $crud->unset_edit();
+        //            $crud->unset_delete();
+        //        endif;
+        $crud->required_fields('section_name','section_name_bangla');
+        $crud->set_relation('panel_id', 'test_panels', 'panel_name');
+        $crud->columns('panel_id', 'section_name', 'section_name_bangla');
+        $crud->fields('panel_id', 'section_name', 'section_name_bangla');
+        $crud->display_as('panel_id', 'Panel Name');
+        $crud->display_as('section_name', 'Section Name');
+        $crud->display_as('section_name_bangla', 'Section Name Bangla');
+        $output = $crud->render();
+        $this->load->view('frame/grocery_crud_view.php', $output);
+    }
+    public function parameter_iframe()
+    {
+        error_reporting(0);
+        $crud = new Grocery_crud();
+        $crud->set_table('test_parameters');
+        $crud->set_subject('Test Parameter');
+        $user_type = $this->session->userdata('user_type');
+        //        if ($user_type != 'admin'):
+        //            $crud->unset_add();
+        //            $crud->unset_edit();
+        //            $crud->unset_delete();
+        //        endif;
+        $crud->required_fields('parameter_name','unit','input_type','min_value','max_value','serial');
+        $crud->set_relation('section_id', 'test_sections', 'section_name');
+        $crud->columns('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range', 'serial');
+        $crud->fields('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range', 'serial');
+        $crud->display_as('section_id', 'Section Name');
+        $crud->display_as('parameter_name', 'Parameter Name');
+        $crud->display_as('unit', 'Unit');
+        $crud->display_as('input_type', 'Input Type');
+        $crud->display_as('min_value', 'Min Value');
+        $crud->display_as('max_value', 'Max Value');
+        $output = $crud->render();
+        $this->load->view('frame/grocery_crud_view.php', $output);
+    }
+    public function report_result_iframe()
+    {
+        $page_data = array(
+            'page_name' => 'settings_test/report_result_iframe',
+            'page_title' => 'Report Result',
+             'sidebar' => 'settings/settings_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
 }
