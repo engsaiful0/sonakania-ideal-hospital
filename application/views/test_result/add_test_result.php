@@ -230,6 +230,24 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="pwd">Invoice No</label>
+                            <div class="col-sm-8">
+                                <select class="form-control"  id="test_group_id" name="test_group_id">
+                                    <option value="" selected>Select Test Group</option>
+                                    <?php
+                                    $test_group = $this->db->select('*')->order_by('test_group_name', 'ASC')->get('test_group')->result();
+                                    foreach ($test_group as $value) {
+                                        $g_sel = ($sel_group !== '' && (string) $value->test_group_id  === (string) $sel_group) ? ' selected' : '';
+                                    ?>
+                                        <option value="<?php echo (int) $value->test_group_id; ?>" <?php echo $g_sel; ?>><?php echo html_escape($value->test_group_name); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4" for="pwd">Invoice No</label>
                             <div class="col-sm-4">
                                 <input type="hidden" id="patient_test_entry_id" name="patient_test_entry_id">
                                 <input type="text" class="form-control" placeholder="Enter or Scan invoice no ..." id="invoice_no" name="invoice_no">
@@ -242,6 +260,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Age</label>

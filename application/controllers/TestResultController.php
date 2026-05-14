@@ -165,7 +165,7 @@ class TestResultController extends CI_Controller
                                 <!--<input type="hidden"  class="form-control" value="<?php echo $value->test_configuration_id ?>"  id="test_configuration_id"  name="test_configuration_id[]">-->
                                 <input type="text" class="form-control" id="test_configuration_value" name="test_configuration_value[]">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-3" style="display: none;">
                                 <select class="form-control" name="bold[]">
                                     <option>No</option>
                                     <option>Yes</option>

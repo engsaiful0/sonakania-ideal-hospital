@@ -96,11 +96,11 @@ $permissions = $this->session->userdata('permissions');
                             <select class="form-control" onchange="test_name_load(this.value)" id="test_group_id" name="test_group_id">
                                 <option value="">All groups</option>
                                 <?php
-                                $test_group = $this->db->select('*')->order_by('test_category_name', 'ASC')->get('test_categories')->result();
+                                $test_group = $this->db->select('*')->order_by('test_group_name', 'ASC')->get('test_group')->result();
                                 foreach ($test_group as $value) {
-                                    $g_sel = ($sel_group !== '' && (string) $value->test_category_id  === (string) $sel_group) ? ' selected' : '';
+                                    $g_sel = ($sel_group !== '' && (string) $value->test_group_id  === (string) $sel_group) ? ' selected' : '';
                                 ?>
-                                    <option value="<?php echo (int) $value->test_category_id ; ?>"<?php echo $g_sel; ?>><?php echo html_escape($value->test_category_name); ?></option>
+                                    <option value="<?php echo (int) $value->test_group_id ; ?>"<?php echo $g_sel; ?>><?php echo html_escape($value->test_group_name); ?></option>
                                 <?php } ?>
                             </select>
                         </td>

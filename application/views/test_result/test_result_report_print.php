@@ -158,6 +158,34 @@
         ->get('patient_test_entry')->row();
     $doctor = $this->db->where('doctor_id', $patient_test_entry->doctor_id)
         ->get('doctor')->row();
+
+    /* Unique test_group_name for each detail line with a result (from test.test_group_id). */
+    $unique_group_names = array();
+    foreach ($test_result_details as $d) {
+        if (!isset($d->test_configuration_value) || trim((string) $d->test_configuration_value) === '') {
+            continue;
+        }
+        $test_row = $this->db->where('test_id', $d->test_id)->get('test')->row();
+        if (!$test_row || empty($test_row->test_group_id)) {
+            continue;
+        }
+        $gid = (int) $test_row->test_group_id;
+        if ($gid < 1) {
+            continue;
+        }
+        $tg = $this->db->where('test_group_id', $gid)->get('test_group')->row();
+        if ($tg && isset($tg->test_group_name) && trim((string) $tg->test_group_name) !== '') {
+            $unique_group_names[$gid] = trim((string) $tg->test_group_name);
+        }
+    }
+    $group_names_sorted = array_values($unique_group_names);
+    sort($group_names_sorted, SORT_NATURAL | SORT_FLAG_CASE);
+    if (empty($group_names_sorted) && isset($test_result->test_group_id) && (int) $test_result->test_group_id > 0) {
+        $tg_fallback = $this->db->where('test_group_id', (int) $test_result->test_group_id)->get('test_group')->row();
+        if ($tg_fallback && isset($tg_fallback->test_group_name) && trim((string) $tg_fallback->test_group_name) !== '') {
+            $group_names_sorted = array(trim((string) $tg_fallback->test_group_name));
+        }
+    }
     ?>
     <?php
     $compnay = $this->db->where('company_id', '1')->get('company')->row();
@@ -168,22 +196,12 @@
 
             <b>Patient Name:</b> <?php echo $patient_test_entry->patient_name ?>, <b>Date:</b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?>, <b>Age:</b> <?php echo $patient_test_entry->age ?>, <b>Gender:</b> <?php echo $patient_test_entry->gender ?>, <b>Mobile:</b> <?php echo $patient_test_entry->mobile ?>, <b>Invoice No:</b> <?php echo $patient_test_entry->invoice_no ?>, <b>Ref.Doctor:</b> <?php echo $doctor->doctor_name ?>
         </p>
-
-
+        <?php if (!empty($group_names_sorted)) { ?>
+        <p style="margin-top: 6px; margin-bottom: 0;text-align: center;font-weight: bold;"><u><?php echo html_escape(implode(', ', $group_names_sorted)); ?></u></p>
+        <?php } ?>
     </div>
-    <div class="product" style="height: 600px;margin-top: 20px; ">
+    <div class="product" style="height: 600px;margin-top: 1px; ">
 
-        <p style="text-align: center">
-            <b>
-            <u>
-            <?php
-            $test_group = $this->db->where('test_group_id', $test_result->test_group_id)
-                ->get('test_group')->row();
-            echo $test_group->test_group_name;
-                                            ?>
-                </u>
-            </b>
-            </p>
         <?php
     
         ?>
