@@ -189,7 +189,8 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 <div class="well well-sm" style="background:#f9f9f9;">
                     <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></p>
                 </div>
-                <p style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></p>
+                
+                <p style="text-align: center;font-weight: bold;"><u><?php echo isset($report->description) ? html_escape($report->description) : '—'; ?></u></p>
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) {
                         $block_rows = isset($block['rows']) && is_array($block['rows']) ? $block['rows'] : array();

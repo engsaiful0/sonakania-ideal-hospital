@@ -40,7 +40,7 @@ class TestPanelResultController extends CI_Controller
     private function panel_test_print_view($report)
     {
         $name = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
-        if ($name === 'Urine Examination Report') {
+        if ($name === 'Urine R/E' || $name === 'Urine R/M/E') {
             return 'test_panel_result/panel_test_print_urine_examination';
         }
 
