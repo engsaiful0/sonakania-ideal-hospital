@@ -251,6 +251,7 @@ class SettingsTestController extends CI_Controller
         error_reporting(0);
         $crud = new Grocery_crud();
         $crud->set_table('test_parameters');
+        $crud->order_by('id', 'ASC');
         $crud->set_subject('Test Parameter');
         $user_type = $this->session->userdata('user_type');
         //        if ($user_type != 'admin'):

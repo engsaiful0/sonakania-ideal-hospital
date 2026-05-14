@@ -450,7 +450,7 @@ class TestPanelResultController extends CI_Controller
                                     ?>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
+                                                <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name); ?></label>
                                                 <div class="col-sm-7">
                                                     <?php if ($type === 'numeric') {
                                                         // NOTE: do NOT emit min/max attributes here. jQuery Validate
