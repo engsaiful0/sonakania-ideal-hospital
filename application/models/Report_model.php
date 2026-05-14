@@ -80,15 +80,49 @@ class Report_model extends CI_Model
 
     public function get_report_with_panel($id)
     {
-        $this->db->select('lr.*, pp.panel_name, pp.description', false)
+        $id = (int) $id;
+        $this->db->select('lr.*, pp.panel_name,pp.test_group_id, pp.description', false)
             ->from($this->table_reports . ' lr')
-            ->join('test_panels pp', 'pp.id = lr.panel_id', 'left');
-        if ($this->db->field_exists('test_group_id', $this->table_reports)) {
-            $this->db->join('test_group tg', 'tg.test_group_id = lr.test_group_id', 'left')
-                ->select('tg.test_group_name', false);
+            ->join('test_panels pp', 'pp.id = lr.panel_id', 'left')
+            ->where('lr.id', $id);
+        $row = $this->db->get()->row();
+        if (!$row) {
+            return null;
         }
-        $this->db->where('lr.id', (int) $id);
-        return $this->db->get()->row();
+
+        // Resolve names explicitly (avoids SELECT alias issues with lr.* / drivers).
+        $row->panel_test_group_name = '';
+        $row->report_test_group_name = '';
+        $tg_from_report = null;
+
+        if ($this->db->field_exists('test_group_id', $this->table_reports)
+            && isset($row->test_group_id) && (int) $row->test_group_id > 0) {
+            $this->db->reset_query();
+            $tg_from_report = $this->db->where('test_group_id', (int) $row->test_group_id)->get('test_group')->row();
+            if ($tg_from_report && isset($tg_from_report->test_group_name)) {
+                $row->report_test_group_name = trim((string) $tg_from_report->test_group_name);
+            }
+        }
+
+        $panel_id = isset($row->panel_id) ? (int) $row->panel_id : 0;
+        if ($panel_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
+            $this->db->reset_query();
+            $pp = $this->db->select('test_group_id')->where('id', $panel_id)->get('test_panels')->row();
+            if ($pp && isset($pp->test_group_id) && (int) $pp->test_group_id > 0) {
+                $this->db->reset_query();
+                $tg_panel = $this->db->where('test_group_id', (int) $pp->test_group_id)->get('test_group')->row();
+                if ($tg_panel && isset($tg_panel->test_group_name)) {
+                    $row->panel_test_group_name = trim((string) $tg_panel->test_group_name);
+                }
+            }
+        }
+
+        // Panel row has no test_group_id: still show group saved on this lab report (add-panel form).
+        if ($row->panel_test_group_name === '' && $tg_from_report && isset($tg_from_report->test_group_name)) {
+            $row->panel_test_group_name = trim((string) $tg_from_report->test_group_name);
+        }
+
+        return $row;
     }
 
     /**

@@ -197,7 +197,7 @@
             <b>Patient Name:</b> <?php echo $patient_test_entry->patient_name ?>, <b>Date:</b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?>, <b>Age:</b> <?php echo $patient_test_entry->age ?>, <b>Gender:</b> <?php echo $patient_test_entry->gender ?>, <b>Mobile:</b> <?php echo $patient_test_entry->mobile ?>, <b>Invoice No:</b> <?php echo $patient_test_entry->invoice_no ?>, <b>Ref.Doctor:</b> <?php echo $doctor->doctor_name ?>
         </p>
         <?php if (!empty($group_names_sorted)) { ?>
-        <p style="margin-top: 6px; margin-bottom: 0;text-align: center;font-weight: bold;"><u><?php echo html_escape(implode(', ', $group_names_sorted)); ?></u></p>
+        <p style="margin-top: 6px; margin-bottom: 0;text-align: center;font-weight: bold;"><u><?php echo html_escape(implode(', ', $group_names_sorted)).' Report'; ?></u></p>
         <?php } ?>
     </div>
     <div class="product" style="height: 600px;margin-top: 1px; ">

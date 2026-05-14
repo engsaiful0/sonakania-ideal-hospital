@@ -31,6 +31,7 @@ include 'route_bill.php';
 include 'route_salary.php';
 include 'route_doctor_serial.php';
 include 'route_director_api.php';
+include 'route_mobile.php';
 
 
 
@@ -139,6 +140,7 @@ $route['print-employee/(:any)'] = 'EmployeeController/print_employee/$1';
 $route['accounce'] = 'AccounceController';
 $route['reports'] = 'ReportController/income_report';
 $route['reports-dashboard'] = 'ReportController/reports_dashboard';
+
 
 
 $route['print-ipd-patient'] = 'IpdPatientController/ipd_patient_print';

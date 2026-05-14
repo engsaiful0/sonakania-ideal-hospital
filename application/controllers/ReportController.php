@@ -134,6 +134,15 @@ class ReportController extends CI_Controller
         );
         $this->load->view('content', $page_data);
     }
+    public function mobile_report()
+    {
+        $page_data = array(
+            'page_name' => 'report/mobile_report',
+            'page_title' => 'Mobile Report ',
+            'sidebar' => 'report/report_sidebar'
+        );
+        $this->load->view('content', $page_data);
+    }
     public function bank_deposit_report()
     {
         $page_data = array(
