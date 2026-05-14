@@ -166,7 +166,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                     <th style="width:32%;text-align: left;">Parameter</th>
                                     <th style="width:18%;text-align: left;">Result</th>
                                     
-                                    <th style="width:35%;text-align: left;">Normal Range</th>
+                                
                                 </tr>
                             </thead>
                             <?php foreach ($block['rows'] as $row) {
@@ -177,7 +177,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                 <tr>
                                     <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
                                     <td><?php echo html_escape((string) $row->result_value); ?></td>
-                                    <td><?php echo html_escape($normal_range); ?></td>
+                                    
                                 </tr>
                             <?php } ?>
                         </table>

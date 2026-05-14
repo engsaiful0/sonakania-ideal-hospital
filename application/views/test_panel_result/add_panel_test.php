@@ -1,26 +1,13 @@
+<?php $require_lab_test_group = $this->db->field_exists('test_group_id', 'lab_reports'); ?>
 <script>
     $(document).ready(function() {
-        $('#test_id').select2();
+        <?php if (!empty($require_lab_test_group)) { ?>
         $('#test_group_id').select2();
+        <?php } ?>
         $('#invoice_no').focus();
     });
 
     
-
-    function test_name_load(test_group_id) {
-
-        $('#img').show();
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                document.getElementById("test_configuration").innerHTML = xhttp.responseText;
-                $('#img').hide();
-            }
-        }
-        xhttp.open("POST", "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send("test_group_id=" + test_group_id);
-    }
 
     function panel_test_load(panel_test_id) {
         var $cfg = $('#test_configuration');
@@ -114,12 +101,15 @@
         $("#test_result_entry_form").validate({
             rules: {
                 invoice_no: "required",
+                <?php if (!empty($require_lab_test_group)) { ?>
                 test_group_id: "required",
+                <?php } ?>
             },
             messages: {
                 invoice_no: "Enter invoice no",
+                <?php if (!empty($require_lab_test_group)) { ?>
                 test_group_id: "Select test group name",
-
+                <?php } ?>
             }
         });
 
@@ -396,6 +386,26 @@
                     </div>
                 </div>
 
+                <?php if (!empty($require_lab_test_group)) { ?>
+                <div class="row" style="margin-top:20px">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4" for="test_group_id">Test group</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="test_group_id" name="test_group_id" required>
+                                    <option value="">Select test group</option>
+                                    <?php
+                                    $test_groups = $this->db->select('test_group_id, test_group_name')->order_by('test_group_name', 'ASC')->get('test_group')->result();
+                                    foreach ($test_groups as $tg_row) {
+                                    ?>
+                                        <option value="<?php echo (int) $tg_row->test_group_id; ?>"><?php echo html_escape($tg_row->test_group_name); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php } ?>
                 <div class="row" style="margin-top:20px">
                     
                     <div class="col-md-6">

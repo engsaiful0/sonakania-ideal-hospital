@@ -144,15 +144,17 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('test_name','setting_type', 'price','test_category');
+        $crud->required_fields('test_name','setting_type', 'price','test_category','test_group_id');
         $crud->set_relation('test_group_id', 'test_group', '{test_group_code}-{test_group_name}');
         $crud->set_relation('test_sub_group_id', 'test_sub_group', 'sub_group_name');
+        $crud->set_relation('test_group_id', 'test_group', 'test_group_name');
         $crud->set_relation('test_category_id', 'test_categories', 'test_category_name');
-        $crud->columns('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
-        $crud->fields('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
+        $crud->columns('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence','test_group_id');
+        $crud->fields('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence','test_group_id');
         $crud->field_type('test_by_gender', 'dropdown', array('Male' => 'Male', 'Female' => 'Female', 'Both' => 'Both'));
         $crud->field_type('setting_type', 'dropdown', array('Normal' => 'Normal', 'Unique' => 'Unique'));
         $crud->display_as('test_name', 'Test Name');
+        $crud->display_as('test_group_id', 'Test Group Name');
         $crud->display_as('test_category_id', 'Category Name');
 
 
@@ -211,13 +213,14 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('panel_name','panel_name_bangla');
-        
-        $crud->columns('panel_name', 'panel_name_bangla','description');
-        $crud->fields('panel_name', 'panel_name_bangla','description');
+        $crud->required_fields('panel_name','panel_name_bangla','test_group_id');
+        $crud->set_relation('test_group_id', 'test_group', 'test_group_name');
+        $crud->columns('panel_name', 'panel_name_bangla','description','test_group_id');
+        $crud->fields('panel_name', 'panel_name_bangla','description','test_group_id');
         $crud->display_as('panel_name', 'Panel Name');
         $crud->display_as('panel_name_bangla', 'Panel Name Bangla');
         $crud->display_as('description', 'Description');
+        $crud->display_as('test_group_id', 'Test Group Name');
         $output = $crud->render();
         $this->load->view('frame/grocery_crud_view.php', $output);
     }

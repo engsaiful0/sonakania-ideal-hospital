@@ -30,6 +30,23 @@ class TestPanelResultController extends CI_Controller
 
         $this->load->library('pagination');
     }
+
+    /**
+     * Which `test_panel_result/*` view to use for printing a lab report.
+     *
+     * @param object|null $report Row from Report_model::get_report_with_panel()
+     * @return string View path (no .php) under application/views/
+     */
+    private function panel_test_print_view($report)
+    {
+        $name = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
+        if ($name === 'Urine Examination Report') {
+            return 'test_panel_result/panel_test_print_urine_examination';
+        }
+
+        return 'test_panel_result/panel_test_print';
+    }
+
     public function patient_unique_id_load()
     {
         $parameter = $_POST['parameter'];
@@ -82,7 +99,7 @@ class TestPanelResultController extends CI_Controller
         $auto_print = (int) $this->input->get('print') === 1;
 
         $page_data = array(
-            'page_name'      => 'test_panel_result/panel_test_print',
+            'page_name'      => $this->panel_test_print_view($report),
             'page_title'     => 'Print Panel Test',
             'sidebar'        => 'test_result/test_result_sidebar',
             'report'         => $report,
@@ -302,7 +319,7 @@ class TestPanelResultController extends CI_Controller
         $auto_print = (int) $this->input->get('print') === 1;
 
         $page_data = array(
-            'page_name' => 'test_panel_result/panel_test_print',
+            'page_name' => $this->panel_test_print_view($report),
             'page_title' => 'Panel Test Report',
             'sidebar' => 'test_result/test_result_sidebar',
             'report' => $report,
@@ -462,6 +479,16 @@ class TestPanelResultController extends CI_Controller
             'panel_id' => $panel_id,
             'report_date' => date('Y-m-d'),
         );
+        if ($this->db->field_exists('test_group_id', 'lab_reports')) {
+            $raw_gid = $this->input->post('test_group_id', true);
+            $gid = ($raw_gid !== null && $raw_gid !== '' && ctype_digit((string) $raw_gid)) ? (int) $raw_gid : 0;
+            if ($gid < 1) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Please select a test group.')));
+                return;
+            }
+            $report_data['test_group_id'] = $gid;
+        }
         $report_id = (int) $this->Report_model->insert_report($report_data);
         if ($report_id < 1) {
             $this->output->set_content_type('application/json')

@@ -80,10 +80,14 @@ class Report_model extends CI_Model
 
     public function get_report_with_panel($id)
     {
-        $this->db->select('lr.*, pp.panel_name,pp.description')
+        $this->db->select('lr.*, pp.panel_name, pp.description', false)
             ->from($this->table_reports . ' lr')
-            ->join('test_panels pp', 'pp.id = lr.panel_id', 'left')
-            ->where('lr.id', (int) $id);
+            ->join('test_panels pp', 'pp.id = lr.panel_id', 'left');
+        if ($this->db->field_exists('test_group_id', $this->table_reports)) {
+            $this->db->join('test_group tg', 'tg.test_group_id = lr.test_group_id', 'left')
+                ->select('tg.test_group_name', false);
+        }
+        $this->db->where('lr.id', (int) $id);
         return $this->db->get()->row();
     }
 
