@@ -14,7 +14,7 @@
             position: absolute;
             left: 0;
             top: 0;
-            margin-top: 150px !important;
+            margin-top: 135px !important;
         }
 
         /*
@@ -204,29 +204,29 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                             $right_rows = array();
                         }
                     ?>
-                        <div class="report-section-block urine-two-col-section" style="margin-bottom:2px;">
-                            <p style="text-align: center;font-weight: bold;"><?php echo html_escape($block['section_name']); ?>
+                        <div class="report-section-block urine-two-col-section" >
+                            <p style="margin-bottom:1px;">
                                 <?php echo html_escape($block['section_name']); ?>
-                            </p>
+                    </p>
                             <?php if ($use_two_cols) { ?>
                                 <table class="urine-split-shell" role="presentation">
                                     <tbody>
                                         <tr>
                                             <td>
                                                 <table class="table table-bordered table-condensed urine-col-table">
-                                                    <thead>
+                                                    <!-- <thead>
                                                         <tr>
                                                             <th style="width:46%;text-align:left;">Parameter</th>
                                                             <th style="width:54%;text-align:left;">Result</th>
                                                         </tr>
-                                                    </thead>
+                                                    </thead> -->
                                                     <tbody>
                                                         <?php foreach ($left_rows as $row) {
                                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                                         ?>
                                                             <tr>
-                                                                <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
-                                                                <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                                <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                                             </tr>
                                                         <?php } ?>
                                                     </tbody>
@@ -234,19 +234,19 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                             </td>
                                             <td>
                                                 <table class="table table-bordered table-condensed urine-col-table">
-                                                    <thead>
+                                                    <!-- <thead>
                                                         <tr>
                                                             <th style="width:46%;text-align:left;">Parameter</th>
                                                             <th style="width:54%;text-align:left;">Result</th>
                                                         </tr>
-                                                    </thead>
+                                                    </thead> -->
                                                     <tbody>
                                                         <?php foreach ($right_rows as $row) {
                                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                                         ?>
                                                             <tr>
-                                                                <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
-                                                                <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                                                <td style="width: 80%;" ><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                                <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                                             </tr>
                                                         <?php } ?>
                                                     </tbody>
@@ -257,19 +257,19 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                 </table>
                             <?php } else { ?>
                                 <table class="table table-bordered table-condensed urine-col-table">
-                                    <thead>
+                                    <!-- <thead>
                                         <tr>
                                             <th style="width:32%;text-align:left;">Parameter</th>
                                             <th style="width:68%;text-align:left;">Result</th>
                                         </tr>
-                                    </thead>
+                                    </thead> -->
                                     <tbody>
                                         <?php foreach ($left_rows as $row) {
                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                         ?>
                                             <tr>
-                                                <td><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
-                                                <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong><?php echo $unit; ?></td>
+                                                <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>

@@ -149,20 +149,20 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
             </div>
            
                  
-                    <h4 style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></h4>
-<p style="text-align: center;"><?php echo isset($report->description) ? html_escape($report->description) : '—'; ?></p>
+                    <p style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></p>
+
 
             
 
             <?php if (!empty($section_blocks)) { ?>
                 <?php foreach ($section_blocks as $block) { ?>
-                    <div class="report-section-block" style="margin-bottom:5px;">
-                        <h4 style="border-bottom:1px solid black;padding-bottom:2px;color:black;">
+                    <div class="report-section-block" style="margin-bottom:1px;">
+                        <p style="border-bottom:1px solid black;padding-bottom:2px;color:black;">
                             <?php echo html_escape($block['section_name']); ?>
-                        </h4>
+                        </p>
                         <table class="table  table-hover table-striped">
                             <thead>
-                                <tr style="margin-bottom:5px;">
+                                <tr style="margin-bottom:1px;">
                                     <th style="width:32%;text-align: left;">Parameter</th>
                                     <th style="width:18%;text-align: left;">Result</th>
                                     
