@@ -477,7 +477,7 @@
                                             $doctor = $this->db->select('*')->get('doctor')->result();
                                             foreach ($doctor as $doctor_value) {
                                             ?>
-                                                <option <?php echo $doctor_value->doctor_id == $patient->under_doctor_id ? 'selected' : '' ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                <option <?php echo $doctor_value->doctor_id == $patient->under_doctor_id ? 'selected' : '' ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                             <?php
                                             }
                                             ?>
@@ -497,7 +497,7 @@
                                             $doctors = $this->db->select('*')->get('doctor')->result();
                                             foreach ($doctors as $doctor_value) {
                                             ?>
-                                                <option <?php echo $doctor_value->doctor_id == $patient->reference_doctor_id ? 'selected' : '' ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                <option <?php echo $doctor_value->doctor_id == $patient->reference_doctor_id ? 'selected' : '' ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                             <?php
                                             }
                                             ?>

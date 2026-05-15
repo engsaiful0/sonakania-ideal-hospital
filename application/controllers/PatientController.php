@@ -728,7 +728,7 @@ class PatientController extends CI_Controller
         <?php
         foreach ($doctor as $value) {
         ?>
-            <option value="<?php echo $value->doctor_id; ?>"><?php echo $value->doctor_name; ?></option>
+            <option value="<?php echo $value->doctor_id; ?>"><?php echo $value->doctor_name.' - '.$value->doctor_unique_id; ?></option>
 <?php
         }
     }

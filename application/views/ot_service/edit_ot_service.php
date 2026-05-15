@@ -605,7 +605,7 @@
                                                 $doctor = $this->db->select('*')->order_by('doctor_name', 'ASC')->get('doctor')->result();
                                                 foreach ($doctor as $doctor_value) {
                                                 ?>
-                                                    <option <?php echo $surgons[$index] == $doctor_value->doctor_id ? 'selected' : '' ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                    <option <?php echo $surgons[$index] == $doctor_value->doctor_id ? 'selected' : '' ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                                 <?php
                                                 }
                                                 ?>
@@ -729,10 +729,10 @@
                 <div class="row" style="clear:left;margin-top:20px;">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Anaestesiologist</label>
+                            <label class="control-label col-sm-4" for="name">Anesthesiologist</label>
                             <div class="col-sm-8">
                                 <select style="width: 100%;" type="text" class="form-control" id="anestasia_doctor_id" name="anestasia_doctor_id">
-                                    <option selected="" disabled="" value="">Select Anaestesiologist</option>
+                                    <option selected="" disabled="" value="">Select Anesthesiologist</option>
                                     <?php
                                     $doctor = $this->db->where('anaestesiologist', 'Yes')->order_by('doctor_name', 'ASC')->get('doctor')->result();
                                     foreach ($doctor as $doctor_value) {

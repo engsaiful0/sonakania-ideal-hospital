@@ -28,20 +28,21 @@ class MobileReportController extends CI_Controller
 
     public function mobile_report()
     {
-        // Date-wise filter: GET from_date & to_date as d-m-Y (defaults to today).
-        $parse_dmY = function ($s) {
-            $s = trim((string) $s);
-            if ($s === '') {
+        // Date filter via POST (HTML5 type=date sends Y-m-d). Default: today when not posted or invalid.
+        $today_ymd = date('Y-m-d');
+        $normalize_ymd = function ($s) {
+            $s = is_string($s) ? trim($s) : '';
+            if ($s === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
                 return false;
             }
-            $dt = DateTime::createFromFormat('d-m-Y', $s);
-            return ($dt instanceof DateTime) ? $dt->format('Y-m-d') : false;
+            $ts = strtotime($s . ' 00:00:00');
+            return $ts !== false ? date('Y-m-d', $ts) : false;
         };
-        $from_get = $this->input->get('from_date', true);
-        $to_get = $this->input->get('to_date', true);
-        $today_ymd = date('Y-m-d');
-        $date_from = $parse_dmY($from_get !== null && $from_get !== false ? $from_get : '');
-        $date_to = $parse_dmY($to_get !== null && $to_get !== false ? $to_get : '');
+
+        $from_raw = $this->input->post('from_date', true);
+        $to_raw = $this->input->post('to_date', true);
+        $date_from = $normalize_ymd($from_raw !== false && $from_raw !== null ? $from_raw : '');
+        $date_to = $normalize_ymd($to_raw !== false && $to_raw !== null ? $to_raw : '');
         if ($date_from === false || $date_from === '') {
             $date_from = $today_ymd;
         }
@@ -189,6 +190,8 @@ class MobileReportController extends CI_Controller
         $total_expense = $total_debit_voucher_today;
         $total_balance = $total_income - $total_return - $total_expense;
 
+        $data['input_date_from'] = $date_from;
+        $data['input_date_to'] = $date_to;
         $data['display_from'] = $display_from;
         $data['display_to'] = $display_to;
         $data['total_emergency_today'] = $total_emergency_today;
@@ -210,7 +213,6 @@ class MobileReportController extends CI_Controller
         $data['total_return'] = $total_return;
         $data['total_expense'] = $total_expense;
         $data['total_balance'] = $total_balance;
-        $data['total_medicine_sells_today'] = $total_medicine_sells_today;
         $data['total_opd_payable_today'] = $total_opd_payable_today;
         $data['total_ipd_paid_amount_today'] = $total_ipd_paid_amount_today;
         $this->load->view('mobile/mobile_report', $data);

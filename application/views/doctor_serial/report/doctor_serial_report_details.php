@@ -252,7 +252,7 @@
                 <div class="second">
                     <table border="1" class="table table-bordered table-hover" style="width: 90%;margin: 0 auto;color:black;border-collapse:collapse;">
                         <tr style="background-color: #0074B3;color: white  ">
-                            <td colspan="8" style="text-align: center"><b>OPD Patient Report</b> From date <b><?php echo date('d-m-Y', strtotime($from_date)); ?></b> To date <b><?php echo date('d-m-Y', strtotime($to_date)); ?></b></td>
+                            <td colspan="8" style="text-align: center"><b>Doctor Serial Report</b> From date <b><?php echo date('d-m-Y', strtotime($from_date)); ?></b> To date <b><?php echo date('d-m-Y', strtotime($to_date)); ?></b></td>
                         </tr>
                         <tr>
                             <td>Sl</td>
@@ -266,31 +266,30 @@
                         </tr>
                         <?php
                         $from = $from + 30;
-                        $this->db->select('opd_patient.*, doctor.doctor_name'); // Select all columns from opd_patient and doctor_name from doctor
-                        $this->db->from('opd_patient'); // Base table
-                        $this->db->join('doctor', 'opd_patient.doctor_id = doctor.doctor_id', 'inner'); // Join with doctor table
+                        $this->db->select('doctor_serial.*, doctor.doctor_name'); // Select all columns from opd_patient and doctor_name from doctor
+                        $this->db->from('doctor_serial'); // Base table
+                        $this->db->join('doctor', 'doctor_serial.doctor_id = doctor.doctor_id', 'inner'); // Join with doctor table
 
                         if (empty($to_date) && !empty($from_date) && empty($doctor_id)) {
-                            $this->db->where('opd_patient.visiting_date', date('Y-m-d', strtotime($from_date)));
+                                $this->db->where('doctor_serial.visiting_date', date('Y-m-d', strtotime($from_date)));
                         } else if (!empty($to_date) && empty($from_date) && empty($doctor_id)) {
-                            $this->db->where('opd_patient.visiting_date', date('Y-m-d', strtotime($to_date)));
+                            $this->db->where('doctor_serial.visiting_date', date('Y-m-d', strtotime($to_date)));
                         } else if (!empty($to_date) && !empty($from_date) && empty($doctor_id)) {
                             $this->db
-                                ->where('opd_patient.visiting_date >=', date('Y-m-d', strtotime($to_date)))
-                                ->where('opd_patient.visiting_date <=', date('Y-m-d', strtotime($from_date)));
+                                ->where('doctor_serial.visiting_date >=', date('Y-m-d', strtotime($to_date)))
+                                ->where('doctor_serial.visiting_date <=', date('Y-m-d', strtotime($from_date)));
                         } else if (!empty($to_date) && !empty($from_date) && !empty($doctor_id)) {
                             $this->db
-                                ->where('opd_patient.visiting_date >=', date('Y-m-d', strtotime($to_date)))
-                                ->where('opd_patient.visiting_date <=', date('Y-m-d', strtotime($from_date)))
-                                ->where('opd_patient.doctor_id', $doctor_id);
+                                ->where('doctor_serial.visiting_date >=', date('Y-m-d', strtotime($to_date)))
+                                ->where('doctor_serial.visiting_date <=', date('Y-m-d', strtotime($from_date)))
+                                ->where('doctor_serial.doctor_id', $doctor_id);
                         } else if (!empty($doctor_id) && empty($from_date) && empty($doctor_id)) {
                             $this->db->where('opd_patient.doctor_id', $doctor_id);
                         } else if (empty($doctor_id) && empty($from_date) && empty($doctor_id)) {
                             $this->db->where('opd_patient.doctor_id', $doctor_id);
                         }
-                        // $this->db->where('opd_patient.visiting_date >=', date('Y-m-d', strtotime($from_date))); // Date range filter
-                        // $this->db->where('opd_patient.visiting_date <=', date('Y-m-d', strtotime($to_date)));
-                        $this->db->order_by('opd_patient.opd_patient_id', 'DESC'); // Order by opd_patient_id in descending order
+                    
+                        $this->db->order_by('doctor_serial.doctor_serial_id', 'DESC'); // Order by doctor_serial_id in descending order
                         $this->db->limit(30, $from); // Pagination limit and offset
                         $query_opd_patient = $this->db->get();
                         $query = $query_opd_patient->result();

@@ -87,7 +87,7 @@
         </div>
     </div>
     <div class="container" style="margin-top: 10px;">
-        <div class="row">
+        <form method="post" action="<?php echo site_url('mobile'); ?>" class="row g-2 align-items-end">
             <div class="col-12">
                 <p class="text-center text-muted small mb-2">
                     Summary for <strong><?php echo html_escape($display_from); ?></strong>
@@ -98,25 +98,25 @@
             </div>
             <div class="col-md-5">
                 <div class="form-group">
-                    <label>From Date</label>
-                    <input type="date" name="from_date" value="<?php echo html_escape($display_from); ?>" id="datepicker1" class="form-control" type="text" autocomplete="off">
+                    <label for="datepicker1">From Date</label>
+                    <input type="date" name="from_date" value="<?php echo html_escape($input_date_from); ?>" id="datepicker1" class="form-control" autocomplete="off">
                 </div>
             </div>
 
             <div class="col-md-5">
                 <div class="form-group">
-                    <label>To Date</label>
-                    <input type="date" name="to_date" value="<?php echo html_escape($display_to); ?>" id="datepicker2" class="form-control" type="text" autocomplete="off">
+                    <label for="datepicker2">To Date</label>
+                    <input type="date" name="to_date" value="<?php echo html_escape($input_date_to); ?>" id="datepicker2" class="form-control" autocomplete="off">
                 </div>
             </div>
 
             <div class="col-md-2">
                 <div class="form-group">
-                    <label>&nbsp;</label>
-                    <button type="button" class="btn btn-primary w-100" onclick="load_date_wise_summary_report()">Search</button>
+                    <label class="d-block">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
     <div class="container" style="margin-top: 10px;">
 
@@ -294,15 +294,6 @@
     </div>
 
     <script type="text/javascript" src="<?php echo base_url() ?>js/bootstrap.bundle.min.js"></script>
-    <script>
-        function load_date_wise_summary_report() {
-            var from = document.getElementById('datepicker1').value.trim();
-            var to = document.getElementById('datepicker2').value.trim();
-            var base = '<?php echo site_url('mobile'); ?>';
-            var sep = base.indexOf('?') >= 0 ? '&' : '?';
-            window.location.href = base + sep + 'from_date=' + encodeURIComponent(from) + '&to_date=' + encodeURIComponent(to);
-        }
-    </script>
 
 </body>
 

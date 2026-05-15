@@ -6,6 +6,7 @@
                 <i class="fas fa-tachometer-alt"></i> Dashboard</a>
         </li>
     <?php } ?>
+
     <?php if (in_array('ipd_report_daily', $permissions) || in_array('ipd_service_report', $permissions)) { ?>
         <li class="dropdown">
             <i class="fa fa-file-alt"></i> IPD Report <span class="icon">+</span>
@@ -19,6 +20,7 @@
             </ul>
         </li>
     <?php } ?>
+
     <?php if (in_array('opd_report_daily', $permissions)) { ?>
         <li class="dropdown ">
             <i class="fa fa-file-alt"></i> OPD Report<span class="icon">+</span>
@@ -29,6 +31,18 @@
             </ul>
         </li>
     <?php } ?>
+    
+    <?php if (in_array('doctor_serial_report_daily', $permissions)) { ?>
+        <li class="dropdown ">
+            <i class="fa fa-file-alt"></i> Doctor Serial Report<span class="icon">+</span>
+            <ul class="submenu">
+                <?php if (in_array('doctor_serial_report_daily', $permissions)) { ?>
+                    <li><a class="box_a" href="<?php echo base_url('doctor-serial-report') ?>">Doctor Serial</a></li>
+                <?php } ?>
+            </ul>
+        </li>
+    <?php } ?>
+
     <?php if (in_array('test_report_daily', $permissions) || in_array('test_details_report', $permissions)) { ?>
         <li class="dropdown ">
             <i class="fa fa-file-alt"></i> Test Report<span class="icon">+</span>
