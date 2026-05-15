@@ -134,15 +134,17 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 }
 
                 $age_display = !empty($age_parts) ? implode(' ', $age_parts) : '—';
+                $section_block_count = (!empty($section_blocks) && is_array($section_blocks)) ? count($section_blocks) : 0;
+                // Single section: panel name in header is enough — hide the section title row.
+                $hide_section_titles = ($section_block_count === 1);
             ?>
-                <div class="well well-sm" style="background:#f9f9f9;">
+                <div class="well well-sm" style="background:#f9f9f9;margin-bottom:10px;">
                     <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></p>
-                   
                     <p style="text-align: center;font-weight: bold;"><u><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></u></p>
                     <?php
                    
                    $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
-                   if ($group_name->test_group_name) {
+                   if ($group_name && isset($group_name->test_group_name) && $group_name->test_group_name) {
                    ?>
                        <p style="margin-bottom:0;text-align: center;"><strong></strong> <?php echo html_escape($group_name->test_group_name); ?></p>
 
@@ -151,10 +153,12 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) { ?>
-                        <div class="report-section-block" style="margin-bottom:1px;">
+                        <div class="report-section-block" style="margin-bottom:5px;">
+                            <?php if (empty($hide_section_titles)) { ?>
                             <p style="border-bottom:1px solid black;padding-bottom:2px;color:black;">
                                 <?php echo html_escape($block['section_name']); ?>
                             </p>
+                            <?php } ?>
                             <table class="table  table-hover table-striped">
                                 <thead>
                                     <tr style="margin-bottom:1px;">
