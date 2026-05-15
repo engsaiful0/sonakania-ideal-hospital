@@ -252,7 +252,7 @@
                 <div class="second">
                     <table border="1" class="table table-bordered table-hover" style="width: 90%;margin: 0 auto;color:black;border-collapse:collapse;">
                         <tr style="background-color: #0074B3;color: white  ">
-                            <td colspan="8" style="text-align: center"><b>Doctor Serial Report</b> From date <b><?php echo date('d-m-Y', strtotime($from_date)); ?></b> To date <b><?php echo date('d-m-Y', strtotime($to_date)); ?></b></td>
+                            <td colspan="9" style="text-align: center"><b>Doctor Serial Report</b> From date <b><?php echo date('d-m-Y', strtotime($from_date)); ?></b> To date <b><?php echo date('d-m-Y', strtotime($to_date)); ?></b></td>
                         </tr>
                         <tr>
                             <td>Sl</td>
@@ -263,6 +263,7 @@
                             <td>Doctor</td>
                             <td>V. Fee</td>
                             <td>Date</td>
+                            <td>Time</td>
                         </tr>
                         <?php
                         $from = $from + 30;
@@ -304,7 +305,7 @@
                                     <?php echo $sl++ ?>
                                 </td>
                                 <td>
-                                    <?php echo $query_value->opd_patient_name ?>
+                                    <?php echo $query_value->patient_name ?>
                                 </td>
                                 <td>
                                     <?php echo $query_value->mobile_number ?>
@@ -326,6 +327,9 @@
                                 </td>
                                 <td>
                                     <?php echo date('d-m-Y', strtotime($query_value->visiting_date)) ?>
+                                </td>
+                                <td>
+                                    <?php echo $query_value->visiting_time ?>
                                 </td>
                             </tr>
                         <?php

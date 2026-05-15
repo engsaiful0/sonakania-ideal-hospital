@@ -73,6 +73,27 @@ class Report_model extends CI_Model
         return $this->db->insert('lab_report_results', $data);
     }
 
+    public function update_report($id, $data)
+    {
+        $id = (int) $id;
+        if ($id < 1) {
+            return false;
+        }
+        $this->db->where('id', $id)->update($this->table_reports, $data);
+
+        return $this->db->affected_rows() >= 0;
+    }
+
+    public function delete_results_for_report($report_id)
+    {
+        $report_id = (int) $report_id;
+        if ($report_id < 1) {
+            return false;
+        }
+
+        return (bool) $this->db->where('report_id', $report_id)->delete('lab_report_results');
+    }
+
     public function get_report($id)
     {
         return $this->db->get_where($this->table_reports, array('id' => (int) $id))->row();

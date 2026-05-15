@@ -133,7 +133,7 @@ $back_url = uri_string() . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STR
                                         <a class="btn btn-xs btn-primary" href="<?php echo base_url("print-panel-test-with-id/$r->id") ?>" title="View">
                                             <i class="glyphicon glyphicon-print"></i>
                                         </a>
-                                        <a class="btn btn-xs btn-info"  href="<?php echo base_url("test-result-edit/$r->id") ?>" title="Edit">
+                                        <a class="btn btn-xs btn-info" href="<?php echo base_url('panel-test-edit/' . (int) $r->id); ?>" title="Edit">
                                             <i class="glyphicon glyphicon-pencil"></i>
                                         </a>
                                         <a class="btn btn-xs btn-danger" href="<?php echo $delete_url; ?>"

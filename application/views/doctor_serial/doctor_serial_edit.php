@@ -260,6 +260,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-4" for="name">Visiting Fee </label>
+                                    <div class="col-sm-8">
+                                        <input type="number" class="form-control" id="visiting_fee" value="" name="visiting_fee">
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
                         <div class="row" style="clear:left">

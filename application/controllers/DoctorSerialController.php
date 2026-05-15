@@ -329,6 +329,7 @@ class DoctorSerialController extends CI_Controller
             $data['serial_numaber'] = $this->input->post('serial_numaber');
             $data['visiting_date'] = date('Y-m-d', strtotime($this->input->post('visiting_date')));
             $data['visiting_time'] = $this->input->post('visiting_time');
+            $data['visiting_fee'] = $this->input->post('visiting_fee');
             
             $data['discount_reference'] = $this->input->post('discount_reference');
 
@@ -388,6 +389,7 @@ class DoctorSerialController extends CI_Controller
             $data['visiting_date'] = date('Y-m-d', strtotime($this->input->post('visiting_date')));
             
             $data['visiting_time'] = $this->input->post('visiting_time');
+            $data['visiting_fee'] = $this->input->post('visiting_fee');
             
             $data['discount_reference'] = $this->input->post('discount_reference');
             $data['age_year'] = $this->input->post('age_year');

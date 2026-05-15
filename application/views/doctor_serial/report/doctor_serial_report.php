@@ -48,7 +48,7 @@
 
                 <td><input name="to_date" value="<?php echo date('d-m-Y') ?>" id="datepicker2" class="form-control"></td>
 
-                <td><input type="submit" class="btn btn-primary " onclick="opd_patient_report_details_load()" value="Search"></td>
+                <td><input type="submit" class="btn btn-primary " onclick="doctor_serial_report_details_load()" value="Search"></td>
             </tr>
         </table>
 
