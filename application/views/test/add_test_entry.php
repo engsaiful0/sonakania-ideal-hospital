@@ -392,17 +392,23 @@
         });
 
         // On form submission
-        $('#submit_button').click(function(e) {
+        $('#investigation_entry_form').on('submit', function(e) {
             e.preventDefault();
-            var submitBtn = $(this);
+            if (window.__addTestEntrySubmitting) {
+                return false;
+            }
+
+            var submitBtn = $('#submit_button');
+            if (!$("#investigation_entry_form").valid()) {
+                return false;
+            }
+
+            window.__addTestEntrySubmitting = true;
             var formData = $('#investigation_entry_form').serialize();
+            $('#investigation_entry_form :input').prop('disabled', true);
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
-            // Check if the form is valid
-            if ($("#investigation_entry_form").valid()) {
-                $('#investigation_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
-                $.ajax({
+            $.ajax({
                     type: "POST",
                     url: "<?php echo base_url('TestController/add_test_entry_save'); ?>",
                     data: formData,
@@ -418,24 +424,24 @@
                                 icon: 'success'
                             });
                             $('#investigation_entry_form')[0].reset();
-                            $('#investigation_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
                             setTimeout(function() {
                                 window.location.href = "<?php echo base_url('print-test-entry') ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__addTestEntrySubmitting = false;
                             $('#investigation_entry_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Save');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__addTestEntrySubmitting = false;
                         $('#investigation_entry_form :input').prop('disabled', false);
                         submitBtn.prop('disabled', false).html('Save');
                     }
                 });
-            }
+            return false;
         });
     });
 </script>

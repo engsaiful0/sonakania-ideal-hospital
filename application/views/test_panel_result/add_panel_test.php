@@ -114,17 +114,25 @@
             }
         });
 
-        // On form submission
-        $('#submit_button').click(function(e) {
+        // Single handler: Enter in a field triggers form submit, not button click — prevent native POST + AJAX double-save.
+        $('#test_result_entry_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__panelTestFormSubmitting) {
+                return false;
+            }
+
+            var $btn = $('#submit_button');
             var manual_or_dynamic_report = $('#manual_or_dynamic_report').val();
-            var formData = new FormData($('#test_result_entry_form')[0]); // Create FormData object with form data
             var panel_test_id = $('#panel_test_id').val();
 
             // Panel-test mode: when a panel is selected, save via the panel endpoint and print.
             if (panel_test_id) {
-                var $btn = $(this);
+                if (!$('#test_result_entry_form').valid()) {
+                    return false;
+                }
 
+                window.__panelTestFormSubmitting = true;
+                var formData = new FormData($('#test_result_entry_form')[0]);
                 $('#test_result_entry_form :input').prop('disabled', true);
                 $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
@@ -158,6 +166,7 @@
                             hideAfter: 3000,
                             icon: 'error'
                         });
+                        window.__panelTestFormSubmitting = false;
                         $('#test_result_entry_form :input').prop('disabled', false);
                         $btn.prop('disabled', false).html('Submit');
                     }
@@ -170,10 +179,11 @@
                         hideAfter: 3000,
                         icon: 'error'
                     });
+                    window.__panelTestFormSubmitting = false;
                     $('#test_result_entry_form :input').prop('disabled', false);
                     $btn.prop('disabled', false).html('Submit');
                 });
-                return;
+                return false;
             }
 
             // Check if the form is valid
@@ -192,7 +202,7 @@
                             hideAfter: 3000,
                             icon: 'error'
                         });
-                        return; // Stop the form submission
+                        return false; // Stop the form submission
                     }
                 }
 
@@ -218,14 +228,14 @@
                             hideAfter: 3000,
                             icon: 'error'
                         });
-                        return; // Stop the form submission
+                        return false; // Stop the form submission
                     }
                 }
 
-
-                var submitBtn = $(this);
+                window.__panelTestFormSubmitting = true;
+                var formData = new FormData($('#test_result_entry_form')[0]);
                 $('#test_result_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
                 $.ajax({
                     type: "POST",
@@ -245,24 +255,25 @@
                                 icon: 'success'
                             });
                             $('#test_result_entry_form')[0].reset();
-                            $('#test_result_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
                             setTimeout(function() {
                                 window.location.href = "<?php echo base_url('test-result-report-print') ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__panelTestFormSubmitting = false;
                             $('#test_result_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
+                            $btn.prop('disabled', false).html('Submit');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__panelTestFormSubmitting = false;
                         $('#test_result_entry_form :input').prop('disabled', false);
-                        submitBtn.prop('disabled', false).html('Save');
+                        $btn.prop('disabled', false).html('Submit');
                     }
                 });
             }
+            return false;
         });
 
     });

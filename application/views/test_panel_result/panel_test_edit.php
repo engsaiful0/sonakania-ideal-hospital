@@ -135,8 +135,12 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
             }
         });
 
-        $('#submit_button').click(function(e) {
+        $('#test_result_entry_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__panelTestEditSubmitting) {
+                return false;
+            }
+
             var panel_test_id = $('#panel_test_id').val();
             if (!panel_test_id) {
                 $.toast({
@@ -147,10 +151,15 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
                     hideAfter: 3000,
                     icon: 'error'
                 });
-                return;
+                return false;
             }
 
-            var $btn = $(this);
+            if (!$('#test_result_entry_form').valid()) {
+                return false;
+            }
+
+            window.__panelTestEditSubmitting = true;
+            var $btn = $('#submit_button');
             var formData = new FormData($('#test_result_entry_form')[0]);
             var $togglable = $('#test_result_entry_form').find('input, select, textarea, button').not('[type=hidden]');
             $togglable.prop('disabled', true);
@@ -190,6 +199,7 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
                     });
                     $('#test_result_entry_form').find('input, select, textarea, button').not('[type=hidden]').prop('disabled', false);
                     $btn.prop('disabled', false).html('Update');
+                    window.__panelTestEditSubmitting = false;
                 }
             }).fail(function() {
                 $.toast({
@@ -202,7 +212,9 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
                 });
                 $('#test_result_entry_form').find('input, select, textarea, button').not('[type=hidden]').prop('disabled', false);
                 $btn.prop('disabled', false).html('Update');
+                window.__panelTestEditSubmitting = false;
             });
+            return false;
         });
     });
 
