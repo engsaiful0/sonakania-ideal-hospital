@@ -67,138 +67,7 @@
 <body>
 
     <?php
-    $this->db->select_sum('nettotal');
-    $this->db->from('medicine_sales');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_medicine_sells_today = $query->row()->nettotal ?? 0;
-
-    $this->db->select_sum('payable');
-    $this->db->from('opd_patient');
-    $this->db->where('entry_date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_opd_payable_today = $query->row()->payable ?? 0;
-
-    $this->db->select_sum('paid_amount');
-    $this->db->from('ipd_patient');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_ipd_paid_amount_today = $query->row()->paid_amount ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('emergency');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_emergency_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('phygiotherapy');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_phygiotherapy_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('total_amount');
-    $this->db->from('debit_voucher');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_debit_voucher_today = $query->row()->total_amount ?? 0;
-
-    $this->db->select_sum('total_amount');
-    $this->db->from('credit_voucher');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_credit_voucher_today = $query->row()->total_amount ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('ot_services');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_ot_service_paid_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('test_collection');
-    $this->db->where('payment_type', 'from_direct_sales');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_test_entry_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('test_collection');
-    $this->db->where('payment_type', 'from_due_collection');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_test_due_collection_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('total_return');
-    $this->db->from('patient_test_entry_details');
-    $this->db->where('date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_test_return_today = $query->row()->total_return ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('discharge');
-    $this->db->where('discharge_date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_discharge_value_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('medicine_sales');
-    $this->db->where('bill_date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_medicine_sells_today = $query->row()->paid ?? 0;
-
-    $this->db->select_sum('due_payment');
-    $this->db->from('medicine_sales');
-    $this->db->where('due_payment_date', date('Y-m-d'));
-    $query = $this->db->get();
-    $total_medicine_sells_due_payment = $query->row()->due_payment ?? 0;
-
-    $this->db->select_sum('returnable_amount');
-    $this->db->from('emergency');
-    $this->db->where(['date' => date('Y-m-d')]);
-    $query = $this->db->get();
-    $emergency_return_amount = $query->row()->returnable_amount ?? 0;
-
-    $this->db->select_sum('returnable_amount');
-    $this->db->from('phygiotherapy');
-    $this->db->where(['date' => date('Y-m-d')]);
-    $query = $this->db->get();
-    $phygiotherapy_return_amount = $query->row()->returnable_amount ?? 0;
-
-    $this->db->select_sum('returnable_amount');
-    $this->db->from('opd_patient');
-    $this->db->where(['entry_date' => date('Y-m-d')]);
-    $query = $this->db->get();
-    $opd_returnable_amount = $query->row()->returnable_amount ?? 0;
-
-    $this->db->select_sum('paid');
-    $this->db->from('medicine_sale_return');
-    $this->db->where(['date' => date('Y-m-d')]);
-    $query = $this->db->get();
-    $medicine_sales_return_amount = $query->row()->paid ?? 0;
-
-    $total_income =
-        $total_ot_service_paid_today +
-        $total_discharge_value_today +
-        $total_test_entry_today +
-        $total_test_due_collection_today +
-        $total_opd_payable_today +
-        $total_ipd_paid_amount_today +
-        $total_emergency_today +
-        $total_phygiotherapy_today +
-        $total_medicine_sells_today +
-        $total_medicine_sells_due_payment +
-        $total_credit_voucher_today;
-
-    $total_return =
-        $medicine_sales_return_amount +
-        $opd_returnable_amount +
-        $total_test_return_today +
-        $emergency_return_amount +
-        $phygiotherapy_return_amount;
-
-    $total_expense = $total_debit_voucher_today;
-    $total_balance = $total_income - $total_return - $total_expense;
+   
     $company = $this->db->where('company_id', '1')->get('company')->row();
     ?>
 
@@ -219,24 +88,32 @@
     </div>
     <div class="container" style="margin-top: 10px;">
         <div class="row">
+            <div class="col-12">
+                <p class="text-center text-muted small mb-2">
+                    Summary for <strong><?php echo html_escape($display_from); ?></strong>
+                    <?php if ($display_from !== $display_to) { ?>
+                        to <strong><?php echo html_escape($display_to); ?></strong>
+                    <?php } ?>
+                </p>
+            </div>
             <div class="col-md-5">
                 <div class="form-group">
                     <label>From Date</label>
-                    <input name="from_date" value="<?php echo date('d-m-Y'); ?>" id="datepicker1" class="form-control">
+                    <input type="date" name="from_date" value="<?php echo html_escape($display_from); ?>" id="datepicker1" class="form-control" type="text" autocomplete="off">
                 </div>
             </div>
 
             <div class="col-md-5">
                 <div class="form-group">
                     <label>To Date</label>
-                    <input name="to_date" value="<?php echo date('d-m-Y'); ?>" id="datepicker2" class="form-control">
+                    <input type="date" name="to_date" value="<?php echo html_escape($display_to); ?>" id="datepicker2" class="form-control" type="text" autocomplete="off">
                 </div>
             </div>
 
             <div class="col-md-2">
                 <div class="form-group">
                     <label>&nbsp;</label>
-                    <input type="submit" class="btn btn-primary btn-block" onclick="load_date_wise_summary_report()" value="Search">
+                    <button type="button" class="btn btn-primary w-100" onclick="load_date_wise_summary_report()">Search</button>
                 </div>
             </div>
         </div>
@@ -417,6 +294,15 @@
     </div>
 
     <script type="text/javascript" src="<?php echo base_url() ?>js/bootstrap.bundle.min.js"></script>
+    <script>
+        function load_date_wise_summary_report() {
+            var from = document.getElementById('datepicker1').value.trim();
+            var to = document.getElementById('datepicker2').value.trim();
+            var base = '<?php echo site_url('mobile'); ?>';
+            var sep = base.indexOf('?') >= 0 ? '&' : '?';
+            window.location.href = base + sep + 'from_date=' + encodeURIComponent(from) + '&to_date=' + encodeURIComponent(to);
+        }
+    </script>
 
 </body>
 
