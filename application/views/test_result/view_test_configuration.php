@@ -105,12 +105,13 @@ $permissions = $this->session->userdata('permissions');
                             </select>
                         </td>
                         <td style="width: 300px;">
+                            <?php 
+                            $all_tests = $this->db->select('*')->order_by('test_name', 'ASC')->get('test')->result();
+                             ?>
                             <select class="form-control" id="test_id" name="test_id">
                                 <option value="">All tests in group</option>
-                                <?php foreach ($filter_tests as $t) {
-                                    $t_sel = ($sel_test !== '' && (string) $t->test_id === (string) $sel_test) ? ' selected' : '';
-                                ?>
-                                    <option value="<?php echo (int) $t->test_id; ?>"<?php echo $t_sel; ?>><?php echo html_escape($t->test_name); ?></option>
+                                <?php foreach ($all_tests as $value) { ?>
+                                    <option value="<?php echo (int) $value->test_id; ?>"><?php echo html_escape($value->test_name); ?></option>
                                 <?php } ?>
                             </select>
                         </td>
