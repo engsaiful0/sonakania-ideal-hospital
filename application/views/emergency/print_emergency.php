@@ -184,7 +184,7 @@
             </table>
         </div>
         <div class="product" style="height: 300px; ">
-            <table border="1" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black">
+            <table border="1" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;table-layout:fixed;">
                 <tr>
                     <td>Sl</td>
                     <td>Service Name</td>
@@ -215,19 +215,18 @@
                 }
                 ?>
                 <tr>
-                    <td colspan="4" rowspan="9" style="text-align:right">
+                    <td colspan="4" style="text-align:center;vertical-align:middle;font-weight:bold;padding:12px 8px;">
                         <?php
                         if ($emergency->due == 0) {
                         ?>
-                            <h2 style="font-weight: bold;text-align: center ">Paid</h2>
+                            <span style="font-size:1.35em;">Paid</span>
                         <?php
                         } else {
                         ?>
-                            <h2 style="font-weight: bold;text-align: center ">Due</h2>
+                            <span style="font-size:1.35em;">Due</span>
                         <?php
                         }
                         ?>
-
                     </td>
                     <td style="text-align:right">Sub Total</td>
                     <td style="text-align:right"><?php echo number_format($emergency->total, 3) ?></td>
@@ -236,6 +235,7 @@
                 if ($emergency->director_discount != 0) {
                 ?>
                     <tr>
+                        <td colspan="4"></td>
                         <td style="text-align:right">Special Discount</td>
                         <td style="text-align:right"><?php echo $emergency->director_discount ?></td>
                     </tr>
@@ -243,34 +243,42 @@
                 }
                 ?>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">Discount</td>
                     <td style="text-align:right"><?php echo $emergency->discount ?></td>
                 </tr>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">D.Discount</td>
                     <td style="text-align:right"><?php echo $emergency->director_discount ?></td>
                 </tr>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">Total Discount</td>
                     <td style="text-align:right"><?php echo $emergency->total_discount ?></td>
                 </tr>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">Dis. Reference</td>
                     <td style="text-align:right"><?php echo $emergency->discount_reference ?></td>
                 </tr>
                 <tr style="display:none">
+                    <td colspan="4"></td>
                     <td style="text-align:right">vat(<?php echo $emergency->vat_in_percentage ?>)%</td>
                     <td style="text-align:right"><?php echo number_format($emergency->vat, 3) ?></td>
                 </tr>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">Net Total</td>
                     <td style="text-align:right"><?php echo number_format($emergency->nettotal, 3) ?></td>
                 </tr>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">Paid</td>
                     <td style="text-align:right"><?php echo number_format((float)$emergency->paid + (float)$emergency->due_payment - (float)$emergency->returnable_amount, 3) ?></td>
                 </tr>
                 <tr>
+                    <td colspan="4"></td>
                     <td style="text-align:right">Due</td>
                     <td style="text-align:right"><?php echo number_format($emergency->due, 3) ?></td>
                 </tr>
@@ -279,18 +287,17 @@
 
                 ?>
                     <tr style="background-color:#005825;">
-                        <td colspan="4" style="text-align:center;font-weight:bold;color:white">Returned</td>
+                        <td colspan="6" style="text-align:center;font-weight:bold;color:white">Returned</td>
                     </tr>
                     <tr>
-                        <td>Return Date</td>
-                        <td><b><?php echo date('d-m-Y', strtotime($emergency->return_date)) ?></b></td>
+                        <td colspan="2">Return Date</td>
+                        <td colspan="2"><b><?php echo date('d-m-Y', strtotime($emergency->return_date)) ?></b></td>
                         <td>Return Amount</td>
-                        <td><b><?php echo $emergency->returnable_amount ?></b></td>
-
+                        <td style="text-align:right"><b><?php echo $emergency->returnable_amount ?></b></td>
                     </tr>
                     <tr>
-                        <td>Return Reason</td>
-                        <td colspan="3"><b><?php echo $emergency->return_reason ?></b></td>
+                        <td colspan="2">Return Reason</td>
+                        <td colspan="4"><b><?php echo $emergency->return_reason ?></b></td>
                     </tr>
                 <?php
                 }
