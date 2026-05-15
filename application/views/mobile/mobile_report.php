@@ -73,10 +73,10 @@
 
     <div class="container" style="margin-top: 10px;">
         <div class="row">
-            <div class="col-md-4">
-                <img style="width: 150px; height: 150px;" src="<?php echo base_url(); ?>assets/images/<?php echo $company->logo; ?>">
-            </div>
-            <div class="col-md-8">
+            <!-- <div class="col-md-4 col-sm-12 col-xs-12">
+                <img style="width: 100%; height: 60%;" src="<?php echo base_url(); ?>assets/images/<?php echo $company->logo; ?>">
+            </div> -->
+            <div class="col-md-12 col-sm-12 col-xs-12">
                 <p style="text-align: center;">
                     <span style="text-align: center;"><?php echo $company->company_name; ?></span><br>
                     <span style="text-align: center;"><?php echo $company->address; ?></span><br>
@@ -129,22 +129,22 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card pricing-card text-center p-4">
-                    <h4>Total Return</h4>
+                <div class="card pricing-card text-center p-4 border border-warning">
+                    <h4 class="badge bg-warning mb-2">Total Return</h4>
                     <h4><?php echo number_format($total_return); ?></h4>
                 </div>
             </div>
 
             <div class="col-md-3">
-                <div class="card pricing-card text-center p-4">
-                    <h4>Total Expense</h4>
+                <div class="card pricing-card text-center p-4 border border-danger">
+                    <h4 class="badge bg-danger mb-2">Total Expense</h4>
                     <h4><?php echo number_format($total_expense); ?></h4>
                 </div>
             </div>
 
             <div class="col-md-3">
-                <div class="card pricing-card text-center p-4">
-                    <h4>Total Balance</h4>
+                <div class="card pricing-card text-center p-4 border border-success">
+                    <h4 class="badge bg-success mb-2">Total Balance</h4>
                     <h4><?php echo number_format($total_balance); ?></h4>
                 </div>
             </div>

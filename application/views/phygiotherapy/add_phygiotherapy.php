@@ -228,19 +228,24 @@
             }
         });
 
-        // On form submission
-        $('#submit_button').click(function(e) {
+        // Single handler: Enter submits the form — prevent native POST + AJAX double-save.
+        $('#phygiotherapy_data_entry_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__phygioAddSubmitting) {
+                return false;
+            }
 
-            var submitBtn = $(this);
+            var submitBtn = $('#submit_button');
+            if (!$("#phygiotherapy_data_entry_form").valid()) {
+                return false;
+            }
+
+            window.__phygioAddSubmitting = true;
             var formData = $('#phygiotherapy_data_entry_form').serialize();
+            $('#phygiotherapy_data_entry_form :input').prop('disabled', true);
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
-            // Check if the form is valid
-            if ($("#phygiotherapy_data_entry_form").valid()) {
-                $('#phygiotherapy_data_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
-                $.ajax({
+            $.ajax({
                     type: "POST",
                     url: "<?php echo base_url('PhygiotherapyController/save_phygiotherapy_data'); ?>",
                     data: formData,
@@ -249,8 +254,6 @@
                         if (response.success) {
 
                             $('#phygiotherapy_data_entry_form')[0].reset();
-                            $('#phygiotherapy_data_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
                             $.toast({
                                 heading: 'Success',
                                 text: 'Data has been saved successfully.',
@@ -264,17 +267,19 @@
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__phygioAddSubmitting = false;
                             $('#phygiotherapy_data_entry_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Save');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__phygioAddSubmitting = false;
                         $('#phygiotherapy_data_entry_form :input').prop('disabled', false);
                         submitBtn.prop('disabled', false).html('Save');
                     }
                 });
-            }
+            return false;
         });
 
         $(document).keydown(function(e) {
@@ -836,7 +841,7 @@
                                 <tr>
                                     <td colspan="4" align="right" style="padding:5px;">
                                         <img src="<?php echo base_url() ?>images/ajax-loader.gif" id="img" style="display:none" />
-                                        <button type="button" name="submit_button" id="submit_button" class="btn btn-primary">Save</button>&nbsp;
+                                        <button type="submit" name="submit_button" id="submit_button" class="btn btn-primary">Save</button>&nbsp;
                                         <a onclick="resetFn()" class="btn btn-success">Reset</a>
                                     </td>
                                 </tr>

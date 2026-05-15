@@ -1,14 +1,79 @@
 <?php $require_lab_test_group = $this->db->field_exists('test_group_id', 'lab_reports'); ?>
 <script>
     $(document).ready(function() {
-        <?php if (!empty($require_lab_test_group)) { ?>
-        $('#test_group_id').select2();
-        $('#panel_test_id').select2();
-        <?php } ?>
+        <?php //if (!empty($require_lab_test_group)) { ?>
+        $('#test_group_id').select2({ width: '100%' });
+        $('#panel_test_id').select2({ width: '100%' });
+        <?php //} ?>
         $('#invoice_no').focus();
+
+        $('#test_group_id').on('change', function() {
+            test_group_change_panel_load($(this).val());
+        });
     });
 
-    
+    /**
+     * Load panel dropdown options for the selected test group (test_panels.test_group_id).
+     */
+    function test_group_change_panel_load(test_group_id) {
+        var $p = $('#panel_test_id');
+        var $cfg = $('#test_configuration');
+        $cfg.empty();
+
+        if ($p.data('select2')) {
+            $p.select2('destroy');
+        }
+        $p.empty();
+        if (!test_group_id) {
+            $p.append($('<option></option>').attr('value', '').text('Select test group first'));
+            $p.select2({ width: '100%' });
+            return;
+        }
+
+        $p.append($('<option></option>').attr('value', '').text('Select Panel Test'));
+        $p.select2({ width: '100%' });
+
+        $('#img').show();
+        $.ajax({
+            url: "<?php echo site_url('TestPanelResultController/panels_by_test_group'); ?>",
+            type: 'POST',
+            data: { test_group_id: test_group_id },
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).done(function(res) {
+            if ($p.data('select2')) {
+                $p.select2('destroy');
+            }
+            $p.empty();
+            if (res && res.success && res.panels && res.panels.length) {
+                $p.append($('<option></option>').attr('value', '').text('Select Panel Test'));
+                $.each(res.panels, function(i, row) {
+                    $p.append($('<option></option>').attr('value', row.id).text(row.panel_name));
+                });
+            } else if (res && res.success) {
+                $p.append($('<option></option>').attr('value', '').text('No panels for this group'));
+            } else {
+                $p.append($('<option></option>').attr('value', '').text('Select Panel Test'));
+            }
+            $p.select2({ width: '100%' });
+            $p.val('').trigger('change');
+        }).fail(function() {
+            if (typeof $.toast === 'function') {
+                $.toast({
+                    heading: 'Error',
+                    text: 'Could not load panels for this test group.',
+                    showHideTransition: 'slide',
+                    position: 'top-right',
+                    hideAfter: 4000,
+                    icon: 'error'
+                });
+            } else {
+                alert('Could not load panels for this test group.');
+            }
+        }).always(function() {
+            $('#img').hide();
+        });
+    }
 
     function panel_test_load(panel_test_id) {
         var $cfg = $('#test_configuration');
@@ -102,15 +167,15 @@
         $("#test_result_entry_form").validate({
             rules: {
                 invoice_no: "required",
-                <?php if (!empty($require_lab_test_group)) { ?>
+                
                 test_group_id: "required",
-                <?php } ?>
+                
             },
             messages: {
                 invoice_no: "Enter invoice no",
-                <?php if (!empty($require_lab_test_group)) { ?>
+                
                 test_group_id: "Select test group name",
-                <?php } ?>
+                
             }
         });
 
@@ -412,7 +477,7 @@
                     </div>
                 
                 <div class="row" style="margin-top:20px">
-                <?php if (!empty($require_lab_test_group)) { ?>
+                
                 
                     <div class="col-md-6">
                         <div class="form-group">
@@ -431,13 +496,14 @@
                         </div>
                     </div>
                 
-                <?php } ?>
+                
                 
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Panel Test *</label>
                             <div class="col-sm-8">
-                                <?php
+                                <?php 
+                                
                                 $panel_test = getAllPanelTest();
                                 ?>
                                 <select required class="form-control select2" onchange="panel_test_load(this.value)" id="panel_test_id" name="panel_test_id">

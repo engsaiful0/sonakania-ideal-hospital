@@ -137,19 +137,24 @@
             }
         });
 
-        // On form submission
-        $('#submit_button').click(function(e) {
+        // Single handler: Enter submits the form — prevent native POST + AJAX double-save.
+        $('#phygiotherapy_data_entry_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__phygioEditSubmitting) {
+                return false;
+            }
 
-            var submitBtn = $(this);
+            var submitBtn = $('#submit_button');
+            if (!$("#phygiotherapy_data_entry_form").valid()) {
+                return false;
+            }
+
+            window.__phygioEditSubmitting = true;
             var formData = $('#phygiotherapy_data_entry_form').serialize();
+            $('#phygiotherapy_data_entry_form :input').prop('disabled', true);
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
-            // Check if the form is valid
-            if ($("#phygiotherapy_data_entry_form").valid()) {
-                $('#phygiotherapy_data_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
-                $.ajax({
+            $.ajax({
                     type: "POST",
                     url: "<?php echo base_url('phygiotherapyController/update_phygiotherapy_data'); ?>",
                     data: formData,
@@ -165,24 +170,24 @@
                                 icon: 'success'
                             });
                             $('#phygiotherapy_data_entry_form')[0].reset();
-                            $('#phygiotherapy_data_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Update');
                             setTimeout(function() {
                                 window.location.href = "<?php echo base_url('print-phygiotherapy') ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__phygioEditSubmitting = false;
                             $('#phygiotherapy_data_entry_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Update');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__phygioEditSubmitting = false;
                         $('#phygiotherapy_data_entry_form :input').prop('disabled', false);
                         submitBtn.prop('disabled', false).html('Update');
                     }
                 });
-            }
+            return false;
         });
     });
 </script>

@@ -36,6 +36,29 @@ class Report_model extends CI_Model
     }
 
     /**
+     * Panels linked to a test group (test_panels.test_group_id).
+     * If the column does not exist, returns all panels (legacy DB).
+     *
+     * @param int $test_group_id
+     * @return array
+     */
+    public function get_panels_by_test_group_id($test_group_id)
+    {
+        $test_group_id = (int) $test_group_id;
+        if ($test_group_id < 1) {
+            return array();
+        }
+        if (!$this->db->field_exists('test_group_id', 'test_panels')) {
+            return $this->get_all_panels();
+        }
+
+        return $this->db->where('test_group_id', $test_group_id)
+            ->order_by('panel_name', 'ASC')
+            ->get('test_panels')
+            ->result();
+    }
+
+    /**
      * Sections for a panel, each with ->parameters (array of rows from test_parameters).
      */
     public function get_sections_with_parameters($panel_id)

@@ -284,6 +284,34 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
+     * AJAX: panels for a test group (test_panels filtered by test_group_id).
+     * POST: test_group_id — returns JSON { success, panels: [{ id, panel_name }, ...] }.
+     */
+    public function panels_by_test_group()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $this->load->model('Report_model');
+        $gid = (int) $this->input->post('test_group_id', true);
+        $rows = $this->Report_model->get_panels_by_test_group_id($gid);
+
+        $panels = array();
+        foreach ($rows as $r) {
+            $panels[] = array(
+                'id' => (int) $r->id,
+                'panel_name' => isset($r->panel_name) ? (string) $r->panel_name : '',
+            );
+        }
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array('success' => true, 'panels' => $panels)));
+    }
+
+    /**
      * Edit an existing lab_reports row + its lab_report_results (same UX as add_panel_test).
      * URL: TestPanelResultController/panel_test_edit/{id} or route panel-test-edit/{id}
      */
