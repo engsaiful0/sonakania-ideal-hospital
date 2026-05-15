@@ -242,6 +242,39 @@
         </div>
     </div>
     <div class="container" style="margin-top: 10px;">
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card pricing-card text-center p-4 border border-primary">
+                    <span class="badge bg-primary mb-2">Total Income</span>
+
+                    <h4><?php echo number_format($total_income); ?></h4>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card pricing-card text-center p-4">
+                    <h4>Total Return</h4>
+                    <h4><?php echo number_format($total_return); ?></h4>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card pricing-card text-center p-4">
+                    <h4>Total Expense</h4>
+                    <h4><?php echo number_format($total_expense); ?></h4>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card pricing-card text-center p-4">
+                    <h4>Total Balance</h4>
+                    <h4><?php echo number_format($total_balance); ?></h4>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="container" style="margin-top: 10px;">
         <!-- Basic Cards -->
         <div class="row g-4 mb-5">
 
@@ -376,39 +409,8 @@
     </div>
 
     <!-- Pricing Cards -->
-    <div class="container" style="margin-top: 10px;">
 
-        <div class="row g-4 mb-5">
-            <div class="col-md-3">
-                <div class="card pricing-card text-center p-4 border border-primary">
-                    <span class="badge bg-primary mb-2">Total Income</span>
 
-                    <h4><?php echo number_format($total_income); ?></h4>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card pricing-card text-center p-4">
-                    <h4>Total Return</h4>
-                    <h4><?php echo number_format($total_return); ?></h4>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card pricing-card text-center p-4">
-                    <h4>Total Expense</h4>
-                    <h4><?php echo number_format($total_expense); ?></h4>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card pricing-card text-center p-4">
-                    <h4>Total Balance</h4>
-                    <h4><?php echo number_format($total_balance); ?></h4>
-                </div>
-            </div>
-
-        </div>
-    </div>
     <div class="container" style="margin-top: 10px;height: 10vh;">
         <div class="row">
         </div>
