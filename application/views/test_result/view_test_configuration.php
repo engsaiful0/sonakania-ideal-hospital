@@ -17,7 +17,7 @@ $permissions = $this->session->userdata('permissions');
         };
         xhttp.open('POST', "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
         xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        xhttp.send('test_group_id=' + encodeURIComponent(test_group_id));
+        xhttp.send('test_group_id=' + encodeURIComponent(test_group_id) + '&allow_all_when_no_group=1');
     }
     jQuery(document).ready(function() {
         jQuery('.alert-auto-hide').fadeTo(800, 200, function() {
@@ -105,13 +105,17 @@ $permissions = $this->session->userdata('permissions');
                             </select>
                         </td>
                         <td style="width: 300px;">
-                            <?php 
+                            <?php
                             $all_tests = $this->db->select('*')->order_by('test_name', 'ASC')->get('test')->result();
-                             ?>
+                            $tests_for_dropdown = ($sel_group !== '' && !empty($filter_tests)) ? $filter_tests : $all_tests;
+                            $first_test_option_label = ($sel_group !== '') ? 'All tests in group' : 'All tests';
+                            ?>
                             <select class="form-control" id="test_id" name="test_id">
-                                <option value="">All tests in group</option>
-                                <?php foreach ($all_tests as $value) { ?>
-                                    <option value="<?php echo (int) $value->test_id; ?>"><?php echo html_escape($value->test_name); ?></option>
+                                <option value=""><?php echo html_escape($first_test_option_label); ?></option>
+                                <?php foreach ($tests_for_dropdown as $value) {
+                                    $t_sel = ($sel_test !== '' && (string) $value->test_id === (string) $sel_test) ? ' selected' : '';
+                                ?>
+                                    <option value="<?php echo (int) $value->test_id; ?>"<?php echo $t_sel; ?>><?php echo html_escape($value->test_name); ?></option>
                                 <?php } ?>
                             </select>
                         </td>

@@ -190,16 +190,16 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                     <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></p>
                   
                 </div>
-                
-                <p style="text-align: center;font-weight: bold;"><u><?php echo isset($report->description) ? html_escape($report->description) : '—'; ?></u></p>
                 <?php
                    
                    $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
                    if ($group_name->test_group_name) {
                    ?>
-                       <p style="margin-bottom:0;text-align: center;"><strong></strong> <?php echo html_escape($group_name->test_group_name); ?></p>
+                       <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo html_escape($group_name->test_group_name.' Report'); ?></u></p>
 
                    <?php } ?>
+                <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></p>
+               
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) {
                         $block_rows = isset($block['rows']) && is_array($block['rows']) ? $block['rows'] : array();

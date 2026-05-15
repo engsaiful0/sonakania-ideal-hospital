@@ -54,8 +54,22 @@ class TestResultController extends CI_Controller
     public function test_name_load()
     {
         $test_group_id = $this->input->post('test_group_id', true);
+        $allow_all_when_no_group = ((string) $this->input->post('allow_all_when_no_group', true) === '1');
+
         if ($test_group_id === null || $test_group_id === '' || !ctype_digit((string) $test_group_id)) {
-            echo '<option value="">All tests in group</option>';
+            if ($allow_all_when_no_group) {
+                $tests = $this->db->order_by('test_name', 'ASC')->get('test')->result();
+                ?>
+        <option value="">All tests</option>
+                <?php
+                foreach ($tests as $value) {
+                    ?>
+            <option value="<?php echo (int) $value->test_id; ?>"><?php echo html_escape($value->test_name); ?></option>
+                    <?php
+                }
+            } else {
+                echo '<option value="">All tests in group</option>';
+            }
             return;
         }
 
