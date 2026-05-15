@@ -28,12 +28,7 @@ class MobileReportController extends CI_Controller
    
     public function mobile_report()
     {
-        $page_data = array(
-            'page_name' => 'mobile/mobile_report',
-            'page_title' => 'Mobile Report ',
-            'sidebar' => 'report/report_sidebar'
-        );
-        $this->load->view('content', $page_data);
+        $this->load->view('mobile/mobile_report');
     }
     
 }
