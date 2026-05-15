@@ -3,6 +3,7 @@
         // alert();
 
         $('#test_group_id').select2();
+        $('#panel_test_id').select2();
 
 
     });

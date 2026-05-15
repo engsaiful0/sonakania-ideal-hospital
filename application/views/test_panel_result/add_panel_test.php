@@ -3,6 +3,7 @@
     $(document).ready(function() {
         <?php if (!empty($require_lab_test_group)) { ?>
         $('#test_group_id').select2();
+        $('#panel_test_id').select2();
         <?php } ?>
         $('#invoice_no').focus();
     });
@@ -385,9 +386,23 @@
 
                     </div>
                 </div>
+                <div class="col-md-6" style="display: none;">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4" for="name">Test No</label>
+                            <div class="col-sm-8">
+                                <?php
+                                $serial = $this->db->select('*')->get('test_result');
+                                $serial = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
+                                ?>
+                                <input type="text" readonly="" class="form-control" id="test_result_no" value="<?php echo $serial ?>" name="test_result_no">
+                            </div>
+                        </div>
 
-                <?php if (!empty($require_lab_test_group)) { ?>
+                    </div>
+                
                 <div class="row" style="margin-top:20px">
+                <?php if (!empty($require_lab_test_group)) { ?>
+                
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="test_group_id">Test group</label>
@@ -404,31 +419,17 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                
                 <?php } ?>
-                <div class="row" style="margin-top:20px">
-                    
+                
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Test No</label>
-                            <div class="col-sm-8">
-                                <?php
-                                $serial = $this->db->select('*')->get('test_result');
-                                $serial = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
-                                ?>
-                                <input type="text" readonly="" class="form-control" id="test_result_no" value="<?php echo $serial ?>" name="test_result_no">
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Panel Test</label>
+                            <label class="control-label col-sm-4" for="name">Panel Test *</label>
                             <div class="col-sm-8">
                                 <?php
                                 $panel_test = getAllPanelTest();
                                 ?>
-                                <select class="form-control" onchange="panel_test_load(this.value)" id="panel_test_id" name="panel_test_id">
+                                <select required class="form-control select2" onchange="panel_test_load(this.value)" id="panel_test_id" name="panel_test_id">
                                     <option value="">Select Panel Test</option>
                                     <?php foreach ($panel_test as $value) { ?>
                                         <option value="<?php echo $value->id; ?>"><?php echo $value->panel_name; ?></option>
