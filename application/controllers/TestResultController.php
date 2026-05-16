@@ -419,6 +419,66 @@ class TestResultController extends CI_Controller
         $this->load->view('content', $page_data);
     }
 
+    /**
+     * Whether test_configuration already has a row for this test_id.
+     *
+     * @param int $test_id
+     * @param int $exclude_configuration_id  Current row when editing (0 on add).
+     * @return bool
+     */
+    private function test_configuration_exists_for_test($test_id, $exclude_configuration_id = 0)
+    {
+        $test_id = (int) $test_id;
+        if ($test_id < 1) {
+            return false;
+        }
+        $this->db->where('test_id', $test_id);
+        $exclude_configuration_id = (int) $exclude_configuration_id;
+        if ($exclude_configuration_id > 0) {
+            $this->db->where('test_configuration_id !=', $exclude_configuration_id);
+        }
+
+        return ((int) $this->db->count_all_results('test_configuration')) > 0;
+    }
+
+    /**
+     * AJAX: check duplicate configuration for a test (by test_id).
+     * POST: test_id, optional test_configuration_id (edit).
+     */
+    public function test_configuration_duplicate_check()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $test_id = (int) $this->input->post('test_id', true);
+        $exclude_id = (int) $this->input->post('test_configuration_id', true);
+        if ($test_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => true, 'exists' => false)));
+            return;
+        }
+
+        $exists = $this->test_configuration_exists_for_test($test_id, $exclude_id);
+        $test_name = '';
+        if ($exists) {
+            $row = $this->db->select('test_name')->where('test_id', $test_id)->get('test')->row();
+            $test_name = ($row && isset($row->test_name)) ? (string) $row->test_name : '';
+        }
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array(
+                'success' => true,
+                'exists' => $exists,
+                'test_name' => $test_name,
+                'message' => $exists
+                    ? 'Configuration for this test already exists' . ($test_name !== '' ? ' (' . $test_name . ').' : '.')
+                    : '',
+            )));
+    }
+
     public function edit_test_configuration_save()
     {
         $test_configuration_id = $this->input->post('test_configuration_id');
@@ -441,10 +501,25 @@ class TestResultController extends CI_Controller
                 $manual_report = $this->input->post('manual_report_previous');
             }
 
+            $test_id = (int) $this->input->post('test_id', true);
+            if ($test_id < 1) {
+                echo json_encode(array('success' => false, 'message' => 'Please select a test name.'));
+                return;
+            }
+            if ($this->test_configuration_exists_for_test($test_id, (int) $test_configuration_id)) {
+                $test_row = $this->db->select('test_name')->where('test_id', $test_id)->get('test')->row();
+                $label = ($test_row && isset($test_row->test_name)) ? $test_row->test_name : 'this test';
+                echo json_encode(array(
+                    'success' => false,
+                    'message' => 'Configuration already exists for: ' . $label,
+                ));
+                return;
+            }
+
             $data = array(
                 'test_group_id' => $this->input->post('test_group_id'),
                 //            'test_parameter' => $this->input->post('test_parameter'),
-                'test_id' => $this->input->post('test_id'),
+                'test_id' => $test_id,
                 'unit' => $this->input->post('unit'),
                 'normal_range' => $this->input->post('normal_range'),
                 'absolute_value' => $this->input->post('absolute_value'),
@@ -465,10 +540,25 @@ class TestResultController extends CI_Controller
     {
         if ($this->input->is_ajax_request()) {
 
+            $test_id = (int) $this->input->post('test_id', true);
+            if ($test_id < 1) {
+                echo json_encode(array('success' => false, 'message' => 'Please select a test name.'));
+                return;
+            }
+            if ($this->test_configuration_exists_for_test($test_id)) {
+                $test_row = $this->db->select('test_name')->where('test_id', $test_id)->get('test')->row();
+                $label = ($test_row && isset($test_row->test_name)) ? $test_row->test_name : 'this test';
+                echo json_encode(array(
+                    'success' => false,
+                    'message' => 'Configuration already exists for: ' . $label,
+                ));
+                return;
+            }
+
             $data = array(
                 'test_group_id' => $this->input->post('test_group_id'),
                 //            'test_parameter' => $this->input->post('test_parameter'),
-                'test_id' => $this->input->post('test_id'),
+                'test_id' => $test_id,
                 'unit' => $this->input->post('unit'),
                 'normal_range' => $this->input->post('normal_range'),
                 'absolute_value' => $this->input->post('absolute_value'),

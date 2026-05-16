@@ -11,7 +11,13 @@
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
+                var $sel = $('#test_id');
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                    $sel.select2('destroy');
+                }
                 document.getElementById("test_id").innerHTML = xhttp.responseText;
+                $sel.select2({ width: '100%' });
+                $('#test_id_duplicate_msg').hide().text('');
                 //                  var newdiv = document.createElement('tr');
                 //                newdiv.innerHTML = xhttp.responseText;
                 //                document.getElementById('due_history').appendChild(newdiv);
@@ -32,61 +38,104 @@
             test_group_id: "required",
             test_id: "required",
             normal_range: "required",
-            absolute_value: "required",
         },
         messages: {
-            test_group_id: "Enter test group",
-            test_id: "Please test name",
+            test_group_id: "Select test group",
+            test_id: "Select test name",
             normal_range: "Please enter normal range",
-            absolute_value: "Please enter absolute value",
         }
     });
 
-    // On form submission
-    $('#submit_button').click(function(e) {
+    function checkTestConfigurationDuplicate(testId, done) {
+        if (!testId) {
+            done(false, '');
+            return;
+        }
+        $.ajax({
+            type: 'POST',
+            url: "<?php echo site_url('TestResultController/test_configuration_duplicate_check'); ?>",
+            data: { test_id: testId },
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).done(function(res) {
+            done(!!(res && res.exists), (res && res.message) ? res.message : 'Configuration for this test already exists.');
+        }).fail(function() {
+            done(false, '');
+        });
+    }
+
+    $('#test_id').on('change', function() {
+        var testId = $(this).val();
+        $('#test_id_duplicate_msg').hide().text('');
+        if (!testId) {
+            return;
+        }
+        checkTestConfigurationDuplicate(testId, function(exists, message) {
+            if (exists) {
+                $('#test_id_duplicate_msg').text(message).show();
+            }
+        });
+    });
+
+    $('#test_configuration_form').on('submit', function(e) {
         e.preventDefault();
-        var submitBtn = $(this);
-        var formData = $('#test_configuration_form').serialize();
-
-        // Check if the form is valid
-        if ($("#test_configuration_form").valid()) {
+        if (window.__testConfigAddSubmitting) {
+            return false;
+        }
+        var submitBtn = $('#submit_button');
+        if (!$("#test_configuration_form").valid()) {
+            return false;
+        }
+        var testId = $('#test_id').val();
+        window.__testConfigAddSubmitting = true;
+        submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Checking...');
+        checkTestConfigurationDuplicate(testId, function(exists, message) {
+            if (exists) {
+                window.__testConfigAddSubmitting = false;
+                submitBtn.prop('disabled', false).html('Submit');
+                $('#test_id_duplicate_msg').text(message).show();
+                if (typeof $.toast === 'function') {
+                    $.toast({ heading: 'Duplicate', text: message, showHideTransition: 'slide', position: 'top-right', hideAfter: 4000, icon: 'warning' });
+                } else {
+                    alert(message);
+                }
+                return;
+            }
+            var formData = $('#test_configuration_form').serialize();
             $('#test_configuration_form :input').prop('disabled', true);
-            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
+            submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Saving...');
             $.ajax({
                 type: "POST",
                 url: "<?php echo base_url('TestResultController/test_configuration_save'); ?>",
                 data: formData,
                 dataType: "json",
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 success: function(response) {
                     if (response.success) {
-                        $.toast({
-                            heading: 'Success',
-                            text: 'Data has been saved successfully.',
-                            showHideTransition: 'slide',
-                            position: 'top-right',
-                            hideAfter: 1000,
-                            icon: 'success'
-                        });
+                        $.toast({ heading: 'Success', text: 'Data has been saved successfully.', showHideTransition: 'slide', position: 'top-right', hideAfter: 1000, icon: 'success' });
                         $('#test_configuration_form')[0].reset();
-                        $('#test_configuration_form :input').prop('disabled', false);
-                        submitBtn.prop('disabled', false).html('Save');
-                        setTimeout(function() {
-                            window.location.href = "<?php echo base_url('add-test-configuration') ?>";
-                        }, 1002);
+                        setTimeout(function() { window.location.href = "<?php echo base_url('add-test-configuration') ?>"; }, 1002);
                     } else {
-                        alert('Error: ' + response.message);
+                        window.__testConfigAddSubmitting = false;
                         $('#test_configuration_form :input').prop('disabled', false);
-                        submitBtn.prop('disabled', false).html('Save');
+                        submitBtn.prop('disabled', false).html('Submit');
+                        var errMsg = response.message || 'Save failed.';
+                        if (typeof $.toast === 'function') {
+                            $.toast({ heading: 'Error', text: errMsg, showHideTransition: 'slide', position: 'top-right', hideAfter: 4000, icon: 'error' });
+                        } else {
+                            alert(errMsg);
+                        }
                     }
                 },
-                error: function(xhr, status, error) {
-                    alert("An error occurred: " + error);
+                error: function() {
+                    window.__testConfigAddSubmitting = false;
+                    alert("An error occurred while saving.");
                     $('#test_configuration_form :input').prop('disabled', false);
-                    submitBtn.prop('disabled', false).html('Save');
+                    submitBtn.prop('disabled', false).html('Submit');
                 }
             });
-        }
+        });
+        return false;
     });
 });
     function parameter_set(test_id)
@@ -135,10 +184,8 @@
                             <div class="col-sm-8">
                                 <select type="text" required="" onchange="parameter_set(this.value)" class="form-control" id="test_id" name="test_id">
                                     <option value="" disabled="" selected="">Select Test Name</option>
-
-
-
                                 </select>
+                                <p id="test_id_duplicate_msg" class="text-danger" style="display:none;margin-top:6px;margin-bottom:0;"></p>
 
                             </div>
                         </div>
@@ -160,7 +207,7 @@
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="pwd">Unit</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" required="" id="unit" name="unit">
+                                <input type="text" class="form-control" id="unit" name="unit">
                             </div>
                         </div>
                     </div>
@@ -170,21 +217,12 @@
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="pwd">Normal Range</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" required="" id="normal_range" name="normal_range">
+                                <input type="text" class="form-control"  id="normal_range" name="normal_range">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Absolute Value</label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" id="absolute_value" name="absolute_value">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              
 
                 <div class="row">
 
