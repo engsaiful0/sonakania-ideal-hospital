@@ -176,7 +176,7 @@
 
                         if ($reference_doctor != '') {
                         ?>
-                            Doctor:<b> <?php echo $reference_doctor->doctor_name ?></b><br>
+                            Doctor:<b> <?php echo $reference_doctor->doctor_name. '<br>' . $reference_doctor->degree  ?></b><br>
                         <?php
                         }
                         ?>
