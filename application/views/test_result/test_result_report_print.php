@@ -54,44 +54,16 @@
             max-height: none !important;
         }
 
-        #report table {
+        #report .print-result-table {
             table-layout: auto !important;
         }
 
-        #report td,
-        #report th {
+        #report .print-result-table td,
+        #report .print-result-table th {
             white-space: normal !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
         }
-
-        /*
-         * Bootstrap 3's print stylesheet weakens table borders to #ddd, which
-         * many printers render as nearly invisible. Force solid black borders
-         * for every table inside the printed report so the grid stays crisp.
-         */
-        #report table,
-        #report .table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-        }
-
-        #report table,
-        #report .table,
-        #report .table>thead>tr>th,
-        #report .table>tbody>tr>th,
-        #report .table>tfoot>tr>th,
-        #report .table>thead>tr>td,
-        #report .table>tbody>tr>td,
-        #report .table>tfoot>tr>td,
-        #report .table-bordered,
-        #report .table-bordered>thead>tr>th,
-        #report .table-bordered>tbody>tr>th,
-        #report .table-bordered>tfoot>tr>th,
-        #report .table-bordered>thead>tr>td,
-        #report .table-bordered>tbody>tr>td,
-
-
 
         /* Make sure background fills (e.g. status badges) and panel borders
          * are actually printed by Chrome/Edge. */
@@ -111,9 +83,44 @@
         }
     }
 
-   
-    #report .table>tfoot>tr>td {
-        border-color: #555 !important;
+    /* Result rows: no grid — dotted line under each row */
+    #report .print-result-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: none !important;
+        margin-bottom: 10px;
+    }
+
+    #report .print-result-table thead th,
+    #report .print-result-table tbody td {
+        border: none !important;
+        padding: 6px 8px;
+        vertical-align: top;
+        background: transparent !important;
+    }
+
+    #report .print-result-table thead th {
+        border-bottom: 1px solid #333 !important;
+    }
+
+    /* Fine round dots (CSS border-style:dotted prints as large dashes) */
+    #report .print-result-table tbody td {
+        border-bottom: none !important;
+        padding-bottom: 7px;
+    }
+
+    #report .print-result-table tbody tr {
+        background-image: radial-gradient(circle, #555 0.4px, transparent 0.45px);
+        background-size: 10px 1px;
+        background-repeat: repeat-x;
+        background-position: 0 100%;
+    }
+
+    @media print {
+        #report .print-result-table tbody tr {
+            background-image: radial-gradient(circle, #000 0.4px, transparent 0.45px);
+            background-size: 10px 1px;
+        }
     }
 
     .p1 {
@@ -195,14 +202,15 @@
         <?php
 
         ?>
-        <table border="0" style="width: 100%;">
+        <table class="print-result-table" border="0" style="width: 100%;">
+            <thead>
             <tr style="font-weight: bold;">
-
-                <td>Test Name</td>
-                <td>Result</td>
-
-                <td colspan="2">Normal Range</td>
+                <th style="text-align: left;">Test Name</th>
+                <th style="text-align: left;">Result</th>
+                <th colspan="2" style="text-align: left;">Normal Range</th>
             </tr>
+            </thead>
+            <tbody>
             <?php
             error_reporting(0);
             $sl = 1;
@@ -238,8 +246,7 @@
 
             }
             ?>
-
-
+            </tbody>
         </table>
         <?php
 

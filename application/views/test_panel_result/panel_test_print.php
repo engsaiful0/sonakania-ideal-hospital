@@ -17,33 +17,6 @@
             margin-top: 150px !important;
         }
 
-        /*
-         * Bootstrap 3's print stylesheet weakens table borders to #ddd, which
-         * many printers render as nearly invisible. Force solid black borders
-         * for every table inside the printed report so the grid stays crisp.
-         */
-        #report table,
-        #report .table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-        }
-
-        #report table,
-        #report .table,
-        #report .table>thead>tr>th,
-        #report .table>tbody>tr>th,
-        #report .table>tfoot>tr>th,
-        #report .table>thead>tr>td,
-        #report .table>tbody>tr>td,
-        #report .table>tfoot>tr>td,
-        #report .table-bordered,
-        #report .table-bordered>thead>tr>th,
-        #report .table-bordered>tbody>tr>th,
-        #report .table-bordered>tfoot>tr>th,
-        #report .table-bordered>thead>tr>td,
-        #report .table-bordered>tbody>tr>td,
-
-
         /* Make sure background fills (e.g. status badges) and panel borders
          * are actually printed by Chrome/Edge. */
         #report,
@@ -62,17 +35,54 @@
         }
     }
 
-    /* On-screen: keep the existing look but darken table borders so the
-     * "Print preview" / browser view also has a clearer grid. */
-    #report .table,
-    #report .table-bordered,
-    #report .table>thead>tr>th,
-    #report .table>tbody>tr>th,
-    #report .table>tfoot>tr>th,
-    #report .table>thead>tr>td,
-    #report .table>tbody>tr>td,
-    #report .table>tfoot>tr>td {
-        border-color: #555 !important;
+    #report .print-result-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: none !important;
+        margin-bottom: 8px;
+    }
+
+    #report .print-result-table thead th,
+    #report .print-result-table tbody td {
+        border: none !important;
+        padding: 6px 8px;
+        vertical-align: top;
+        background: transparent !important;
+    }
+
+    #report .print-result-table.table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: transparent !important;
+    }
+
+    #report .print-result-table thead th {
+        border-bottom: 1px solid #333 !important;
+    }
+
+  #report .print-result-table tbody tr.print-result-data-row td {
+        border-bottom: none !important;
+        padding-bottom: 4px;
+    }
+
+    #report .print-result-dot-sep td {
+        border: none !important;
+        padding: 0 8px 5px !important;
+        line-height: 0;
+        background: transparent !important;
+    }
+
+    #report .print-row-dots {
+        display: block;
+        width: 100%;
+        height: 3px;
+        border: 0;
+        background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23555'/%3E%3C/svg%3E") repeat-x left center;
+        background-size: 14px 2px;
+    }
+
+    @media print {
+        #report .print-row-dots {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23000'/%3E%3C/svg%3E");
+        }
     }
 
     .p1 {
@@ -161,26 +171,30 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) { ?>
                         <div class="report-section-block" style="margin-bottom:5px;">
-                            <table class="table  table-hover table-striped">
+                            <table class="print-result-table">
                                 <thead>
-                                    <tr style="margin-bottom:1px;">
+                                    <tr>
                                         <th style="width:32%;text-align: left;">Parameter</th>
                                         <th style="width:18%;text-align: left;">Result</th>
-
                                         <th style="width:35%;text-align: left;">Normal Range</th>
                                     </tr>
                                 </thead>
+                                <tbody>
                                 <?php foreach ($block['rows'] as $row) {
                                     $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                     $badge = lab_report_status_badge($row->status);
                                     $normal_range = $this->Report_model->format_normal_range($row);
                                 ?>
-                                    <tr>
+                                    <tr class="print-result-data-row">
                                         <td><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                         <td><?php echo html_escape((string) $row->result_value); ?></td>
                                         <td><?php echo html_escape($normal_range); ?></td>
                                     </tr>
+                                    <tr class="print-result-dot-sep">
+                                        <td colspan="3"><div class="print-row-dots"></div></td>
+                                    </tr>
                                 <?php } ?>
+                                </tbody>
                             </table>
                         </div>
                     <?php } ?>

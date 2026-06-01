@@ -17,33 +17,6 @@
             margin-top: 135px !important;
         }
 
-        /*
-         * Bootstrap 3's print stylesheet weakens table borders to #ddd, which
-         * many printers render as nearly invisible. Force solid black borders
-         * for every table inside the printed report so the grid stays crisp.
-         */
-        #report table,
-        #report .table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-        }
-
-        #report table,
-        #report .table,
-        #report .table>thead>tr>th,
-        #report .table>tbody>tr>th,
-        #report .table>tfoot>tr>th,
-        #report .table>thead>tr>td,
-        #report .table>tbody>tr>td,
-        #report .table>tfoot>tr>td,
-        #report .table-bordered,
-        #report .table-bordered>thead>tr>th,
-        #report .table-bordered>tbody>tr>th,
-        #report .table-bordered>tfoot>tr>th,
-        #report .table-bordered>thead>tr>td,
-        #report .table-bordered>tbody>tr>td,
-
-
         /* Make sure background fills (e.g. status badges) and panel borders
          * are actually printed by Chrome/Edge. */
         #report,
@@ -62,17 +35,45 @@
         }
     }
 
-    /* On-screen: keep the existing look but darken table borders so the
-     * "Print preview" / browser view also has a clearer grid. */
-    #report .table,
-    #report .table-bordered,
-    #report .table>thead>tr>th,
-    #report .table>tbody>tr>th,
-    #report .table>tfoot>tr>th,
-    #report .table>thead>tr>td,
-    #report .table>tbody>tr>td,
-    #report .table>tfoot>tr>td {
-        border-color: #555 !important;
+    #report .print-result-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: none !important;
+        margin-bottom: 6px;
+    }
+
+    #report .print-result-table tbody td {
+        border: none !important;
+        padding: 4px 6px;
+        vertical-align: top;
+        background: transparent !important;
+    }
+
+    #report .print-result-table tbody tr.print-result-data-row td {
+        border-bottom: none !important;
+        padding-bottom: 3px;
+    }
+
+    #report .print-result-dot-sep td {
+        border: none !important;
+        padding: 0 4px 4px !important;
+        line-height: 0;
+        background: transparent !important;
+    }
+
+    #report .print-row-dots {
+        display: block;
+        width: 100%;
+        height: 3px;
+        border: 0;
+        background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23555'/%3E%3C/svg%3E") repeat-x left center;
+        background-size: 14px 2px;
+    }
+
+    @media print {
+        #report .print-row-dots {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23000'/%3E%3C/svg%3E");
+        }
     }
 
     .p1 {
@@ -104,12 +105,6 @@
     #report .urine-two-col-section .urine-col-table {
         margin-bottom: 0;
         font-size: 11px;
-    }
-
-    #report .urine-two-col-section .urine-col-table>thead>tr>th,
-    #report .urine-two-col-section .urine-col-table>tbody>tr>td {
-        padding: 4px 6px;
-        vertical-align: top;
     }
 
     @media print {
@@ -230,7 +225,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                     <tbody>
                                         <tr>
                                             <td>
-                                                <table class="table table-bordered table-condensed urine-col-table">
+                                                <table class="print-result-table urine-col-table">
                                                     <!-- <thead>
                                                         <tr>
                                                             <th style="width:46%;text-align:left;">Parameter</th>
@@ -241,16 +236,19 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                                         <?php foreach ($left_rows as $row) {
                                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                                         ?>
-                                                            <tr>
+                                                            <tr class="print-result-data-row">
                                                                 <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
+                                                            </tr>
+                                                            <tr class="print-result-dot-sep">
+                                                                <td colspan="2"><div class="print-row-dots"></div></td>
                                                             </tr>
                                                         <?php } ?>
                                                     </tbody>
                                                 </table>
                                             </td>
                                             <td>
-                                                <table class="table table-bordered table-condensed urine-col-table">
+                                                <table class="print-result-table urine-col-table">
                                                     <!-- <thead>
                                                         <tr>
                                                             <th style="width:46%;text-align:left;">Parameter</th>
@@ -261,9 +259,12 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                                         <?php foreach ($right_rows as $row) {
                                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                                         ?>
-                                                            <tr>
-                                                                <td style="width: 80%;" ><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
+                                                            <tr class="print-result-data-row">
+                                                                <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
+                                                            </tr>
+                                                            <tr class="print-result-dot-sep">
+                                                                <td colspan="2"><div class="print-row-dots"></div></td>
                                                             </tr>
                                                         <?php } ?>
                                                     </tbody>
@@ -273,7 +274,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                     </tbody>
                                 </table>
                             <?php } else { ?>
-                                <table class="table table-bordered table-condensed urine-col-table">
+                                <table class="print-result-table urine-col-table">
                                     <!-- <thead>
                                         <tr>
                                             <th style="width:32%;text-align:left;">Parameter</th>
@@ -284,9 +285,12 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                         <?php foreach ($left_rows as $row) {
                                             $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
                                         ?>
-                                            <tr>
+                                            <tr class="print-result-data-row">
                                                 <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
+                                            </tr>
+                                            <tr class="print-result-dot-sep">
+                                                <td colspan="2"><div class="print-row-dots"></div></td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>
