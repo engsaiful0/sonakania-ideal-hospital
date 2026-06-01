@@ -188,6 +188,7 @@
                 <u><?php echo strtoupper(html_escape($test_group->test_group_name)) . ' REPORT'; ?></u>
             </p>
         <?php } ?>
+        <p style="text-align: center;font-weight: bold;"><?php echo isset($test_group->machine_name) ? strtoupper(html_escape($test_group->machine_name)) : ''; ?></p>
     </div>
     <div class="product" style="height: 600px;margin-top: 1px; ">
 

@@ -154,7 +154,8 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                         <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo strtoupper(html_escape($group_name->test_group_name . ' Report')); ?></u></p>
 
                     <?php } ?>
-                    <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? strtoupper(html_escape($report->panel_name)) : '—'; ?></p>
+                    <p style="text-align: center;font-weight: bold;"><?php echo isset($group_name->machine_name) ? strtoupper(html_escape($group_name->machine_name)) : ''; ?></p>
+                    <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? strtoupper(html_escape($report->panel_name)) : ''; ?></p>
 
                 </div>
                 <?php if (!empty($section_blocks)) { ?>
