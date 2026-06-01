@@ -1,442 +1,158 @@
-<script>
-    $(document).ready(function() {
-        $('#test_id').select2();
-        $('#test_group_id').select2();
-    });
-
-    function clearPatientAndTests() {
-        $('#patient_test_entry_id').val('');
-        $('#patient_name').val('');
-        $('#mobile_number').val('');
-        $('#age').val('');
-        $('#gender').val('');
-        $('#invoice_date').val('');
-        $('#invoice_time').val('');
-        $('#invoice_no').val('');
-        $('#test_configuration').empty();
-    }
-
-    function setInvoiceEnabled(enabled) {
-        var $inv = $('#invoice_no');
-        if (enabled) {
-            $inv.prop('disabled', false).attr('placeholder', 'Enter or Scan invoice no ...');
-        } else {
-            $inv.prop('disabled', true).attr('placeholder', 'Select test group first...');
-        }
-    }
-
-    function test_configuration_load() {
-        var test_group_id = $('#test_group_id').val();
-        var patient_test_entry_id = $('#patient_test_entry_id').val();
-
-        if (!test_group_id) {
-            $('#test_configuration').html('<p class="text-muted">Select a test group, then choose an invoice.</p>');
-            return;
-        }
-        if (!patient_test_entry_id) {
-            $('#test_configuration').empty();
-            return;
-        }
-
-        $('#img').show();
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                document.getElementById("test_configuration").innerHTML = xhttp.responseText;
-                $('#img').hide();
-            }
-        }
-        xhttp.open("POST", "<?php echo site_url('TestResultController/test_configuration_load'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send("test_group_id=" + test_group_id + "&patient_test_entry_id=" + patient_test_entry_id);
-    }
-
-    function test_name_load(test_group_id) {
-
-        $('#img').show();
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                document.getElementById("test_configuration").innerHTML = xhttp.responseText;
-                $('#img').hide();
-            }
-        }
-        xhttp.open("POST", "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send("test_group_id=" + test_group_id);
-    }
-
-
-
-
-
-    function patient_data_set(invoice_no) {
-        if (!$('#test_group_id').val()) {
-            return;
-        }
-        $('#img').show();
-        //alert(product_category_id);
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                var patient = xhttp.responseText;
-                var patient_array = patient.split('*');
-                //alert(patient_array);
-                document.getElementById("patient_test_entry_id").value = patient_array[0];
-                document.getElementById("patient_name").value = patient_array[1];
-                document.getElementById("mobile_number").value = patient_array[2];
-                document.getElementById("age").value = patient_array[3];
-                document.getElementById("gender").value = patient_array[4];
-                document.getElementById("invoice_date").value = patient_array[5];
-                document.getElementById("invoice_time").value = patient_array[6];
-                test_configuration_load();
-                $('#img').hide();
-            }
-        }
-        //  alert(xhttp.responseText);
-        xhttp.open("POST", "<?php echo site_url('TestResultController/patient_data_load_by_test_invoice_no'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        //            xhttp.send("fname=Henry&lname=Ford");
-        xhttp.send("invoice_no=" + invoice_no);
-    }
-    $(document).ready(function() {
-
-        $("#invoice_no").autocomplete({
-            source: function(request, response) {
-                if (!$('#test_group_id').val()) {
-                    response([]);
-                    return;
-                }
-                $.ajax({
-                    url: "<?php echo site_url('TestController/invoice_no_load'); ?>",
-                    data: {
-                        parameter: request.term
-                    },
-                    dataType: "json",
-                    type: "POST",
-                    success: function(data) {
-                        response(data);
-                    }
-                });
-            },
-            select: function(event, ui) {
-                if (!$('#test_group_id').val()) {
-                    return false;
-                }
-                $('#invoice_no').val(ui.item.label);
-                patient_data_set(ui.item.value);
-                return false;
-            }
-        });
-
-        setInvoiceEnabled(false);
-        $('#test_group_id').on('change', function() {
-            if (!$(this).val()) {
-                clearPatientAndTests();
-                setInvoiceEnabled(false);
-            } else {
-                clearPatientAndTests();
-                setInvoiceEnabled(true);
-                $('#invoice_no').focus();
-            }
-        });
-
-        // Validate the form
-        $("#test_result_entry_form").validate({
-            rules: {
-                invoice_no: "required",
-                test_group_id: "required",
-            },
-            messages: {
-                invoice_no: "Enter invoice no",
-                test_group_id: "Select test group name",
-
-            }
-        });
-
-        // On form submission
-        $('#submit_button').click(function(e) {
-            e.preventDefault();
-            var manual_or_dynamic_report = $('#manual_or_dynamic_report').val();
-            var formData = new FormData($('#test_result_entry_form')[0]); // Create FormData object with form data
-
-            // Check if the form is valid
-            $('#invoice_no').prop('disabled', false);
-            if ($("#test_result_entry_form").valid()) {
-
-                // Manual report file check
-                if (manual_or_dynamic_report == 'Manual') {
-                    var manualReportFile = $('#manual_report').val(); // Get the file value
-                    if (manualReportFile == '') {
-                        // Show error if no file is selected
-                        $.toast({
-                            heading: 'Error',
-                            text: 'Please select a file to upload for Manual Report.',
-                            showHideTransition: 'slide',
-                            position: 'top-right',
-                            hideAfter: 3000,
-                            icon: 'error'
-                        });
-                        return; // Stop the form submission
-                    }
-                }
-
-                // Dynamic report input field check (test_configuration_value array)
-                if (manual_or_dynamic_report == 'Dynamic') {
-                    var dynamicInputs = $('input[name="test_configuration_value[]"]'); // Get all input fields with name="test_configuration_value[]"
-                    var isValid = false;
-
-                    dynamicInputs.each(function() {
-                        if ($(this).val() != '') { // Check if any of the inputs are filled
-                            isValid = true;
-                            return false; // Stop the loop if we find a filled input
-                        }
-                    });
-
-                    if (!isValid) {
-                        // Show error if none of the dynamic inputs are filled
-                        $.toast({
-                            heading: 'Error',
-                            text: 'Please fill up the Dynamic Report configuration values.',
-                            showHideTransition: 'slide',
-                            position: 'top-right',
-                            hideAfter: 3000,
-                            icon: 'error'
-                        });
-                        return; // Stop the form submission
-                    }
-                }
-
-
-                var submitBtn = $(this);
-                $('#test_result_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
-                $.ajax({
-                    type: "POST",
-                    url: "<?php echo base_url('TestResultController/add_test_result_data_save'); ?>",
-                    data: formData,
-                    dataType: "json",
-                    processData: false, // Important: tell jQuery not to process the data
-                    contentType: false, // Important: tell jQuery not to set contentType
-                    success: function(response) {
-                        if (response.success) {
-                            $.toast({
-                                heading: 'Success',
-                                text: 'Data has been saved successfully.',
-                                showHideTransition: 'slide',
-                                position: 'top-right',
-                                hideAfter: 1000,
-                                icon: 'success'
-                            });
-                            $('#test_result_entry_form')[0].reset();
-                            $('#test_group_id').trigger('change');
-                            $('#test_result_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
-                            setTimeout(function() {
-                                window.location.href = "<?php echo base_url('test-result-report-print') ?>";
-                            }, 1002);
-                        } else {
-                            alert('Error: ' + response.message);
-                            $('#test_result_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        alert("An error occurred: " + error);
-                        $('#test_result_entry_form :input').prop('disabled', false);
-                        submitBtn.prop('disabled', false).html('Save');
-                    }
-                });
-            }
-        });
-
-    });
-
-    function manual_or_dynamic_report_data(value) {
-        if (value == 'Dynamic') {
-            document.getElementById('test_configuration').style.display = 'block';
-            document.getElementById('manual_report_container').style.display = 'none';
-        } else if (value == 'Manual') {
-            document.getElementById('test_configuration').style.display = 'none';
-            document.getElementById('manual_report_container').style.display = 'block';
-        }
-    }
-</script>
-<div class="container-fluid" style=" background-color: white;width: 100%;">
-    <div class="panel panel-primary" style="width: 100%;margin: 0 auto">
-        <div class="panel-heading">
-            <h3 style="text-align: center">Add Test Result</h3>
-        </div>
-        <div class="panel-body">
-            <?php
-            error_reporting(0);
-            $sel_group = isset($sel_group) ? $sel_group : '';
-            $biomedical_test = $this->db->where('biomedical_test_id', $biomedical_test_id)
-                ->get('biomedical_test')->row();
-            $patient_test_entry = $this->db->where('patient_test_entry_id', $biomedical_test->patient_test_entry_id)
-                ->get('patient_test_entry')->row();
-            $doctor = $this->db->where('doctor_id', $patient_test_entry->doctor_id)
-                ->get('doctor')->row();
-            ?>
-            <form class="form-horizontal" id="test_result_entry_form" method="post" enctype='multipart/form-data'>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="test_group_id">Test Group *</label>
-                            <div class="col-sm-8">
-                                <select required class="form-control"  id="test_group_id" name="test_group_id">
-                                    <option value="" selected>Select Test Group</option>
-                                    <?php
-                                    $test_group = $this->db->select('*')->order_by('test_group_name', 'ASC')->get('test_group')->result();
-                                    foreach ($test_group as $value) {
-                                        $g_sel = ($sel_group !== '' && (string) $value->test_group_id  === (string) $sel_group) ? ' selected' : '';
-                                    ?>
-                                        <option value="<?php echo (int) $value->test_group_id; ?>" <?php echo $g_sel; ?>><?php echo html_escape($value->test_group_name); ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Invoice No *</label>
-                            <div class="col-sm-4">
-                                <input type="hidden" id="patient_test_entry_id" name="patient_test_entry_id">
-                                <input type="text" class="form-control" placeholder="Select test group first..." id="invoice_no" name="invoice_no" disabled autocomplete="off">
-                            </div>
-                            <div class="col-sm-4">
-                                <select class="form-control" onchange="manual_or_dynamic_report_data(this.value)" id="manual_or_dynamic_report" name="manual_or_dynamic_report">
-                                    <option>Dynamic</option>
-                                    <option>Manual</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Age</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly="" class="form-control" placeholder="Age" id="age" name="age">
-                            </div>
-                        </div>
-                    </div>
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 style="text-align:center;">Add Test Result</h3>
+    </div>
+    <div class="panel-body">
+        <div id="result-message"></div>
+        <form id="search-form" class="form-horizontal">
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <label>Invoice ID</label>
+                    <input type="text" class="form-control" id="filter_invoice_id" name="invoice_id" value="<?php echo isset($filter_invoice_id) ? html_escape($filter_invoice_id) : ''; ?>" placeholder="Invoice ID">
                 </div>
-                <div class="row" style="margin-top:20px">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Patient's Name</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly="" class="form-control" value="" placeholder="Patient Name" id="patient_name" name="patient_name">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Gender</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly="" placeholder="Gender" class="form-control" id="gender" name="gender">
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-3 col-sm-6">
+                    <label>Mobile Number</label>
+                    <input type="text" class="form-control" id="filter_mobile_number" name="mobile_number" value="<?php echo isset($filter_mobile_number) ? html_escape($filter_mobile_number) : ''; ?>" placeholder="Mobile Number">
                 </div>
-                <div class="row" style="margin-top:20px">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Invoice Date & Time</label>
-                            <div class="col-sm-4">
-                                <input readonly type="text" placeholder="Invoice Date" class="form-control" id="invoice_date" name="invoice_date">
-                            </div>
-                            <div class="col-sm-4">
-                                <input readonly type="text" placeholder="Invoice Time" class="form-control" id="invoice_time" name="invoice_time">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Mobile</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly="" placeholder="Mobile" class="form-control" id="mobile_number" name="mobile_number">
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-3 col-sm-6">
+                    <label>Test Name</label>
+                    <input type="text" class="form-control" id="filter_test_name" name="test_name" value="<?php echo isset($filter_test_name) ? html_escape($filter_test_name) : ''; ?>" placeholder="Test Name">
                 </div>
-
-                <div class="row" style="margin-top:20px">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="pwd">Entry Date</label>
-                            <div class="col-sm-4">
-                                <input type="text" placeholder="Date" value="<?php echo date('d-m-y') ?>" class="form-control" id="datepicker" name="date">
-                            </div>
-                            <div class="col-sm-4">
-                                <input type="text" placeholder="Time" value="<?php echo date('H:i:s') ?>" class="form-control" id="datepicker" name="time">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Address</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly="" placeholder="Address" class="form-control" id="address" name="address">
-                            </div>
-                        </div>
-
-                    </div>
+                <div class="col-md-3 col-sm-6" style="padding-top:25px;">
+                    <button type="button" class="btn btn-default" id="btn-clear-filters">Clear</button>
                 </div>
-
-                <div class="row" style="margin-top:20px">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Test No</label>
-                            <div class="col-sm-8">
-                                <?php
-                                $serial = $this->db->select('*')->get('test_result');
-                                $serial = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
-                                ?>
-                                <input type="text" readonly="" class="form-control" id="test_result_no" value="<?php echo $serial ?>" name="test_result_no">
-                            </div>
-                        </div>
-
-
-                    </div>
-                    <div class="col-md-6" id="manual_report_container" style="display: none;">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Or Manual Report Upload</label>
-                            <div class="col-sm-8">
-                                <input type="file" class="form-control" id="manual_report" name="manual_report">
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                </div>
-                <hr>
-                <div id="test_configuration">
-
-                </div>
-                <div class="row">
-
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <div class="col-sm-offset-5 col-sm-3">
-                                <button id="submit_button" name="submit_button" type="submit" class="btn btn-primary">Submit</button>
-                            </div>
-
-                        </div>
-                        <div class="col-sm-4">
-                            <img src="<?php echo base_url() ?>assets/ajax-loader.gif" id="img" style="display:none;z-index:1" />
-
-                        </div>
-                    </div>
-                </div>
-
-
-            </form>
-
+            </div>
+        </form>
+        <hr>
+        <div id="test-list-container">
+            <?php $this->load->view('test_result/partials/add_test_result_list', array('detailsList' => isset($detailsList) ? $detailsList : array(), 'pagination' => isset($pagination) ? $pagination : '', 'sl_start' => isset($sl_start) ? $sl_start : 1)); ?>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="resultEntryModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">Result Entry</h4>
+            </div>
+            <div class="modal-body" id="result-entry-form-wrapper">
+                <p class="text-muted">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function($) {
+        var searchTimer = null;
+
+        function showMessage(type, text, extraHtml) {
+            var cls = type === 'success' ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + ' alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                text + (extraHtml ? '<br>' + extraHtml : '') +
+                '</div>';
+            $('#result-message').html(html);
+        }
+
+        function readOffsetFromUrl(url) {
+            var match = url.match(/\/add_test_result\/(\d+)/);
+            return match ? match[1] : '0';
+        }
+
+        function loadList(offset) {
+            $.ajax({
+                url: "<?php echo site_url('TestResultController/add_test_result_list_ajax'); ?>",
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    invoice_id: $('#filter_invoice_id').val(),
+                    mobile_number: $('#filter_mobile_number').val(),
+                    test_name: $('#filter_test_name').val(),
+                    offset: offset || 0
+                },
+                success: function(res) {
+                    if (res && res.success) {
+                        $('#test-list-container').html(res.html);
+                    }
+                }
+            });
+        }
+
+        $('#filter_invoice_id, #filter_mobile_number, #filter_test_name').on('keyup', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                loadList(0);
+            }, 300);
+        });
+
+        $('#btn-clear-filters').on('click', function() {
+            $('#filter_invoice_id, #filter_mobile_number, #filter_test_name').val('');
+            loadList(0);
+        });
+
+        $(document).on('click', '#test-list-container .pagination a', function(e) {
+            e.preventDefault();
+            var href = $(this).attr('href') || '';
+            loadList(readOffsetFromUrl(href));
+        });
+
+        $(document).on('click', '.btn-result-entry', function() {
+            var entryId = $(this).data('entry-id');
+            $('#result-entry-form-wrapper').html('<p class="text-muted">Loading...</p>');
+            $('#resultEntryModal').modal('show');
+
+            $.ajax({
+                url: "<?php echo site_url('TestResultController/add_test_result_entry_form_ajax'); ?>",
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    patient_test_entry_details_id: entryId
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#result-entry-form-wrapper').html(res.html);
+                    } else {
+                        var link = res.print_url ? '<a target="_blank" href="' + res.print_url + '" class="btn btn-xs btn-info">Print Existing</a>' : '';
+                        $('#result-entry-form-wrapper').html('<div class="alert alert-warning">' + (res.message || 'Cannot load entry form.') + (link ? '<br>' + link : '') + '</div>');
+                    }
+                },
+                error: function() {
+                    $('#result-entry-form-wrapper').html('<div class="alert alert-danger">Failed to load result entry form.</div>');
+                }
+            });
+        });
+
+        $(document).on('submit', '#result-entry-form', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: "<?php echo site_url('TestResultController/add_test_result_data_save'); ?>",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(res) {
+                    if (res.success) {
+                        $('#resultEntryModal').modal('hide');
+                        var printBtn = res.print_url ? '<a target="_blank" href="' + res.print_url + '" class="btn btn-xs btn-primary">Print Report</a>' : '';
+                        showMessage('success', res.message || 'Result saved successfully.', printBtn);
+                        if (res.print_url) {
+                            window.open(res.print_url, '_blank');
+                        }
+                        loadList(0);
+                    } else {
+                        var extra = res.print_url ? '<a target="_blank" href="' + res.print_url + '" class="btn btn-xs btn-info">Print Existing</a>' : '';
+                        showMessage('error', res.message || 'Failed to save result.', extra);
+                    }
+                },
+                error: function() {
+                    showMessage('error', 'Failed to save result. Please try again.');
+                }
+            });
+        });
+    })(jQuery);
+</script>

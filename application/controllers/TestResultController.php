@@ -29,6 +29,7 @@ class TestResultController extends CI_Controller
 
 
         $this->load->library('pagination');
+        $this->load->model('TestResultModel');
     }
     public function patient_unique_id_load()
     {
@@ -257,12 +258,128 @@ class TestResultController extends CI_Controller
 
     public function add_test_result()
     {
+        $invoice_id = trim((string) $this->input->get('invoice_id', true));
+        $mobile_number = trim((string) $this->input->get('mobile_number', true));
+        $test_name = trim((string) $this->input->get('test_name', true));
+        $offset_seg = $this->uri->segment(3);
+        $offset = ($offset_seg !== null && $offset_seg !== '' && ctype_digit((string) $offset_seg)) ? (int) $offset_seg : 0;
+
+        $config = array();
+        $config['base_url'] = site_url('TestResultController/add_test_result');
+        $config['reuse_query_string'] = true;
+        $config['total_rows'] = $this->TestResultModel->count_add_test_result_entries($invoice_id, $mobile_number, $test_name);
+        $config['per_page'] = 100;
+        $config['uri_segment'] = 3;
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['prev_link'] = '<i class="fa fa-long-arrow-left"></i> Previous';
+        $config['next_link'] = 'Next <i class="fa fa-long-arrow-right"></i>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $this->pagination->initialize($config);
+
         $page_data = array(
+            'detailsList' => $this->TestResultModel->get_add_test_result_entries($config['per_page'], $offset, $invoice_id, $mobile_number, $test_name),
+            'pagination' => $this->pagination->create_links(),
+            'sl_start' => $offset + 1,
+            'filter_invoice_id' => $invoice_id,
+            'filter_mobile_number' => $mobile_number,
+            'filter_test_name' => $test_name,
             'page_name' => 'test_result/add_test_result',
             'page_title' => 'Add Test Result',
             'sidebar' => 'test_result/test_result_sidebar'
         );
         $this->load->view('content', $page_data);
+    }
+
+    public function add_test_result_list_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $invoice_id = trim((string) $this->input->get_post('invoice_id', true));
+        $mobile_number = trim((string) $this->input->get_post('mobile_number', true));
+        $test_name = trim((string) $this->input->get_post('test_name', true));
+        $offset_raw = $this->input->get_post('offset', true);
+        $offset = ($offset_raw !== null && $offset_raw !== '' && ctype_digit((string) $offset_raw)) ? (int) $offset_raw : 0;
+
+        $config = array();
+        $config['base_url'] = site_url('TestResultController/add_test_result');
+        $config['reuse_query_string'] = true;
+        $config['total_rows'] = $this->TestResultModel->count_add_test_result_entries($invoice_id, $mobile_number, $test_name);
+        $config['per_page'] = 100;
+        $config['uri_segment'] = 3;
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['prev_link'] = '<i class="fa fa-long-arrow-left"></i> Previous';
+        $config['next_link'] = 'Next <i class="fa fa-long-arrow-right"></i>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $this->pagination->initialize($config);
+
+        $payload = array(
+            'success' => true,
+            'html' => $this->load->view('test_result/partials/add_test_result_list', array(
+                'detailsList' => $this->TestResultModel->get_add_test_result_entries($config['per_page'], $offset, $invoice_id, $mobile_number, $test_name),
+                'pagination' => $this->pagination->create_links(),
+                'sl_start' => $offset + 1,
+            ), true),
+        );
+        $this->output->set_content_type('application/json')->set_output(json_encode($payload));
+    }
+
+    public function add_test_result_entry_form_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $entry_detail_id = (int) $this->input->post('patient_test_entry_details_id', true);
+        $entry = $this->TestResultModel->get_add_test_result_entry($entry_detail_id);
+        if (!$entry) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Selected test entry was not found.')));
+            return;
+        }
+
+        if ((int) $entry->existing_test_result_id > 0) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array(
+                    'success' => false,
+                    'message' => 'Result already exists for this test. Use edit if needed.',
+                    'existing_test_result_id' => (int) $entry->existing_test_result_id,
+                    'print_url' => site_url('TestResultController/test_result_report_print_again/' . (int) $entry->existing_test_result_id),
+                )));
+            return;
+        }
+
+        $html = $this->load->view('test_result/partials/add_test_result_entry_form', array(
+            'entry' => $entry,
+        ), true);
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array('success' => true, 'html' => $html)));
     }
 
     public function view_biomedical_test()
@@ -759,6 +876,34 @@ class TestResultController extends CI_Controller
     public function add_test_result_data_save()
     {
         if ($this->input->is_ajax_request()) {
+            $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id', true);
+            $test_id = $this->input->post('test_id');
+            $first_test_id = (is_array($test_id) && isset($test_id[0])) ? (int) $test_id[0] : 0;
+            if ($patient_test_entry_id < 1 || $first_test_id < 1) {
+                echo json_encode(array('success' => false, 'message' => 'Invalid test information.'));
+                return;
+            }
+
+            $duplicate = $this->db->select('tr.test_result_id')
+                ->from('test_result tr')
+                ->join('test_result_details trd', 'trd.test_result_id = tr.test_result_id', 'inner')
+                ->where('tr.patient_test_entry_id', $patient_test_entry_id)
+                ->where('trd.test_id', $first_test_id)
+                ->where('IFNULL(trd.is_deleted, 0) =', 0, false)
+                ->order_by('tr.test_result_id', 'DESC')
+                ->limit(1)
+                ->get()
+                ->row();
+            if ($duplicate) {
+                echo json_encode(array(
+                    'success' => false,
+                    'message' => 'Result already exists for this test.',
+                    'existing_test_result_id' => (int) $duplicate->test_result_id,
+                    'print_url' => site_url('TestResultController/test_result_report_print_again/' . (int) $duplicate->test_result_id),
+                ));
+                return;
+            }
+
             $config['upload_path'] = 'assets/manual_report/';
             $config['allowed_types'] = 'gif|jpg|png|pdf';
             $config['overwrite'] = FALSE;
@@ -793,7 +938,7 @@ class TestResultController extends CI_Controller
 
 
             $data = array(
-                'patient_test_entry_id' => $this->input->post('patient_test_entry_id'),
+                'patient_test_entry_id' => $patient_test_entry_id,
                 'test_group_id' => $this->input->post('test_group_id'),
                 'invoice_no' => $this->input->post('invoice_no'),
                 'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report'),
@@ -803,7 +948,7 @@ class TestResultController extends CI_Controller
                 'time' => $this->input->post('time'),
                 'user_id' => $this->session->userdata('user_id'),
             );
-            $patient = getPatientTestEntry($this->input->post('patient_test_entry_id'));
+            $patient = getPatientTestEntry($patient_test_entry_id);
             $this->db->insert('test_result', $data);
             $test_result_id = $this->db->insert_id();
             $test_id = $this->input->post('test_id');
@@ -835,6 +980,8 @@ class TestResultController extends CI_Controller
             if ($result) {
                 $response['sms_response'] = $this->sms_send($patient); // To send sms
             }
+            $response['test_result_id'] = (int) $test_result_id;
+            $response['print_url'] = site_url('TestResultController/test_result_report_print_again/' . (int) $test_result_id);
             // Return a JSON response
             echo json_encode($response);
         } else {

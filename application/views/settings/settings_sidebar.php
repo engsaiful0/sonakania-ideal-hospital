@@ -261,6 +261,9 @@
              <?php if (in_array('test_setting_group', $permissions)) { ?>
                  <li><a class="box_a" href="<?php echo base_url('test-category') ?>">Test Category</a></li>
              <?php } ?>
+             <?php if (in_array('test_setting_group', $permissions)) { ?>
+                 <li><a class="box_a" href="<?php echo base_url('group') ?>">Test Group</a></li>
+             <?php } ?>
              <?php if (in_array('test_setting_sub_group', $permissions)) { ?>
                  <!-- <li><a class="box_a" href="<?php echo base_url('sub-group') ?>">Sub-Group</a></li> -->
              <?php } ?>
