@@ -57,9 +57,9 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
                                 </a>
                             <?php } ?>
                         <?php } else { ?>
-                            <button type="button" class="btn btn-xs btn-primary btn-result-entry" data-entry-id="<?php echo (int) $row->patient_test_entry_details_id; ?>">
+                            <a href="<?php echo site_url('enter-test-result/' . (int) $row->patient_test_entry_details_id); ?>" class="btn btn-xs btn-primary">
                                 <i class="glyphicon glyphicon-plus"></i> Result Entry
-                            </button>
+                            </a>
                         <?php } ?>
                     </td>
                 </tr>

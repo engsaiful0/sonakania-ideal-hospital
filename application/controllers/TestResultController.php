@@ -382,6 +382,55 @@ class TestResultController extends CI_Controller
             ->set_output(json_encode(array('success' => true, 'html' => $html)));
     }
 
+    /**
+     * Full-page test result entry for one patient_test_entry_details row.
+     */
+    public function enter_test_result($patient_test_entry_details_id = 0)
+    {
+        $entry = $this->TestResultModel->get_add_test_result_entry((int) $patient_test_entry_details_id);
+        if (!$entry) {
+            show_404();
+        }
+
+        if ((int) $entry->existing_test_result_id > 0) {
+            redirect('TestResultController/test_result_edit/' . (int) $entry->existing_test_result_id);
+            return;
+        }
+
+        $patient = $this->db->where('patient_test_entry_id', (int) $entry->patient_test_entry_id)
+            ->get('patient_test_entry')
+            ->row();
+        if (!$patient) {
+            show_404();
+        }
+
+        $serial = $this->db->select('*')->get('test_result');
+        $test_result_no = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
+
+        $ref_name = isset($entry->referring_doctor_name) ? trim((string) $entry->referring_doctor_name) : '';
+        $ref_degree = isset($entry->referring_doctor_degree) ? trim((string) $entry->referring_doctor_degree) : '';
+        $referring_doctor_label = '';
+        if ($ref_name !== '' && $ref_degree !== '') {
+            $referring_doctor_label = $ref_name . ', ' . $ref_degree;
+        } elseif ($ref_name !== '') {
+            $referring_doctor_label = $ref_name;
+        } else {
+            $referring_doctor_label = $ref_degree;
+        }
+
+        $page_data = array(
+            'page_name' => 'test_result/enter_test_result',
+            'page_title' => 'Enter Test Result',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'entry' => $entry,
+            'patient' => $patient,
+            'test_result_no' => $test_result_no,
+            'referring_doctor_label' => $referring_doctor_label,
+            'back_url' => site_url('add-test-result'),
+        );
+        $this->load->view('content', $page_data);
+    }
+
     public function view_biomedical_test()
     {
         $biomedical_test_no = $this->input->post('biomedical_test_no');
