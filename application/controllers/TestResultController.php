@@ -880,18 +880,18 @@ class TestResultController extends CI_Controller
     }
     function sms_send($patient)
     {
-        $compnay = $this->db->where('company_id', '1')->get('company')->row();
-        $company_name = $compnay->company_name;
-
         $sms_api = getSMSAPI();
+        if (!$sms_api || !isset($sms_api->is_test_result_ready_notification_sms_send) || $sms_api->is_test_result_ready_notification_sms_send !== 'yes') {
+            return null;
+        }
+
+        $compnay = $this->db->where('company_id', '1')->get('company')->row();
+        $company_name = ($compnay && isset($compnay->company_name)) ? $compnay->company_name : '';
+
         $url = "http://bulksmsbd.net/api/smsapi";
         $api_key = $sms_api->api_key;
         $senderid = $sms_api->senderid;
-        // $number = "88016xxxxxxxx,88019xxxxxxxx";
-        // echo '<pre>';
-        // print_r($patient->mobile_number);
-        // die;
-        if ($sms_api->is_test_result_ready_notification_sms_send == 'yes') { // if is_sms_send==yes, then sms will be sent
+        if ($patient && isset($patient->mobile_number) && $patient->mobile_number !== '') {
             $number = "88" . $patient->mobile_number;
             $message = "Dear patient, your report is ready! Patient Name: " . $patient->patient_name . ", Mobile: " . $patient->mobile_number . ", Invoice No: " . $patient->invoice_no.','.$company_name;
 
@@ -920,6 +920,8 @@ class TestResultController extends CI_Controller
             curl_close($ch);
             return $response;
         }
+
+        return null;
     }
 
     public function add_test_result_data_save()
@@ -953,44 +955,30 @@ class TestResultController extends CI_Controller
                 return;
             }
 
-            $config['upload_path'] = 'assets/manual_report/';
-            $config['allowed_types'] = 'gif|jpg|png|pdf';
-            $config['overwrite'] = FALSE;
-            $config['encrypt_name'] = FALSE; // Keep the original file name
-            $error = array();
-            $sdata = array();
             $manual_report = '';
-            // Get the original file name
-            $file_name = $_FILES['manual_report']['name'];
-
-            // Append the invoice number before the original file name
-            $new_file_name = $this->input->post('invoice_no') . '_' . $file_name;
-
-            // Update the file name in the $_FILES array to reflect the new name
-            $_FILES['manual_report']['name'] = $new_file_name;
-
-            // Load the upload library with the config settings
-            $this->load->library('upload', $config);
-
-            // Attempt to upload the renamed file
-            if ($this->upload->do_upload('manual_report')) {
-                // Get the uploaded file's data
-                $sdata = $this->upload->data();
-
-                // Get the renamed file name after upload
-                $manual_report = $sdata['file_name'];
-            } else {
-                // Handle the upload error
-                $error = $this->upload->display_errors();
-                $manual_report = ''; // Reset if there's an error
+            if (!empty($_FILES['manual_report']['name'])) {
+                $config['upload_path'] = 'assets/manual_report/';
+                $config['allowed_types'] = 'gif|jpg|png|pdf';
+                $config['overwrite'] = false;
+                $config['encrypt_name'] = false;
+                $_FILES['manual_report']['name'] = $this->input->post('invoice_no') . '_' . $_FILES['manual_report']['name'];
+                $this->load->library('upload', $config);
+                if ($this->upload->do_upload('manual_report')) {
+                    $upload_data = $this->upload->data();
+                    $manual_report = $upload_data['file_name'];
+                }
             }
 
+            $manual_or_dynamic = $this->input->post('manual_or_dynamic_report', true);
+            if ($manual_or_dynamic === 'dynamic_report') {
+                $manual_or_dynamic = 'Dynamic';
+            }
 
             $data = array(
                 'patient_test_entry_id' => $patient_test_entry_id,
                 'test_group_id' => $this->input->post('test_group_id'),
                 'invoice_no' => $this->input->post('invoice_no'),
-                'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report'),
+                'manual_or_dynamic_report' => $manual_or_dynamic,
                 'manual_report' => $manual_report,
                 'test_result_no' => $this->input->post('test_result_no'),
                 'date' => date('Y-m-d', strtotime($this->input->post('date'))),
@@ -998,7 +986,11 @@ class TestResultController extends CI_Controller
                 'user_id' => $this->session->userdata('user_id'),
             );
             $patient = getPatientTestEntry($patient_test_entry_id);
-            $this->db->insert('test_result', $data);
+            if (!$this->db->insert('test_result', $data)) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Could not save test result.')));
+                return;
+            }
             $test_result_id = $this->db->insert_id();
             $test_id = $this->input->post('test_id');
             //        $test_configuration_id = $this->input->post('test_configuration_id');
@@ -1022,21 +1014,21 @@ class TestResultController extends CI_Controller
                 log_message('error', 'test_configuration_value is not an array or is empty.');
             }
 
-            $sdata['print_test_result_id'] = $test_result_id;
-            $sdata['success'] = 'saved successully';
-            $this->session->set_userdata($sdata);
+            $flash = array(
+                'print_test_result_id' => $test_result_id,
+                'success' => 'saved successully',
+            );
+            $this->session->set_userdata($flash);
             $response = array('success' => true, 'message' => 'Data saved successfully.');
             if ($result) {
-                $response['sms_response'] = $this->sms_send($patient); // To send sms
+                $this->sms_send($patient);
             }
             $response['test_result_id'] = (int) $test_result_id;
             $response['print_url'] = site_url('TestResultController/test_result_report_print_again/' . (int) $test_result_id);
-            // Return a JSON response
-            echo json_encode($response);
+            $this->output->set_content_type('application/json')->set_output(json_encode($response));
         } else {
-            // If it's not an AJAX request, show an error
-            $response = array('error' => true, 'message' => 'Invalid request.');
-            echo json_encode($response);
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
         }
     }
 

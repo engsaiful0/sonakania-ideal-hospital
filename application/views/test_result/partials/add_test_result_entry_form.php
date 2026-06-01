@@ -21,7 +21,7 @@ if ($ref_name !== '' && $ref_degree !== '') {
     <input type="hidden" name="test_group_id" value="<?php echo (int) $entry->test_group_id; ?>">
     <input type="hidden" name="date" value="<?php echo $now_date; ?>">
     <input type="hidden" name="time" value="<?php echo html_escape($now_time); ?>">
-    <input type="hidden" name="manual_or_dynamic_report" value="dynamic_report">
+    <input type="hidden" name="manual_or_dynamic_report" value="Dynamic">
     <input type="hidden" name="test_result_no" value="<?php echo html_escape($test_result_no); ?>">
 
     <div class="row">

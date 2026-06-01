@@ -24,7 +24,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
             <input type="hidden" name="patient_test_entry_id" value="<?php echo (int) $entry->patient_test_entry_id; ?>">
             <input type="hidden" name="invoice_no" value="<?php echo html_escape($entry->invoice_no); ?>">
             <input type="hidden" name="test_group_id" value="<?php echo (int) $entry->test_group_id; ?>">
-            <input type="hidden" name="manual_or_dynamic_report" value="dynamic_report">
+            <input type="hidden" name="manual_or_dynamic_report" value="Dynamic">
             <input type="hidden" name="test_result_no" value="<?php echo html_escape(isset($test_result_no) ? $test_result_no : ''); ?>">
 
             <div class="row">
@@ -157,6 +157,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                 processData: false,
                 contentType: false,
                 dataType: 'json',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 success: function(res) {
                     if (res.success) {
                         if (res.print_url) {
@@ -170,9 +171,24 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                         showMessage('error', (res.message || 'Failed to save result.') + extra);
                     }
                 },
-                error: function() {
+                error: function(xhr) {
                     $form.find(':input').prop('disabled', false);
-                    showMessage('error', 'Failed to save result. Please try again.');
+                    var msg = 'Failed to save result. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            var parsed = JSON.parse(xhr.responseText);
+                            if (parsed.message) {
+                                msg = parsed.message;
+                            }
+                        } catch (e) {
+                            if (xhr.status) {
+                                msg += ' (HTTP ' + xhr.status + ')';
+                            }
+                        }
+                    }
+                    showMessage('error', msg);
                 }
             });
         });
