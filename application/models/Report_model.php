@@ -217,6 +217,68 @@ class Report_model extends CI_Model
     }
 
     /**
+     * Referring doctor for a lab report (patient_test_entry.reference_doctor_id via invoice).
+     *
+     * @param object|null $report lab_reports row (patient_id = invoice no)
+     * @return object|null doctor row
+     */
+    public function get_referring_doctor_for_report($report)
+    {
+        if (!is_object($report)) {
+            return null;
+        }
+
+        $doctor_id = 0;
+        if ($this->db->field_exists('reference_doctor_id', $this->table_reports)
+            && isset($report->reference_doctor_id) && (int) $report->reference_doctor_id > 0) {
+            $doctor_id = (int) $report->reference_doctor_id;
+        }
+
+        if ($doctor_id < 1 && isset($report->patient_id) && trim((string) $report->patient_id) !== '') {
+            $pte = $this->db->where('invoice_no', trim((string) $report->patient_id))
+                ->order_by('patient_test_entry_id', 'DESC')
+                ->limit(1)
+                ->get('patient_test_entry')
+                ->row();
+            if ($pte && isset($pte->reference_doctor_id) && (int) $pte->reference_doctor_id > 0) {
+                $doctor_id = (int) $pte->reference_doctor_id;
+            }
+        }
+
+        if ($doctor_id < 1) {
+            return null;
+        }
+
+        return $this->db->where('doctor_id', $doctor_id)->get('doctor')->row();
+    }
+
+    /**
+     * Display label: "Name, Degree" for print headers.
+     *
+     * @param object|null $doctor
+     * @return string
+     */
+    public function format_referring_doctor_label($doctor)
+    {
+        if (!is_object($doctor)) {
+            return '—';
+        }
+        $name = isset($doctor->doctor_name) ? trim((string) $doctor->doctor_name) : '';
+        $degree = isset($doctor->degree) ? trim((string) $doctor->degree) : '';
+        if ($name !== '' && $degree !== '') {
+            return $name . ', ' . $degree;
+        }
+        if ($name !== '') {
+            return $name;
+        }
+        if ($degree !== '') {
+            return $degree;
+        }
+
+        return '—';
+    }
+
+    /**
      * Flat list of result rows with section metadata (ordered).
      * Also returns min_value / max_value (always) and normal_range (if the column exists).
      */

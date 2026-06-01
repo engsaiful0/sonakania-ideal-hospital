@@ -117,8 +117,11 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 
         <div class="panel-body">
             <?php
-            
+
             if (!empty($report)) {
+                $referring_doctor_label = $this->Report_model->format_referring_doctor_label(
+                    $this->Report_model->get_referring_doctor_for_report($report)
+                );
                 $age_parts = array();
 
                 if ($report->age_year > 0) {
@@ -139,27 +142,24 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 $hide_section_titles = ($section_block_count === 1);
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;margin-bottom:10px;">
-                    <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></p>
+                    <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?>
+                        <br>
+                        Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b>
+                    </p>
                     <?php
-                   
-                   $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
-                   if ($group_name && isset($group_name->test_group_name) && $group_name->test_group_name) {
-                   ?>
-                       <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo html_escape($group_name->test_group_name.' Report'); ?></u></p>
 
-                   <?php } ?>
-                    <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></p>
-                   
+                    $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
+                    if ($group_name && isset($group_name->test_group_name) && $group_name->test_group_name) {
+                    ?>
+                        <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo strtoupper(html_escape($group_name->test_group_name . ' Report')); ?></u></p>
+
+                    <?php } ?>
+                    <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? strtoupper(html_escape($report->panel_name)) : '—'; ?></p>
+
                 </div>
-
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) { ?>
                         <div class="report-section-block" style="margin-bottom:5px;">
-                            <?php if (empty($hide_section_titles)) { ?>
-                            <p style="border-bottom:1px solid black;padding-bottom:2px;color:black;">
-                                <?php echo html_escape($block['section_name']); ?>
-                            </p>
-                            <?php } ?>
                             <table class="table  table-hover table-striped">
                                 <thead>
                                     <tr style="margin-bottom:1px;">

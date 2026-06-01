@@ -170,6 +170,9 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 
         <div class="panel-body">
             <?php if (!empty($report)) {
+                $referring_doctor_label = $this->Report_model->format_referring_doctor_label(
+                    $this->Report_model->get_referring_doctor_for_report($report)
+                );
                 $age_parts = array();
 
                 if ($report->age_year > 0) {
@@ -188,6 +191,8 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;">
                     <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></p>
+                    <br>
+                    Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b>
                   
                 </div>
                 <?php
@@ -195,7 +200,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                    $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
                    if ($group_name->test_group_name) {
                    ?>
-                       <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo html_escape($group_name->test_group_name.' Report'); ?></u></p>
+                       <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo strtoupper(html_escape($group_name->test_group_name.' Report')); ?></u></p>
 
                    <?php } ?>
                 <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : '—'; ?></p>
