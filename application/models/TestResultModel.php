@@ -45,7 +45,8 @@ class TestResultModel extends CI_Model
             COALESCE(NULLIF(pte.mobile_number, ''), pte.mobile_number) AS mobile_number,
             pte.date AS test_date,
             t.test_name,
-            d.doctor_name AS referring_doctor,
+            d.doctor_name AS referring_doctor_name,
+            d.degree AS referring_doctor_degree,
             (
                 SELECT MAX(tr.test_result_id)
                 FROM test_result tr
@@ -58,7 +59,7 @@ class TestResultModel extends CI_Model
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
         $this->db->join('test t', 't.test_id = pted.test_id', 'inner');
-        $this->db->join('doctor d', 'd.doctor_id = pte.doctor_id', 'left');
+        $this->db->join('doctor d', 'd.doctor_id = pte.reference_doctor_id', 'left');
         $this->apply_add_result_filters($invoice_id, $mobile_number, $test_name);
         $this->db->order_by('pted.patient_test_entry_details_id', 'DESC');
 
@@ -83,7 +84,8 @@ class TestResultModel extends CI_Model
             pte.time AS test_time,
             t.test_name,
             t.test_group_id,
-            d.doctor_name AS referring_doctor,
+            d.doctor_name AS referring_doctor_name,
+            d.degree AS referring_doctor_degree,
             (
                 SELECT MAX(tr.test_result_id)
                 FROM test_result tr
@@ -96,7 +98,7 @@ class TestResultModel extends CI_Model
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
         $this->db->join('test t', 't.test_id = pted.test_id', 'inner');
-        $this->db->join('doctor d', 'd.doctor_id = pte.doctor_id', 'left');
+        $this->db->join('doctor d', 'd.doctor_id = pte.reference_doctor_id', 'left');
         $this->db->where('pted.patient_test_entry_details_id', $entry_detail_id);
 
         return $this->db->get()->row();

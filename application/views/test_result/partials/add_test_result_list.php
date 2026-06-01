@@ -31,7 +31,19 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
                     <td><?php echo html_escape($row->mobile_number); ?></td>
                     <td><?php echo html_escape($row->test_name); ?></td>
                     <td><?php echo !empty($row->test_date) ? date('d-m-Y', strtotime($row->test_date)) : ''; ?></td>
-                    <td><?php echo html_escape($row->referring_doctor); ?></td>
+                    <td>
+                        <?php
+                        $ref_name = isset($row->referring_doctor_name) ? trim((string) $row->referring_doctor_name) : '';
+                        $ref_degree = isset($row->referring_doctor_degree) ? trim((string) $row->referring_doctor_degree) : '';
+                        if ($ref_name !== '' && $ref_degree !== '') {
+                            echo html_escape($ref_name) . ', ' . html_escape($ref_degree);
+                        } elseif ($ref_name !== '') {
+                            echo html_escape($ref_name);
+                        } else {
+                            echo html_escape($ref_degree);
+                        }
+                        ?>
+                    </td>
                     <td>
                         <?php if ((int) $row->existing_test_result_id > 0) { ?>
                             <?php if (in_array('print_test_result', $permissions)) { ?>

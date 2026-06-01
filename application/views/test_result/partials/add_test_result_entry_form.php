@@ -4,6 +4,16 @@ $entry_id = isset($entry->patient_test_entry_details_id) ? (int) $entry->patient
 $now_date = !empty($entry->test_date) ? date('Y-m-d', strtotime($entry->test_date)) : date('Y-m-d');
 $now_time = !empty($entry->test_time) ? $entry->test_time : date('H:i:s');
 $test_result_no = 'TRN' . date('ymdHis') . $entry_id;
+$ref_name = isset($entry->referring_doctor_name) ? trim((string) $entry->referring_doctor_name) : '';
+$ref_degree = isset($entry->referring_doctor_degree) ? trim((string) $entry->referring_doctor_degree) : '';
+$referring_doctor_label = '';
+if ($ref_name !== '' && $ref_degree !== '') {
+    $referring_doctor_label = $ref_name . ', ' . $ref_degree;
+} elseif ($ref_name !== '') {
+    $referring_doctor_label = $ref_name;
+} else {
+    $referring_doctor_label = $ref_degree;
+}
 ?>
 <form id="result-entry-form" enctype="multipart/form-data">
     <input type="hidden" name="patient_test_entry_id" value="<?php echo (int) $entry->patient_test_entry_id; ?>">
@@ -21,7 +31,7 @@ $test_result_no = 'TRN' . date('ymdHis') . $entry_id;
         </div>
         <div class="col-md-6">
             <p><strong>Mobile:</strong> <?php echo html_escape($entry->mobile_number); ?></p>
-            <p><strong>Doctor:</strong> <?php echo html_escape($entry->referring_doctor); ?></p>
+            <p><strong>Referring Doctor:</strong> <?php echo html_escape($referring_doctor_label); ?></p>
         </div>
     </div>
     <hr>
