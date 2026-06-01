@@ -2,6 +2,49 @@
 class TestResultModel extends CI_Model
 {
     /**
+     * Whether a list/entry row should use the panel-test (lab_reports) flow.
+     *
+     * @param object|null $row
+     * @return bool
+     */
+    public function entry_is_panel_test($row)
+    {
+        if (!$row) {
+            return false;
+        }
+        if (isset($row->setting_type) && strcasecmp(trim((string) $row->setting_type), 'Unique') === 0) {
+            return true;
+        }
+
+        return isset($row->resolved_panel_id) && (int) $row->resolved_panel_id > 0;
+    }
+
+    /**
+     * Extra SELECT fragments for add-test-result list/detail queries.
+     *
+     * @return string
+     */
+    private function add_result_entry_select_extras()
+    {
+        return ",
+            t.setting_type,
+            (
+                SELECT tp.id
+                FROM test_panels tp
+                WHERE tp.panel_name = t.test_name
+                ORDER BY tp.id ASC
+                LIMIT 1
+            ) AS resolved_panel_id,
+            (
+                SELECT MAX(lr.id)
+                FROM lab_reports lr
+                INNER JOIN test_panels tp2 ON tp2.id = lr.panel_id
+                WHERE lr.patient_id = pte.invoice_no
+                    AND tp2.panel_name = t.test_name
+            ) AS existing_lab_report_id";
+    }
+
+    /**
      * Shared filter for test-entry list in Add Test Result.
      */
     private function apply_add_result_filters($invoice_id = '', $mobile_number = '', $test_name = '')
@@ -54,7 +97,7 @@ class TestResultModel extends CI_Model
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
                     AND IFNULL(trd.is_deleted, 0) = 0
-            ) AS existing_test_result_id
+            ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
@@ -93,7 +136,7 @@ class TestResultModel extends CI_Model
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
                     AND IFNULL(trd.is_deleted, 0) = 0
-            ) AS existing_test_result_id
+            ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');

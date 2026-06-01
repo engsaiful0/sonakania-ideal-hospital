@@ -392,6 +392,11 @@ class TestResultController extends CI_Controller
             show_404();
         }
 
+        if ($this->TestResultModel->entry_is_panel_test($entry)) {
+            $this->enter_panel_test_result_page($entry);
+            return;
+        }
+
         if ((int) $entry->existing_test_result_id > 0) {
             redirect('TestResultController/test_result_edit/' . (int) $entry->existing_test_result_id);
             return;
@@ -407,17 +412,6 @@ class TestResultController extends CI_Controller
         $serial = $this->db->select('*')->get('test_result');
         $test_result_no = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
 
-        $ref_name = isset($entry->referring_doctor_name) ? trim((string) $entry->referring_doctor_name) : '';
-        $ref_degree = isset($entry->referring_doctor_degree) ? trim((string) $entry->referring_doctor_degree) : '';
-        $referring_doctor_label = '';
-        if ($ref_name !== '' && $ref_degree !== '') {
-            $referring_doctor_label = $ref_name . ', ' . $ref_degree;
-        } elseif ($ref_name !== '') {
-            $referring_doctor_label = $ref_name;
-        } else {
-            $referring_doctor_label = $ref_degree;
-        }
-
         $page_data = array(
             'page_name' => 'test_result/enter_test_result',
             'page_title' => 'Enter Test Result',
@@ -425,10 +419,96 @@ class TestResultController extends CI_Controller
             'entry' => $entry,
             'patient' => $patient,
             'test_result_no' => $test_result_no,
-            'referring_doctor_label' => $referring_doctor_label,
+            'referring_doctor_label' => $this->format_referring_doctor_label($entry),
             'back_url' => site_url('add-test-result'),
         );
         $this->load->view('content', $page_data);
+    }
+
+    /**
+     * Panel test result entry (sections/parameters from test_panels settings).
+     *
+     * @param object $entry Row from TestResultModel::get_add_test_result_entry()
+     */
+    private function enter_panel_test_result_page($entry)
+    {
+        $this->load->model('Report_model');
+
+        if ((int) $entry->existing_lab_report_id > 0) {
+            redirect('panel-test-edit/' . (int) $entry->existing_lab_report_id);
+            return;
+        }
+
+        $panel = $this->Report_model->resolve_panel_for_test(
+            isset($entry->test_name) ? $entry->test_name : '',
+            isset($entry->test_group_id) ? (int) $entry->test_group_id : 0
+        );
+        if (!$panel && isset($entry->resolved_panel_id) && (int) $entry->resolved_panel_id > 0) {
+            $panel = $this->Report_model->get_panel((int) $entry->resolved_panel_id);
+        }
+        if (!$panel) {
+            show_error(
+                'Panel test settings were not found for "' . html_escape(isset($entry->test_name) ? $entry->test_name : '') . '". '
+                . 'Configure a matching panel in Test Settings (panel name must match the test name).',
+                404
+            );
+            return;
+        }
+
+        $existing = $this->Report_model->find_lab_report_for_invoice_and_panel(
+            isset($entry->invoice_no) ? $entry->invoice_no : '',
+            (int) $panel->id
+        );
+        if ($existing) {
+            redirect('panel-test-edit/' . (int) $existing->id);
+            return;
+        }
+
+        $patient = $this->db->where('patient_test_entry_id', (int) $entry->patient_test_entry_id)
+            ->get('patient_test_entry')
+            ->row();
+        if (!$patient) {
+            show_404();
+        }
+
+        $panel_test_group_id = (int) $entry->test_group_id;
+        if ($this->db->field_exists('test_group_id', 'test_panels')
+            && isset($panel->test_group_id) && (int) $panel->test_group_id > 0) {
+            $panel_test_group_id = (int) $panel->test_group_id;
+        }
+
+        $page_data = array(
+            'page_name' => 'test_result/enter_panel_test_result',
+            'page_title' => 'Enter Panel Test Result',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'entry' => $entry,
+            'patient' => $patient,
+            'panel' => $panel,
+            'panel_id' => (int) $panel->id,
+            'panel_test_group_id' => $panel_test_group_id,
+            'require_lab_test_group' => $this->db->field_exists('test_group_id', 'lab_reports'),
+            'referring_doctor_label' => $this->format_referring_doctor_label($entry),
+            'back_url' => site_url('add-test-result'),
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
+     * @param object $entry
+     * @return string
+     */
+    private function format_referring_doctor_label($entry)
+    {
+        $ref_name = isset($entry->referring_doctor_name) ? trim((string) $entry->referring_doctor_name) : '';
+        $ref_degree = isset($entry->referring_doctor_degree) ? trim((string) $entry->referring_doctor_degree) : '';
+        if ($ref_name !== '' && $ref_degree !== '') {
+            return $ref_name . ', ' . $ref_degree;
+        }
+        if ($ref_name !== '') {
+            return $ref_name;
+        }
+
+        return $ref_degree;
     }
 
     public function view_biomedical_test()

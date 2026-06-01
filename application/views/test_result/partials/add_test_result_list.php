@@ -45,14 +45,30 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
                         ?>
                     </td>
                     <td>
-                        <?php if ((int) $row->existing_test_result_id > 0) { ?>
+                        <?php
+                        $is_panel = $this->TestResultModel->entry_is_panel_test($row);
+                        $existing_single = isset($row->existing_test_result_id) ? (int) $row->existing_test_result_id : 0;
+                        $existing_panel = isset($row->existing_lab_report_id) ? (int) $row->existing_lab_report_id : 0;
+                        ?>
+                        <?php if ($is_panel && $existing_panel > 0) { ?>
                             <?php if (in_array('print_test_result', $permissions)) { ?>
-                                <a class="btn btn-xs btn-info" target="_blank" href="<?php echo site_url('TestResultController/test_result_report_print_again/' . (int) $row->existing_test_result_id); ?>">
+                                <a class="btn btn-xs btn-info" target="_blank" href="<?php echo site_url('print-panel-test-with-id/' . $existing_panel); ?>?print=1">
                                     <i class="glyphicon glyphicon-print"></i> Print
                                 </a>
                             <?php } ?>
                             <?php if (in_array('edit_test_result', $permissions)) { ?>
-                                <a class="btn btn-xs btn-warning" target="_blank" href="<?php echo site_url('TestResultController/test_result_edit/' . (int) $row->existing_test_result_id); ?>">
+                                <a class="btn btn-xs btn-warning" href="<?php echo site_url('panel-test-edit/' . $existing_panel); ?>">
+                                    <i class="glyphicon glyphicon-edit"></i> Edit
+                                </a>
+                            <?php } ?>
+                        <?php } elseif (!$is_panel && $existing_single > 0) { ?>
+                            <?php if (in_array('print_test_result', $permissions)) { ?>
+                                <a class="btn btn-xs btn-info" target="_blank" href="<?php echo site_url('TestResultController/test_result_report_print_again/' . $existing_single); ?>">
+                                    <i class="glyphicon glyphicon-print"></i> Print
+                                </a>
+                            <?php } ?>
+                            <?php if (in_array('edit_test_result', $permissions)) { ?>
+                                <a class="btn btn-xs btn-warning" target="_blank" href="<?php echo site_url('TestResultController/test_result_edit/' . $existing_single); ?>">
                                     <i class="glyphicon glyphicon-edit"></i> Edit
                                 </a>
                             <?php } ?>

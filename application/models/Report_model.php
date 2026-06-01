@@ -30,6 +30,53 @@ class Report_model extends CI_Model
         return $this->db->get_where('test_panels', array('id' => (int) $id))->row();
     }
 
+    /**
+     * Find a panel definition that matches a billed test (panel_name = test_name).
+     *
+     * @param string $test_name
+     * @param int    $test_group_id
+     * @return object|null
+     */
+    public function resolve_panel_for_test($test_name, $test_group_id = 0)
+    {
+        $test_name = trim((string) $test_name);
+        if ($test_name === '') {
+            return null;
+        }
+
+        $this->db->from('test_panels');
+        $this->db->where('panel_name', $test_name);
+        $test_group_id = (int) $test_group_id;
+        if ($test_group_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
+            $this->db->where('test_group_id', $test_group_id);
+        }
+
+        return $this->db->order_by('id', 'ASC')->limit(1)->get()->row();
+    }
+
+    /**
+     * Latest lab_reports row for an invoice + panel (patient_id stores invoice no).
+     *
+     * @param string $invoice_no
+     * @param int    $panel_id
+     * @return object|null
+     */
+    public function find_lab_report_for_invoice_and_panel($invoice_no, $panel_id)
+    {
+        $invoice_no = trim((string) $invoice_no);
+        $panel_id = (int) $panel_id;
+        if ($invoice_no === '' || $panel_id < 1) {
+            return null;
+        }
+
+        return $this->db->where('patient_id', $invoice_no)
+            ->where('panel_id', $panel_id)
+            ->order_by('id', 'DESC')
+            ->limit(1)
+            ->get($this->table_reports)
+            ->row();
+    }
+
     public function get_all_panels()
     {
         return $this->db->order_by('panel_name', 'ASC')->get('test_panels')->result();
