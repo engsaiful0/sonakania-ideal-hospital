@@ -162,7 +162,7 @@ $permissions = $this->session->userdata('permissions');
                 <td>Invoice No</td>
                 <td>Test No</td>
                 <td>Test Group Name</td>
-                <td style="display: none;">Manual Report</td>
+                
                 <?php
                     $user_type_name = $this->session->userdata('user_type');
                     if ($user_type_name == 'Admin') {

@@ -1,10 +1,14 @@
 <?php
 $entry = isset($entry) ? $entry : (object) array();
+$entries = isset($entries) && is_array($entries) ? $entries : array($entry);
 $patient = isset($patient) ? $patient : (object) array();
 $edit_mode = !empty($edit_mode);
+$multi_mode = !empty($multi_mode);
 $test_result_id = isset($test_result_id) ? (int) $test_result_id : 0;
+$existing_values = isset($existing_values) && is_array($existing_values) ? $existing_values : array();
 $existing_value = isset($existing_value) ? (string) $existing_value : '';
 $entry_id = isset($entry->patient_test_entry_details_id) ? (int) $entry->patient_test_entry_details_id : 0;
+$selected_detail_ids = isset($selected_detail_ids) ? (string) $selected_detail_ids : (string) $entry_id;
 $test_result = isset($test_result) ? $test_result : null;
 if ($edit_mode && $test_result && !empty($test_result->date)) {
     $now_date = date('d-m-y', strtotime($test_result->date));
@@ -19,10 +23,16 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
 } elseif (isset($patient->mobile)) {
     $mobile = $patient->mobile;
 }
+$group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
 ?>
 <div class="panel panel-primary">
     <div class="panel-heading clearfix">
-        <h3 class="panel-title pull-left" style="margin-top:6px;"><?php echo $edit_mode ? 'Edit Test Result' : 'Enter Test Result'; ?></h3>
+        <h3 class="panel-title pull-left" style="margin-top:6px;">
+            <?php echo $edit_mode ? 'Edit Test Result' : 'Enter Test Result'; ?>
+            <?php if ($multi_mode && $group_label !== '') { ?>
+                <small>— <?php echo html_escape($group_label); ?> (<?php echo count($entries); ?> tests)</small>
+            <?php } ?>
+        </h3>
         <a href="<?php echo isset($back_url) ? html_escape($back_url) : site_url('add-test-result'); ?>" class="btn btn-default btn-sm pull-right">
             <i class="glyphicon glyphicon-arrow-left"></i> Back to list
         </a>
@@ -35,7 +45,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
             <input type="hidden" name="test_group_id" value="<?php echo (int) $entry->test_group_id; ?>">
             <input type="hidden" name="manual_or_dynamic_report" value="Dynamic">
             <input type="hidden" name="test_result_no" value="<?php echo html_escape(isset($test_result_no) ? $test_result_no : ''); ?>">
-            <input type="hidden" name="patient_test_entry_details_id" value="<?php echo $entry_id; ?>">
+            <input type="hidden" name="patient_test_entry_details_id" value="<?php echo html_escape($selected_detail_ids); ?>">
             <input type="hidden" name="test_result_id" id="test_result_id_field" value="<?php echo $test_result_id > 0 ? (int) $test_result_id : ''; ?>">
 
             <div class="row">
@@ -90,9 +100,29 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
+                        <label class="control-label col-sm-4">Test Group</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-static"><strong><?php echo html_escape($group_label); ?></strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
                         <label class="control-label col-sm-4">Referring Doctor</label>
                         <div class="col-sm-8">
                             <p class="form-control-static"><?php echo html_escape(isset($referring_doctor_label) ? $referring_doctor_label : ''); ?></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label col-sm-4">Test Date</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-static">
+                                <?php echo !empty($entry->test_date) ? date('d-m-Y', strtotime($entry->test_date)) : ''; ?>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -109,30 +139,31 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="control-label col-sm-4">Test Date</label>
-                        <div class="col-sm-8">
-                            <p class="form-control-static">
-                                <?php echo !empty($entry->test_date) ? date('d-m-Y', strtotime($entry->test_date)) : ''; ?>
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
             <hr>
+            <?php foreach ($entries as $idx => $row) {
+                $tid = (int) $row->test_id;
+                $val = isset($existing_values[$tid]) ? $existing_values[$tid] : ($idx === 0 ? $existing_value : '');
+            ?>
             <div class="row">
                 <div class="col-md-8">
                     <div class="form-group">
-                        <label class="control-label col-sm-4"><?php echo html_escape($entry->test_name); ?></label>
+                        <label class="control-label col-sm-4"><?php echo html_escape($row->test_name); ?></label>
                         <div class="col-sm-8">
-                            <input type="hidden" name="test_id[]" value="<?php echo (int) $entry->test_id; ?>">
+                            <input type="hidden" name="test_id[]" value="<?php echo $tid; ?>">
                             <input type="hidden" name="bold[]" value="No">
-                            <input type="text" name="test_configuration_value[]" class="form-control" placeholder="Enter result value" required maxlength="500" autofocus value="<?php echo html_escape($existing_value); ?>">
+                            <input type="text" name="test_configuration_value[]" class="form-control result-value-input"
+                                placeholder="Enter result value" maxlength="500"
+                                value="<?php echo html_escape($val); ?>"
+                                <?php echo ($idx === 0 && !$multi_mode) ? 'required autofocus' : ''; ?>>
                         </div>
                     </div>
                 </div>
             </div>
+            <?php } ?>
+            <?php if ($multi_mode) { ?>
+                <p class="text-muted"><small>Enter at least one result value. All selected tests will print on one report.</small></p>
+            <?php } ?>
             <div class="row">
                 <div class="col-md-12 text-right">
                     <a href="<?php echo isset($back_url) ? html_escape($back_url) : site_url('add-test-result'); ?>" class="btn btn-default">Cancel</a>
@@ -158,14 +189,21 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
         $('#result-entry-form').on('submit', function(e) {
             e.preventDefault();
             var $form = $(this);
+            var hasValue = false;
+            $form.find('.result-value-input').each(function() {
+                if ($.trim($(this).val()) !== '') {
+                    hasValue = true;
+                }
+            });
+            if (!hasValue) {
+                showMessage('error', 'Please enter at least one result value.');
+                return;
+            }
+
             var formData = new FormData(this);
             var existingResultId = $('#test_result_id_field').val();
             if (existingResultId) {
                 formData.set('test_result_id', existingResultId);
-            }
-            var entryDetailId = $('input[name="patient_test_entry_details_id"]').val();
-            if (entryDetailId) {
-                formData.set('patient_test_entry_details_id', entryDetailId);
             }
             $form.find(':input').prop('disabled', true);
 
@@ -201,7 +239,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                             if (parsed.message) {
                                 msg = parsed.message;
                             }
-                        } catch (e) {
+                        } catch (err) {
                             if (xhr.status) {
                                 msg += ' (HTTP ' + xhr.status + ')';
                             }

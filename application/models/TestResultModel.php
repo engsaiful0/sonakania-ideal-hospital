@@ -88,6 +88,7 @@ class TestResultModel extends CI_Model
             COALESCE(NULLIF(pte.mobile_number, ''), pte.mobile_number) AS mobile_number,
             pte.date AS test_date,
             t.test_name,
+            t.test_group_id,
             tg.test_group_name,
             d.doctor_name AS referring_doctor_name,
             d.degree AS referring_doctor_degree,
@@ -163,6 +164,120 @@ class TestResultModel extends CI_Model
         $this->db->limit(1);
 
         return $this->db->get()->row();
+    }
+
+    /**
+     * Load multiple patient_test_entry_details rows by id (same query shape as list).
+     *
+     * @param array $detail_ids
+     * @return array
+     */
+    public function get_add_test_result_entries_by_ids(array $detail_ids)
+    {
+        $detail_ids = array_values(array_unique(array_filter(array_map('intval', $detail_ids))));
+        if (empty($detail_ids)) {
+            return array();
+        }
+
+        $this->db->select("
+            pted.patient_test_entry_details_id,
+            pted.patient_test_entry_id,
+            pted.test_id,
+            pte.invoice_no,
+            pte.patient_name,
+            COALESCE(NULLIF(pte.mobile_number, ''), pte.mobile_number) AS mobile_number,
+            pte.date AS test_date,
+            pte.time AS test_time,
+            t.test_name,
+            t.test_group_id,
+            tg.test_group_name,
+            d.doctor_name AS referring_doctor_name,
+            d.degree AS referring_doctor_degree,
+            (
+                SELECT MAX(tr.test_result_id)
+                FROM test_result tr
+                INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
+                WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
+                    AND trd.test_id = pted.test_id
+            ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
+        ", false);
+        $this->db->from('patient_test_entry_details pted');
+        $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
+        $this->db->join('test t', 't.test_id = pted.test_id', 'inner');
+        $this->db->join('test_group tg', 'tg.test_group_id = t.test_group_id', 'left');
+        $this->db->join('doctor d', 'd.doctor_id = pte.reference_doctor_id', 'left');
+        $this->db->where_in('pted.patient_test_entry_details_id', $detail_ids);
+        $this->db->order_by('t.test_name', 'ASC');
+
+        return $this->db->get()->result();
+    }
+
+    /**
+     * Ensure selected rows share one invoice and one test group (non-panel).
+     *
+     * @param array $detail_ids
+     * @return array{ok:bool,message:string,entries:array}
+     */
+    public function validate_group_result_selection(array $detail_ids)
+    {
+        $entries = $this->get_add_test_result_entries_by_ids($detail_ids);
+        if (count($entries) !== count(array_unique(array_filter(array_map('intval', $detail_ids))))) {
+            return array('ok' => false, 'message' => 'One or more selected tests were not found.', 'entries' => array());
+        }
+        if (empty($entries)) {
+            return array('ok' => false, 'message' => 'Please select at least one test.', 'entries' => array());
+        }
+
+        $invoice_no = null;
+        $test_group_id = null;
+        foreach ($entries as $entry) {
+            if ($this->entry_is_panel_test($entry)) {
+                return array(
+                    'ok' => false,
+                    'message' => 'Panel tests cannot be combined. Select parameter tests from the same test group only.',
+                    'entries' => array(),
+                );
+            }
+            $inv = trim((string) $entry->invoice_no);
+            $gid = (int) $entry->test_group_id;
+            if ($invoice_no === null) {
+                $invoice_no = $inv;
+                $test_group_id = $gid;
+            } elseif ($invoice_no !== $inv || $test_group_id !== $gid) {
+                return array(
+                    'ok' => false,
+                    'message' => 'Selected tests must belong to the same invoice and the same test group.',
+                    'entries' => array(),
+                );
+            }
+        }
+
+        return array('ok' => true, 'message' => '', 'entries' => $entries);
+    }
+
+    /**
+     * Existing test_result header for invoice + test group (combined group report).
+     *
+     * @param int $patient_test_entry_id
+     * @param int $test_group_id
+     * @return int
+     */
+    public function find_existing_test_result_for_group($patient_test_entry_id, $test_group_id)
+    {
+        $patient_test_entry_id = (int) $patient_test_entry_id;
+        $test_group_id = (int) $test_group_id;
+        if ($patient_test_entry_id < 1 || $test_group_id < 1) {
+            return 0;
+        }
+
+        $row = $this->db->select('MAX(tr.test_result_id) AS test_result_id', false)
+            ->from('test_result tr')
+            ->where('tr.patient_test_entry_id', $patient_test_entry_id)
+            ->where('tr.test_group_id', $test_group_id)
+            ->get()
+            ->row();
+
+        return ($row && !empty($row->test_result_id)) ? (int) $row->test_result_id : 0;
     }
 
     public function get_add_test_result_entry($entry_detail_id)

@@ -131,6 +131,7 @@
     }
 
     $test_result_details = $this->db->where('test_result_id', $test_result->test_result_id)
+        ->where('IFNULL(is_deleted, 0) =', 0, false)
         ->get('test_result_details')->result();
 
     $patient_test_entry = $this->db->where('patient_test_entry_id', $test_result->patient_test_entry_id)
