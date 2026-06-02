@@ -88,6 +88,7 @@ class TestResultModel extends CI_Model
             COALESCE(NULLIF(pte.mobile_number, ''), pte.mobile_number) AS mobile_number,
             pte.date AS test_date,
             t.test_name,
+            tg.test_group_name,
             d.doctor_name AS referring_doctor_name,
             d.degree AS referring_doctor_degree,
             (
@@ -101,6 +102,7 @@ class TestResultModel extends CI_Model
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
         $this->db->join('test t', 't.test_id = pted.test_id', 'inner');
+        $this->db->join('test_group tg', 'tg.test_group_id = t.test_group_id', 'left');
         $this->db->join('doctor d', 'd.doctor_id = pte.reference_doctor_id', 'left');
         $this->apply_add_result_filters($invoice_id, $mobile_number, $test_name);
         $this->db->order_by('pted.patient_test_entry_details_id', 'DESC');
@@ -194,6 +196,7 @@ class TestResultModel extends CI_Model
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
         $this->db->join('test t', 't.test_id = pted.test_id', 'inner');
+        $this->db->join('test_group tg', 'tg.test_group_id = t.test_group_id', 'left');
         $this->db->join('doctor d', 'd.doctor_id = pte.reference_doctor_id', 'left');
         $this->db->where('pted.patient_test_entry_details_id', $entry_detail_id);
 

@@ -3,6 +3,12 @@
         <h3 style="text-align:center;">Add Test Result</h3>
     </div>
     <div class="panel-body">
+        <?php if ($this->session->flashdata('test_result_error')) { ?>
+            <div class="alert alert-warning alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <?php echo html_escape($this->session->flashdata('test_result_error')); ?>
+            </div>
+        <?php } ?>
         <form id="search-form" class="form-horizontal">
             <div class="row">
                 <div class="col-md-3 col-sm-6">

@@ -495,11 +495,11 @@ class TestResultController extends CI_Controller
             $panel = $this->Report_model->get_panel((int) $entry->resolved_panel_id);
         }
         if (!$panel) {
-            show_error(
-                'Panel test settings were not found for "' . html_escape(isset($entry->test_name) ? $entry->test_name : '') . '". '
-                . 'Configure a matching panel in Test Settings (panel name must match the test name).',
-                404
+            $this->session->set_flashdata(
+                'test_result_error',
+                'The Setting Not Found'
             );
+            redirect('add-test-result');
             return;
         }
 

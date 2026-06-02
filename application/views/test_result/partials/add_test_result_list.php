@@ -7,31 +7,33 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
     <table class="table table-bordered table-condensed table-striped table-hover">
         <thead>
             <tr>
-                <th style="width:60px;">SL</th>
+                <th>SL</th>
                 <th>Invoice ID</th>
-                <th>Patient Name</th>
-                <th>Mobile Number</th>
+                <th>Patient Name<br>Mobile Number</th>
+                
+                <th>Test Group</th>
                 <th>Test Name</th>
                 <th>Test Date</th>
-                <th>Referring Doctor</th>
-                <th style="width:180px;">Action</th>
+                <!-- <th>Referring Doctor</th> -->
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($rows)) { ?>
                 <tr>
-                    <td colspan="8" class="text-center text-muted">No test entries found.</td>
+                    <td colspan="9" class="text-center text-muted">No test entries found.</td>
                 </tr>
             <?php } ?>
             <?php foreach ($rows as $row) { ?>
                 <tr>
                     <td><?php echo $sl++; ?></td>
                     <td><?php echo html_escape($row->invoice_no); ?></td>
-                    <td><?php echo html_escape($row->patient_name); ?></td>
-                    <td><?php echo html_escape($row->mobile_number); ?></td>
+                    <td><?php echo html_escape($row->patient_name); ?><br><?php echo html_escape($row->mobile_number); ?></td>
+                    
+                    <td><?php echo html_escape(isset($row->test_group_name) ? $row->test_group_name : ''); ?></td>
                     <td><?php echo html_escape($row->test_name); ?></td>
                     <td><?php echo !empty($row->test_date) ? date('d-m-Y', strtotime($row->test_date)) : ''; ?></td>
-                    <td>
+                    <td style="display: none;">
                         <?php
                         $ref_name = isset($row->referring_doctor_name) ? trim((string) $row->referring_doctor_name) : '';
                         $ref_degree = isset($row->referring_doctor_degree) ? trim((string) $row->referring_doctor_degree) : '';
