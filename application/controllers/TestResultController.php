@@ -1140,7 +1140,7 @@ class TestResultController extends CI_Controller
         $page_data = array(
             'page_name' => 'test_result/add_test_configuration',
             'page_title' => 'Add Test Configuration',
-            'sidebar' => 'test_result/test_result_sidebar'
+            'sidebar' => 'settings/settings_sidebar'
         );
         $this->load->view('content', $page_data);
     }
@@ -1245,7 +1245,7 @@ class TestResultController extends CI_Controller
         // Load view
         $data['page_name'] = 'test_result/view_test_configuration';
         $data['page_title'] = 'View Pharmacy';
-        $data['sidebar'] = 'test_result/test_result_sidebar';
+        $data['sidebar'] = 'settings/settings_sidebar';
         $this->load->view('content', $data);
     }
     public function view_test_configuration1($offset = 0)

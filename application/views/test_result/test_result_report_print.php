@@ -54,12 +54,8 @@
             max-height: none !important;
         }
 
-        #report .print-result-table {
-            table-layout: auto !important;
-        }
-
-        #report .print-result-table td,
-        #report .print-result-table th {
+        #report .product table td,
+        #report .product table th {
             white-space: normal !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
@@ -83,44 +79,28 @@
         }
     }
 
-    /* Result rows: no grid — dotted line under each row */
-    #report .print-result-table {
+    #report .product table {
         width: 100%;
         border-collapse: collapse;
         border: none !important;
         margin-bottom: 10px;
     }
 
-    #report .print-result-table thead th,
-    #report .print-result-table tbody td {
+    /* Header row only — bordered box */
+    #report #result-header th {
+        border: 1px solid #333 !important;
+        padding: 6px 8px;
+        vertical-align: top;
+        text-align: left;
+        font-weight: bold;
+        background: transparent !important;
+    }
+
+    #report .product table tbody td {
         border: none !important;
         padding: 6px 8px;
         vertical-align: top;
         background: transparent !important;
-    }
-
-    #report .print-result-table thead th {
-        border-bottom: 1px solid #333 !important;
-    }
-
-    /* Fine round dots (CSS border-style:dotted prints as large dashes) */
-    #report .print-result-table tbody td {
-        border-bottom: none !important;
-        padding-bottom: 7px;
-    }
-
-    #report .print-result-table tbody tr {
-        background-image: radial-gradient(circle, #555 0.4px, transparent 0.45px);
-        background-size: 10px 1px;
-        background-repeat: repeat-x;
-        background-position: 0 100%;
-    }
-
-    @media print {
-        #report .print-result-table tbody tr {
-            background-image: radial-gradient(circle, #000 0.4px, transparent 0.45px);
-            background-size: 10px 1px;
-        }
     }
 
     .p1 {
@@ -202,14 +182,15 @@
         <?php
 
         ?>
-        <table class="print-result-table" border="0" style="width: 100%;">
+        <table  border="0" style="width: 100%;border-collapse:collapse">
             <thead>
-            <tr style="font-weight: bold;">
-                <th style="text-align: left;">Test Name</th>
-                <th style="text-align: left;">Result</th>
-                <th colspan="2" style="text-align: left;">Normal Range</th>
+            <tr id="result-header">
+                <th>Investigation</th>
+                <th>Result</th>
+                <th colspan="2">Normal Range</th>
             </tr>
             </thead>
+     
             <tbody>
             <?php
             error_reporting(0);
@@ -257,10 +238,6 @@
         <?php
         $report_footer = $this->db->where('report_footer_id', '1')->get('report_footer')->row();
         ?>
-
-
-
-
     </div>
 
 </div>

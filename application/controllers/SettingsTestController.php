@@ -50,7 +50,7 @@ class SettingsTestController extends CI_Controller
         $crud->fields('test_group_code', 'test_group_name','machine_name');
         $crud->callback_add_field('test_group_code', function () {
             $uniqu_id = $this->db->select('*')->get('test_group');
-            $test_group_code = 'TG' . str_pad($uniqu_id->num_rows() + 1, 3, '0', STR_PAD_LEFT);
+            $test_group_code = 'TG' . str_pad($uniqu_id->num_rows() + 1, 2, '0', STR_PAD_LEFT);
 
 
             return '<input type="text" maxlength="50" value="' . $test_group_code . '" name="test_group_code"  readonly>';

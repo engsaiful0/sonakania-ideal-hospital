@@ -42,7 +42,16 @@
         margin-bottom: 8px;
     }
 
-    #report .print-result-table thead th,
+    /* Header row only — bordered box (same as single test report print) */
+    #report #result-header th {
+        border: 1px solid #333 !important;
+        padding: 6px 8px;
+        vertical-align: top;
+        text-align: left;
+        font-weight: bold;
+        background: transparent !important;
+    }
+
     #report .print-result-table tbody td {
         border: none !important;
         padding: 6px 8px;
@@ -52,10 +61,6 @@
 
     #report .print-result-table.table-striped > tbody > tr:nth-of-type(odd) {
         background-color: transparent !important;
-    }
-
-    #report .print-result-table thead th {
-        border-bottom: 1px solid #333 !important;
     }
 
   #report .print-result-table tbody tr.print-result-data-row td {
@@ -173,10 +178,10 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                         <div class="report-section-block" style="margin-bottom:5px;">
                             <table class="print-result-table">
                                 <thead>
-                                    <tr>
-                                        <th style="width:32%;text-align: left;">Parameter</th>
-                                        <th style="width:18%;text-align: left;">Result</th>
-                                        <th style="width:35%;text-align: left;">Normal Range</th>
+                                    <tr id="result-header">
+                                        <th style="width:32%;">Investigation</th>
+                                        <th style="width:18%;">Result</th>
+                                        <th style="width:35%;">Normal Range</th>
                                     </tr>
                                 </thead>
                                 <tbody>
