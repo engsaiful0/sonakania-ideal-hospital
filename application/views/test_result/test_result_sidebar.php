@@ -13,9 +13,7 @@
                 <?php if (in_array('add_test_result', $permissions)) { ?>
                     <li><a class="box_a" href="<?php echo base_url() ?>add-test-result">Add</a></li>
                 <?php } ?>
-                <?php if (in_array('view_test_result', $permissions)) { ?>
-                    <li><a class="box_a" href="<?php echo base_url() . "index.php/TestResultController/view_test_result"; ?>">View</a></li>
-                <?php } ?>
+             
            
                
             </ul>

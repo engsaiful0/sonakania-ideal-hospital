@@ -185,17 +185,21 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 $age_display = !empty($age_parts) ? implode(' ', $age_parts) : '—';
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;">
-                    <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></p>
-                    <br>
-                    Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b>
-                  
+                    <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
+                        <tr>
+                        <td>Patient Name:<b> <?php echo html_escape($report->patient_name); ?></b>, Age:<b> <?php echo html_escape($age_display); ?></b>, Sex:<b> <?php echo html_escape($report->sex); ?></b>, Patient ID:<b> <?php echo html_escape($report->patient_id); ?></b>, Report date:<b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+                        </tr>
+                        <tr>
+                            <td>Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b></td>
+                        </tr>
+                    </table>
                 </div>
                 <?php
                    
                    $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
                    if ($group_name->test_group_name) {
                    ?>
-                       <p style="margin-bottom:0;text-align: center;"><strong></strong> <u><?php echo strtoupper(html_escape($group_name->test_group_name.' Report')); ?></u></p>
+                       <p style="margin-bottom:0;text-align: center;"><strong> <u><?php echo strtoupper(html_escape($group_name->test_group_name.' Report')); ?></u></strong></p>
 
                    <?php } ?>
 

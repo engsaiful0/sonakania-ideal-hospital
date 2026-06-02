@@ -157,10 +157,14 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 $hide_section_titles = ($section_block_count === 1);
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;margin-bottom:10px;">
-                    <p><b>Patient Name:</b> <?php echo html_escape($report->patient_name); ?>, <b>Age:</b> <?php echo html_escape($age_display); ?>, <b>Sex:</b> <?php echo html_escape($report->sex); ?>, <b>Patient ID:</b> <?php echo html_escape($report->patient_id); ?>, <b>Report date:</b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?>
-                        <br>
-                        Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b>
-                    </p>
+                <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
+                        <tr>
+                        <td>Patient Name:<b> <?php echo html_escape($report->patient_name); ?></b>, Age:<b> <?php echo html_escape($age_display); ?></b>, Sex:<b> <?php echo html_escape($report->sex); ?></b>, Patient ID:<b> <?php echo html_escape($report->patient_id); ?></b>, Report date:<b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+                        </tr>
+                        <tr>
+                            <td>Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b></td>
+                        </tr>
+                    </table>
                     <?php
 
                     $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();

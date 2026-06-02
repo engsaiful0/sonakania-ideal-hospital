@@ -68,7 +68,7 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
                                 </a>
                             <?php } ?>
                             <?php if (in_array('edit_test_result', $permissions)) { ?>
-                                <a class="btn btn-xs btn-warning" target="_blank" href="<?php echo site_url('TestResultController/test_result_edit/' . $existing_single); ?>">
+                                <a class="btn btn-xs btn-warning" href="<?php echo site_url('enter-test-result/' . (int) $row->patient_test_entry_details_id); ?>">
                                     <i class="glyphicon glyphicon-edit"></i> Edit
                                 </a>
                             <?php } ?>

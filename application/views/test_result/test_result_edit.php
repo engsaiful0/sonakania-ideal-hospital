@@ -215,7 +215,10 @@
 
             // Check if the form is valid
             $('#invoice_no').prop('disabled', false);
-            if ($("#test_result_entry_form").valid()) {
+            var formValid = typeof $.fn.valid === 'function'
+                ? $("#test_result_entry_form").valid()
+                : true;
+            if (formValid) {
                 $('#test_result_entry_form :input').prop('disabled', true);
                 submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
@@ -226,6 +229,7 @@
                     dataType: "json",
                     processData: false, // Important: tell jQuery not to process the data
                     contentType: false, // Important: tell jQuery not to set contentType
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function(response) {
                         if (response.success) {
                             $.toast({
@@ -241,7 +245,7 @@
                             $('#test_result_entry_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Save');
                             setTimeout(function() {
-                                window.location.href = "<?php echo base_url('test-result-report-print') ?>";
+                                window.location.href = response.print_url || "<?php echo site_url('add-test-result'); ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
@@ -287,8 +291,13 @@
                 $patient_test_entry = $this->db->where('patient_test_entry_id', $test_result->patient_test_entry_id)
                     ->get('patient_test_entry')->row();
 
-                $doctor = $this->db->where('doctor_id', $test_result->doctor_id)
-                    ->get('doctor')->row();
+                $doctor = null;
+                if (!empty($test_result->doctor_id)) {
+                    $doctor = $this->db->where('doctor_id', $test_result->doctor_id)->get('doctor')->row();
+                }
+                if (!$doctor && !empty($patient_test_entry->reference_doctor_id)) {
+                    $doctor = $this->db->where('doctor_id', $patient_test_entry->reference_doctor_id)->get('doctor')->row();
+                }
                 ?>
                 <div class="row">
                     <div class="col-md-6">
@@ -380,7 +389,7 @@
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Ref. Doctor</label>
                             <div class="col-sm-8">
-                                <input type="text" readonly="" class="form-control" value="<?php echo $doctor->doctor_name ?>" id="doctor_name" name="doctor_name">
+                                <input type="text" readonly="" class="form-control" value="<?php echo $doctor ? html_escape($doctor->doctor_name) : ''; ?>" id="doctor_name" name="doctor_name">
                             </div>
                         </div>
                     </div>

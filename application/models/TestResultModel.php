@@ -96,7 +96,6 @@ class TestResultModel extends CI_Model
                 INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
-                    AND IFNULL(trd.is_deleted, 0) = 0
             ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
@@ -107,6 +106,61 @@ class TestResultModel extends CI_Model
         $this->db->order_by('pted.patient_test_entry_details_id', 'DESC');
 
         return $this->db->get('', (int) $limit, (int) $offset)->result();
+    }
+
+    /**
+     * Resolve patient_test_entry_details_id for a saved single-test result (add-test-result flow).
+     *
+     * @param int $test_result_id
+     * @return object|null
+     */
+    /**
+     * Find an existing test_result for invoice entry + test (ignores soft-deleted details).
+     *
+     * @param int $patient_test_entry_id
+     * @param int $test_id
+     * @return int
+     */
+    public function find_existing_test_result_id($patient_test_entry_id, $test_id)
+    {
+        $patient_test_entry_id = (int) $patient_test_entry_id;
+        $test_id = (int) $test_id;
+        if ($patient_test_entry_id < 1 || $test_id < 1) {
+            return 0;
+        }
+
+        $row = $this->db->select('MAX(tr.test_result_id) AS test_result_id', false)
+            ->from('test_result tr')
+            ->join('test_result_details trd', 'trd.test_result_id = tr.test_result_id', 'inner')
+            ->where('tr.patient_test_entry_id', $patient_test_entry_id)
+            ->where('trd.test_id', $test_id)
+            ->get()
+            ->row();
+
+        return $row && !empty($row->test_result_id) ? (int) $row->test_result_id : 0;
+    }
+
+    public function get_entry_detail_id_for_test_result($test_result_id)
+    {
+        $test_result_id = (int) $test_result_id;
+        if ($test_result_id < 1) {
+            return null;
+        }
+
+        $this->db->select('pted.patient_test_entry_details_id', false);
+        $this->db->from('test_result tr');
+        $this->db->join('test_result_details trd', 'trd.test_result_id = tr.test_result_id', 'inner');
+        $this->db->join(
+            'patient_test_entry_details pted',
+            'pted.patient_test_entry_id = tr.patient_test_entry_id AND pted.test_id = trd.test_id',
+            'inner'
+        );
+        $this->db->where('tr.test_result_id', $test_result_id);
+        $this->db->where('IFNULL(trd.is_deleted, 0) =', 0, false);
+        $this->db->order_by('trd.test_result_details_id', 'DESC');
+        $this->db->limit(1);
+
+        return $this->db->get()->row();
     }
 
     public function get_add_test_result_entry($entry_detail_id)
@@ -135,7 +189,6 @@ class TestResultModel extends CI_Model
                 INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
-                    AND IFNULL(trd.is_deleted, 0) = 0
             ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');

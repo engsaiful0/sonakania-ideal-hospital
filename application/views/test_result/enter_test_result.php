@@ -1,9 +1,18 @@
 <?php
 $entry = isset($entry) ? $entry : (object) array();
 $patient = isset($patient) ? $patient : (object) array();
+$edit_mode = !empty($edit_mode);
+$test_result_id = isset($test_result_id) ? (int) $test_result_id : 0;
+$existing_value = isset($existing_value) ? (string) $existing_value : '';
 $entry_id = isset($entry->patient_test_entry_details_id) ? (int) $entry->patient_test_entry_details_id : 0;
-$now_date = !empty($entry->test_date) ? date('d-m-y', strtotime($entry->test_date)) : date('d-m-y');
-$now_time = !empty($entry->test_time) ? $entry->test_time : date('H:i:s');
+$test_result = isset($test_result) ? $test_result : null;
+if ($edit_mode && $test_result && !empty($test_result->date)) {
+    $now_date = date('d-m-y', strtotime($test_result->date));
+    $now_time = !empty($test_result->time) ? $test_result->time : date('H:i:s');
+} else {
+    $now_date = !empty($entry->test_date) ? date('d-m-y', strtotime($entry->test_date)) : date('d-m-y');
+    $now_time = !empty($entry->test_time) ? $entry->test_time : date('H:i:s');
+}
 $mobile = '';
 if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !== '') {
     $mobile = $patient->mobile_number;
@@ -13,7 +22,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
 ?>
 <div class="panel panel-primary">
     <div class="panel-heading clearfix">
-        <h3 class="panel-title pull-left" style="margin-top:6px;">Enter Test Result</h3>
+        <h3 class="panel-title pull-left" style="margin-top:6px;"><?php echo $edit_mode ? 'Edit Test Result' : 'Enter Test Result'; ?></h3>
         <a href="<?php echo isset($back_url) ? html_escape($back_url) : site_url('add-test-result'); ?>" class="btn btn-default btn-sm pull-right">
             <i class="glyphicon glyphicon-arrow-left"></i> Back to list
         </a>
@@ -26,6 +35,8 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
             <input type="hidden" name="test_group_id" value="<?php echo (int) $entry->test_group_id; ?>">
             <input type="hidden" name="manual_or_dynamic_report" value="Dynamic">
             <input type="hidden" name="test_result_no" value="<?php echo html_escape(isset($test_result_no) ? $test_result_no : ''); ?>">
+            <input type="hidden" name="patient_test_entry_details_id" value="<?php echo $entry_id; ?>">
+            <input type="hidden" name="test_result_id" id="test_result_id_field" value="<?php echo $test_result_id > 0 ? (int) $test_result_id : ''; ?>">
 
             <div class="row">
                 <div class="col-md-6">
@@ -117,7 +128,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                         <div class="col-sm-8">
                             <input type="hidden" name="test_id[]" value="<?php echo (int) $entry->test_id; ?>">
                             <input type="hidden" name="bold[]" value="No">
-                            <input type="text" name="test_configuration_value[]" class="form-control" placeholder="Enter result value" required maxlength="500" autofocus>
+                            <input type="text" name="test_configuration_value[]" class="form-control" placeholder="Enter result value" required maxlength="500" autofocus value="<?php echo html_escape($existing_value); ?>">
                         </div>
                     </div>
                 </div>
@@ -126,7 +137,7 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
                 <div class="col-md-12 text-right">
                     <a href="<?php echo isset($back_url) ? html_escape($back_url) : site_url('add-test-result'); ?>" class="btn btn-default">Cancel</a>
                     <button type="submit" class="btn btn-success">
-                        <i class="glyphicon glyphicon-floppy-disk"></i> Save &amp; Print
+                        <i class="glyphicon glyphicon-floppy-disk"></i> <?php echo $edit_mode ? 'Update &amp; Print' : 'Save &amp; Print'; ?>
                     </button>
                 </div>
             </div>
@@ -148,6 +159,14 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
             e.preventDefault();
             var $form = $(this);
             var formData = new FormData(this);
+            var existingResultId = $('#test_result_id_field').val();
+            if (existingResultId) {
+                formData.set('test_result_id', existingResultId);
+            }
+            var entryDetailId = $('input[name="patient_test_entry_details_id"]').val();
+            if (entryDetailId) {
+                formData.set('patient_test_entry_details_id', entryDetailId);
+            }
             $form.find(':input').prop('disabled', true);
 
             $.ajax({

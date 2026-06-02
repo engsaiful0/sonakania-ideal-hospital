@@ -163,13 +163,16 @@
     ?>
 
     <div class="name" style="width: 100%;margin-bottom: 10px;">
-        <p>
+        <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
+            <tr>
+                <td>Patient Name:<b><?php echo $patient_test_entry->patient_name ?></b>, Date:<b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?></b>, Age:<b> <?php echo $patient_test_entry->age ?></b>, Gender:<b> <?php echo $patient_test_entry->gender ?></b>, Mobile:<b><?php echo $patient_test_entry->mobile ?></b>, Invoice No:<b><?php echo $patient_test_entry->invoice_no ?></b></td>
+            </tr>
+            <tr>
+                <td>Referring Doctor: <b><?php echo $doctor->doctor_name ?>, <?php echo $doctor->degree ?></b></td>
+            </tr>
+        </table>
 
-            Patient Name:<b><?php echo $patient_test_entry->patient_name ?></b>, Date:<b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?></b>, Age:<b> <?php echo $patient_test_entry->age ?></b>, Gender:<b> <?php echo $patient_test_entry->gender ?></b>, Mobile:<b><?php echo $patient_test_entry->mobile ?></b>, Invoice No:<b><?php echo $patient_test_entry->invoice_no ?></b>
-            <br>
-
-            Referring Doctor: <b><?php echo $doctor->doctor_name ?>, <?php echo $doctor->degree ?></b>
-        </p>
+          
         <?php if (!empty($test_group)) { ?>
             <p style="margin-top: 6px; margin-bottom: 0; text-align: center; font-weight: bold;">
                 <u><?php echo strtoupper(html_escape($test_group->test_group_name)) . ' REPORT'; ?></u>

@@ -53,7 +53,7 @@ class OpdPatientController extends CI_Controller
             $senderid = $sms_api->senderid;
             // $number = "88016xxxxxxxx,88019xxxxxxxx";
             $number = "88" . $data['mobile_number'];
-            $message = "Dear patient, you have booked the serial successfully. Patient Name: " . $data['opd_patient_name'] . ", Serial: " . $data['serial_numaber'] . ', Visiting Date and Time: ' . $data['visiting_date'] . $data['visiting_time'] . ', Doctor Name: ' . $doctor->doctor_name . ',' . $company_name;
+            $message = "Patient Name: " . $data['opd_patient_name'] . ", Serial: " . $data['serial_numaber'] . ', Visiting Date and Time: ' . $data['visiting_date'] . $data['visiting_time'] . ', Doctor Name: ' . $doctor->doctor_name . ',' . $company_name;
 
             $data = [
                 "api_key" => $api_key,
