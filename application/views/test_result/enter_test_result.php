@@ -144,6 +144,7 @@ $group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
             <?php foreach ($entries as $idx => $row) {
                 $tid = (int) $row->test_id;
                 $val = isset($existing_values[$tid]) ? $existing_values[$tid] : ($idx === 0 ? $existing_value : '');
+                $unit_name = isset($row->unit_name) ? trim((string) $row->unit_name) : '';
             ?>
             <div class="row">
                 <div class="col-md-8">
@@ -152,10 +153,15 @@ $group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
                         <div class="col-sm-8">
                             <input type="hidden" name="test_id[]" value="<?php echo $tid; ?>">
                             <input type="hidden" name="bold[]" value="No">
-                            <input type="text" name="test_configuration_value[]" class="form-control result-value-input"
-                                placeholder="Enter result value" maxlength="500"
-                                value="<?php echo html_escape($val); ?>"
-                                <?php echo ($idx === 0 && !$multi_mode) ? 'required autofocus' : ''; ?>>
+                            <div class="input-group">
+                                <input type="text" name="test_configuration_value[]" class="form-control result-value-input"
+                                    placeholder="Enter result value" maxlength="500"
+                                    value="<?php echo html_escape($val); ?>"
+                                    <?php echo ($idx === 0 && !$multi_mode) ? 'required autofocus' : ''; ?>>
+                                <?php if ($unit_name !== '') { ?>
+                                    <span class="input-group-addon"><?php echo html_escape($unit_name); ?></span>
+                                <?php } ?>
+                            </div>
                         </div>
                     </div>
                 </div>

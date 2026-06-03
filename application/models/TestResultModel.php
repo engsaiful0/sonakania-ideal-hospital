@@ -20,6 +20,24 @@ class TestResultModel extends CI_Model
     }
 
     /**
+     * Unit from test_configuration for result entry display.
+     *
+     * @return string
+     */
+    private function add_result_entry_unit_select()
+    {
+        return ",
+            (
+                SELECT tc.unit
+                FROM test_configuration tc
+                WHERE tc.test_id = pted.test_id
+                    AND IFNULL(tc.is_deleted, 0) = 0
+                ORDER BY tc.test_configuration_id DESC
+                LIMIT 1
+            ) AS unit_name";
+    }
+
+    /**
      * Extra SELECT fragments for add-test-result list/detail queries.
      *
      * @return string
@@ -98,7 +116,7 @@ class TestResultModel extends CI_Model
                 INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
-            ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
+            ) AS existing_test_result_id" . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
@@ -199,7 +217,7 @@ class TestResultModel extends CI_Model
                 INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
-            ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
+            ) AS existing_test_result_id" . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
@@ -306,7 +324,7 @@ class TestResultModel extends CI_Model
                 INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
                 WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
                     AND trd.test_id = pted.test_id
-            ) AS existing_test_result_id" . $this->add_result_entry_select_extras() . "
+            ) AS existing_test_result_id" . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
