@@ -23,7 +23,7 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
 ?>
 <div class="panel panel-primary">
     <div class="panel-heading clearfix">
-        <h3 class="panel-title pull-left" style="margin-top:6px;">Enter Panel Test Result</h3>
+        <h3 class="panel-title pull-left" style="margin-top:6px;">Enter Test Result</h3>
         <a href="<?php echo isset($back_url) ? html_escape($back_url) : site_url('add-test-result'); ?>" class="btn btn-default btn-sm pull-right">
             <i class="glyphicon glyphicon-arrow-left"></i> Back to list
         </a>
@@ -48,19 +48,26 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="control-label col-sm-4">Panel Test</label>
+                        <label class="control-label col-sm-4">Invoice Date and Time</label>
                         <div class="col-sm-8">
-                            <p class="form-control-static"><strong><?php echo html_escape($panel_label); ?></strong></p>
+                            <p class="form-control-static">
+                                <?php echo html_escape($invoice_date); ?>
+                                <?php if ($invoice_time !== '') { ?>
+                                    <?php echo ' ' . html_escape($invoice_time); ?>
+                                <?php } ?>
+                            </p>
                         </div>
                     </div>
                 </div>
+
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="control-label col-sm-4">Patient Name</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="patient_name" name="patient_name" value="<?php echo html_escape($patient_name_val); ?>" required>
+                            <p class="form-control-static"><?php echo html_escape($patient_name_val); ?></p>
+
                         </div>
                     </div>
                 </div>
@@ -68,7 +75,8 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                     <div class="form-group">
                         <label class="control-label col-sm-4">Gender</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="gender" name="gender" value="<?php echo html_escape($sex_val); ?>">
+                            <p class="form-control-static"><?php echo html_escape($sex_val); ?></p>
+
                         </div>
                     </div>
                 </div>
@@ -78,17 +86,25 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                     <div class="form-group">
                         <label class="control-label col-sm-4">Age</label>
                         <div class="col-sm-8">
-                            <div class="row">
-                                <div class="col-xs-4">
-                                    <input type="text" class="form-control" placeholder="Year" id="age_year" name="age_year" value="<?php echo html_escape($age_y); ?>">
-                                </div>
-                                <div class="col-xs-4">
-                                    <input type="text" class="form-control" placeholder="Month" id="age_month" name="age_month" value="<?php echo html_escape($age_m); ?>">
-                                </div>
-                                <div class="col-xs-4">
-                                    <input type="text" class="form-control" placeholder="Day" id="age_day" name="age_day" value="<?php echo html_escape($age_d); ?>">
-                                </div>
-                            </div>
+                            <p class="form-control-static">
+                                <?php
+                                $age_parts = [];
+
+                                if ($patient->age_year > 0) {
+                                    $age_parts[] = $patient->age_year . ' ' . ($patient->age_year == 1 ? 'Year' : 'Years');
+                                }
+
+                                if ($patient->age_month > 0) {
+                                    $age_parts[] = $patient->age_month . ' ' . ($patient->age_month == 1 ? 'Month' : 'Months');
+                                }
+
+                                if ($patient->age_day > 0) {
+                                    $age_parts[] = $patient->age_day . ' ' . ($patient->age_day == 1 ? 'Day' : 'Days');
+                                }
+
+                                echo implode(' ', $age_parts);
+                                ?>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -102,19 +118,7 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="control-label col-sm-4">Invoice Date / Time</label>
-                        <div class="col-sm-8">
-                            <p class="form-control-static">
-                                <?php echo html_escape($invoice_date); ?>
-                                <?php if ($invoice_time !== '') { ?>
-                                    <?php echo ' ' . html_escape($invoice_time); ?>
-                                <?php } ?>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="control-label col-sm-4">Referring Doctor</label>
@@ -122,7 +126,16 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                             <p class="form-control-static"><?php echo html_escape(isset($referring_doctor_label) ? $referring_doctor_label : ''); ?></p>
                         </div>
                     </div>
+                   
                 </div>
+                <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4">Test Name</label>
+                            <div class="col-sm-8">
+                                <p class="form-control-static"><strong><?php echo html_escape($panel_label); ?></strong></p>
+                            </div>
+                        </div>
+                    </div>
             </div>
             <hr>
             <div id="test_configuration" class="form-horizontal"></div>
@@ -161,9 +174,13 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
             $.ajax({
                 url: "<?php echo site_url('TestPanelResultController/panel_test_load'); ?>",
                 type: 'POST',
-                data: { panel_test_id: panel_test_id },
+                data: {
+                    panel_test_id: panel_test_id
+                },
                 dataType: 'html',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             }).done(function(html) {
                 $cfg.html(html);
             }).fail(function() {
@@ -219,7 +236,9 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                 processData: false,
                 contentType: false,
                 dataType: 'json',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             }).done(function(res) {
                 if (res && res.success && res.print_url) {
                     window.location.href = res.print_url;

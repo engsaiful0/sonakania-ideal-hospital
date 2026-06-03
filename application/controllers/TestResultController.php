@@ -1122,13 +1122,23 @@ class TestResultController extends CI_Controller
             return;
         }
 
+        $post_date = trim((string) ($this->input->post('date') ?? ''));
+        $post_time = trim((string) ($this->input->post('time') ?? ''));
+        if ($post_date !== '') {
+            $parsed_date = strtotime($post_date);
+            $result_date = ($parsed_date !== false) ? date('Y-m-d', $parsed_date) : date('Y-m-d');
+        } else {
+            $result_date = date('Y-m-d');
+        }
+        $result_time = $post_time !== '' ? $post_time : date('H:i:s');
+
         $header = array(
             'patient_test_entry_id' => $patient_test_entry_id,
             'test_group_id' => $test_group_id,
             'invoice_no' => $this->input->post('invoice_no'),
             'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report') ?: 'Dynamic',
-            'date' => date('Y-m-d', strtotime($this->input->post('date'))),
-            'time' => $this->input->post('time'),
+            'date' => $result_date,
+            'time' => $result_time,
             'user_id' => $this->session->userdata('user_id'),
         );
 

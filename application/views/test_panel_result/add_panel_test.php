@@ -388,13 +388,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Age</label>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Year" oninput="validateIntegerInput(this)" class="form-control" id="age_year" name="age_year">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Month" oninput="validateIntegerInput(this)" class="form-control" id="age_month" name="age_month">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Day" oninput="validateIntegerInput(this)" class="form-control" id="age_day" name="age_day">
                             </div>
                         </div>
@@ -500,7 +500,7 @@
                 
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Panel Test *</label>
+                            <label class="control-label col-sm-4" for="name">Test *</label>
                             <div class="col-sm-8">
                                 <?php 
                                 
@@ -515,14 +515,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6" id="manual_report_container" style="display: none;">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Or Manual Report Upload</label>
-                            <div class="col-sm-8">
-                                <input type="file" class="form-control" id="manual_report" name="manual_report">
-                            </div>
-                        </div>
-                    </div>
+                    
 
 
 

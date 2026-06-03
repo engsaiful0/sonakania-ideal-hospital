@@ -23,7 +23,19 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
 } elseif (isset($patient->mobile)) {
     $mobile = $patient->mobile;
 }
-$group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
+$gender = isset($patient->gender) ? trim((string) $patient->gender) : '';
+if ($gender === '' && isset($entry->gender)) {
+    $gender = trim((string) $entry->gender);
+}
+
+
+
+$test_group=get_test_group_by_id($entry->test_group_id);
+$group_label = isset($test_group->test_group_name) ? $test_group->test_group_name : '';
+$referring_doctor_name=isset($entry->referring_doctor_name) ? $entry->referring_doctor_name : '';
+$referring_doctor_degree=isset($entry->referring_doctor_degree) ? $entry->referring_doctor_degree : '';
+$referring_doctor_label=$referring_doctor_name.', '.$referring_doctor_degree;
+
 ?>
 <div class="panel panel-primary">
     <div class="panel-heading clearfix">
@@ -47,6 +59,8 @@ $group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
             <input type="hidden" name="test_result_no" value="<?php echo html_escape(isset($test_result_no) ? $test_result_no : ''); ?>">
             <input type="hidden" name="patient_test_entry_details_id" value="<?php echo html_escape($selected_detail_ids); ?>">
             <input type="hidden" name="test_result_id" id="test_result_id_field" value="<?php echo $test_result_id > 0 ? (int) $test_result_id : ''; ?>">
+            <input type="hidden" name="date" value="<?php echo html_escape($now_date); ?>">
+            <input type="hidden" name="time" value="<?php echo html_escape($now_time); ?>">
 
             <div class="row">
                 <div class="col-md-6">
@@ -59,9 +73,11 @@ $group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="control-label col-sm-4">Test No</label>
+                        <label class="control-label col-sm-4">Invoice Date</label>
                         <div class="col-sm-8">
-                            <p class="form-control-static"><?php echo html_escape(isset($test_result_no) ? $test_result_no : ''); ?></p>
+                            <p class="form-control-static">
+                                <?php echo !empty($entry->test_date) ? date('d-m-Y', strtotime($entry->test_date)) : ''; ?>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -77,35 +93,50 @@ $group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="control-label col-sm-4">Mobile</label>
+                        <label class="control-label col-sm-4">Gender</label>
                         <div class="col-sm-8">
-                            <p class="form-control-static"><?php echo html_escape($mobile); ?></p>
+                            <p class="form-control-static"><?php echo html_escape($gender); ?></p>
                         </div>
                     </div>
                 </div>
+               
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="control-label col-sm-4">Age / Gender</label>
+                        <label class="control-label col-sm-4">Age</label>
                         <div class="col-sm-8">
                             <p class="form-control-static">
-                                <?php echo html_escape(isset($patient->age) ? $patient->age : ''); ?>
-                                <?php if (!empty($patient->gender)) { ?>
-                                    / <?php echo html_escape($patient->gender); ?>
-                                <?php } ?>
+                            <?php
+                                $age_parts = [];
+
+                                if ($patient->age_year > 0) {
+                                    $age_parts[] = $patient->age_year . ' ' . ($patient->age_year == 1 ? 'Year' : 'Years');
+                                }
+
+                                if ($patient->age_month > 0) {
+                                    $age_parts[] = $patient->age_month . ' ' . ($patient->age_month == 1 ? 'Month' : 'Months');
+                                }
+
+                                if ($patient->age_day > 0) {
+                                    $age_parts[] = $patient->age_day . ' ' . ($patient->age_day == 1 ? 'Day' : 'Days');
+                                }
+
+                                echo implode(' ', $age_parts);
+                                ?>
                             </p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="control-label col-sm-4">Test Group</label>
+                        <label class="control-label col-sm-4">Mobile</label>
                         <div class="col-sm-8">
-                            <p class="form-control-static"><strong><?php echo html_escape($group_label); ?></strong></p>
+                            <p class="form-control-static"><?php echo html_escape($mobile); ?></p>
                         </div>
                     </div>
                 </div>
+                
             </div>
             <div class="row">
                 <div class="col-md-6">
@@ -116,29 +147,17 @@ $group_label = isset($entry->test_group_name) ? $entry->test_group_name : '';
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+              
+          
+            <div class="col-md-6">
                     <div class="form-group">
-                        <label class="control-label col-sm-4">Test Date</label>
+                        <label class="control-label col-sm-4">Test Group</label>
                         <div class="col-sm-8">
-                            <p class="form-control-static">
-                                <?php echo !empty($entry->test_date) ? date('d-m-Y', strtotime($entry->test_date)) : ''; ?>
-                            </p>
+                            <p class="form-control-static"><strong><?php echo html_escape($group_label); ?></strong></p>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="control-label col-sm-4" for="result_date">Entry Date</label>
-                        <div class="col-sm-4">
-                            <input type="text" class="form-control" id="result_date" name="date" value="<?php echo html_escape($now_date); ?>">
-                        </div>
-                        <div class="col-sm-4">
-                            <input type="text" class="form-control" name="time" value="<?php echo html_escape($now_time); ?>">
-                        </div>
-                    </div>
-                </div>
+             
             </div>
             <hr>
             <?php foreach ($entries as $idx => $row) {

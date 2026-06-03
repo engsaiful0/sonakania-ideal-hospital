@@ -16,6 +16,19 @@ if (!function_exists('generate_password')) {
         return $password;
     }
 }
+
+function get_test_group_by_id($test_group_id)
+{
+    // Get CodeIgniter instance
+    $CI = get_instance();
+    // Load the database if not already loaded
+    $CI->load->database();
+    $test_group = $CI->db->where('test_group_id', $test_group_id)->get('test_group')->row();
+    if (!$test_group) {
+        return null;
+    }
+    return $test_group;
+}
 function getStock($drug_id, $start_date = '2025-09-01')
 {
     // Get CodeIgniter instance

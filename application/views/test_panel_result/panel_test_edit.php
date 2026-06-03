@@ -231,7 +231,7 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
 <div class="container-fluid" style=" background-color: white;width: 100%;">
     <div class="panel panel-primary" style="width: 100%;margin: 0 auto">
         <div class="panel-heading">
-            <h3 style="text-align: center">Edit Panel Test</h3>
+            <h3 style="text-align: center">Edit Test Result</h3>
         </div>
         <div class="panel-body">
             <form class="form-horizontal" id="test_result_entry_form" method="post" enctype='multipart/form-data'>
@@ -258,15 +258,15 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Age</label>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Year" oninput="validateIntegerInput(this)" class="form-control" id="age_year" name="age_year"
                                     value="<?php echo html_escape($age_y); ?>">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Month" oninput="validateIntegerInput(this)" class="form-control" id="age_month" name="age_month"
                                     value="<?php echo html_escape($age_m); ?>">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Day" oninput="validateIntegerInput(this)" class="form-control" id="age_day" name="age_day"
                                     value="<?php echo html_escape($age_d); ?>">
                             </div>

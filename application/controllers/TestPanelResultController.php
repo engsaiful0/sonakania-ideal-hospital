@@ -510,7 +510,10 @@ class TestPanelResultController extends CI_Controller
                                 <div class="row">
                                     <?php foreach ($pair as $p) {
                                         $pname = 'parameters[' . (int) $p->id . ']';
-                                        $unit = isset($p->unit) && $p->unit !== '' ? ' <span class="text-muted">(' . html_escape($p->unit) . ')</span>' : '';
+                                        $unit_name = isset($p->unit) ? trim((string) $p->unit) : '';
+                                        $unit_addon = $unit_name !== ''
+                                            ? '<span class="input-group-addon">' . html_escape($unit_name) . '</span>'
+                                            : '';
                                         $type = isset($p->input_type) ? $p->input_type : 'text';
                                         $cur = isset($value_map[(int) $p->id]) ? $value_map[(int) $p->id] : '';
                                         $cur_esc = html_escape($cur, true);
@@ -519,6 +522,7 @@ class TestPanelResultController extends CI_Controller
                                             <div class="form-group">
                                                 <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name); ?></label>
                                                 <div class="col-sm-7">
+                                                    <div class="input-group">
                                                     <?php if ($type === 'numeric') {
                                                         // NOTE: do NOT emit min/max attributes here. jQuery Validate
                                                         // (loaded globally for this form) would auto-enforce them and
@@ -537,7 +541,9 @@ class TestPanelResultController extends CI_Controller
                                                             . '</select>';
                                                     } else {
                                                         echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500" value="' . $cur_esc . '">';
-                                                    } ?>
+                                                    }
+                                                    echo $unit_addon; ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
