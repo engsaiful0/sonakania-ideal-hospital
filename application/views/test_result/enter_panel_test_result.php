@@ -7,7 +7,10 @@ $panel_test_group_id = isset($panel_test_group_id) ? (int) $panel_test_group_id 
 $require_lab_test_group = !empty($require_lab_test_group);
 $panel_label = isset($panel->panel_name) ? (string) $panel->panel_name : (isset($entry->test_name) ? (string) $entry->test_name : '');
 $invoice_val = isset($entry->invoice_no) ? (string) $entry->invoice_no : '';
-$patient_name_val = isset($entry->patient_name) ? (string) $entry->patient_name : '';
+$patient_name_val = isset($entry->patient_name) ? trim((string) $entry->patient_name) : '';
+if ($patient_name_val === '' && isset($patient->patient_name)) {
+    $patient_name_val = trim((string) $patient->patient_name);
+}
 $age_y = isset($patient->age_year) ? (string) $patient->age_year : '';
 $age_m = isset($patient->age_month) ? (string) $patient->age_month : '';
 $age_d = isset($patient->age_day) ? (string) $patient->age_day : '';
@@ -36,6 +39,11 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                 <input type="hidden" name="test_group_id" id="test_group_id" value="<?php echo (int) $panel_test_group_id; ?>">
             <?php } ?>
             <input type="hidden" name="invoice_no" value="<?php echo html_escape($invoice_val); ?>">
+            <input type="hidden" name="patient_name" id="patient_name" value="<?php echo html_escape($patient_name_val); ?>">
+            <input type="hidden" name="age_year" id="age_year" value="<?php echo html_escape($age_y); ?>">
+            <input type="hidden" name="age_month" id="age_month" value="<?php echo html_escape($age_m); ?>">
+            <input type="hidden" name="age_day" id="age_day" value="<?php echo html_escape($age_d); ?>">
+            <input type="hidden" name="gender" id="gender" value="<?php echo html_escape($sex_val); ?>">
 
             <div class="row">
                 <div class="col-md-6">
