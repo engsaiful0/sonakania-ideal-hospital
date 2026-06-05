@@ -326,6 +326,8 @@ return $this->db->get()->result();
             // <br>, etc.). Strip all HTML and collapse stray whitespace so the
             // printed cell shows clean text only.
             $raw   = (string) $row->normal_range;
+            // CKEditor may append a hidden cke_pastebin body with duplicate content.
+            $raw   = preg_replace('/<body[^>]*id=["\']cke_pastebin["\'][^>]*>.*?<\/body>/is', '', $raw);
             $clean = strip_tags($raw);
             $clean = html_entity_decode($clean, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $clean = preg_replace('/\s+/u', ' ', $clean);

@@ -148,13 +148,31 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 <div class="well well-sm" style="background:#f9f9f9;margin-bottom:10px;">
                 <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
                         <tr>
-                        <td>Patient Name:<b> <?php echo html_escape($report->patient_name); ?></b>, Age:<b> <?php echo html_escape($age_display); ?></b>, Sex:<b> <?php echo html_escape($report->sex); ?></b>, Patient ID:<b> <?php echo html_escape($report->patient_id); ?></b>, Report date:<b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+						<td>Patient Name</td>
+						<td><b> <?php echo html_escape($report->patient_name); ?></b></td>
+						<td>Patient ID</td>
+						<td><b> <?php echo html_escape($report->patient_id); ?></b></td>
+						<td>Sex</td>
+						<td><b> <?php echo html_escape($report->sex); ?></b></td>
+						</tr>
+						  <tr>
+						
+						<td>Age</td>
+						<td><b> <?php echo html_escape($age_display); ?></b></td>
+						 <td>Report date</td>
+						  <td><b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+						 <td>Print date and Time</td>
+						 <td><b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+						</tr>
+                       
                         </tr>
                         <tr>
-                            <td>Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b></td>
+                            <td >Referring Doctor</td>
+							<td colspan="5"><b><?php echo html_escape($referring_doctor_label); ?></b></td>
                         </tr>
                         <tr>
-                            <td>Test Name: <b><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : ''; ?></b></td>
+                            <td>Test Name</td>
+							<td colspan="5"><b><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : ''; ?></b></td>
                         </tr>
                     </table>
                     <?php
