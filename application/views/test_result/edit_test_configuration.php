@@ -5,9 +5,33 @@
     </div>
     <div class="panel-body">
         <script>
+            function syncNormalRangeEditor() {
+                if (typeof window.CKEDITOR !== 'undefined' && window.CKEDITOR.instances.normal_range) {
+                    window.CKEDITOR.instances.normal_range.updateElement();
+                }
+            }
+
+            function initNormalRangeEditor() {
+                if (typeof window.CKEDITOR === 'undefined' || !$.fn.ckeditor) {
+                    return;
+                }
+                if (window.CKEDITOR.instances.normal_range) {
+                    window.CKEDITOR.instances.normal_range.destroy(true);
+                }
+                window.setTimeout(function() {
+                    $('#normal_range').ckeditor({
+                        toolbar: 'Full',
+                        height: 160,
+                        removePlugins: 'elementspath',
+                        resize_enabled: true
+                    });
+                }, 50);
+            }
+
             $(document).ready(function() {
                 $('#test_id_edit').select2();
                 $('#test_group_id_edit').select2();
+                initNormalRangeEditor();
             });
 
             function test_name_load(test_group_id) {
@@ -31,7 +55,12 @@
                     rules: {
                         test_group_id: "required",
                         test_id: "required",
-                        normal_range: "required",
+                        normal_range: {
+                            required: function() {
+                                syncNormalRangeEditor();
+                                return $.trim($('#normal_range').val()) !== '';
+                            }
+                        },
                     },
                     messages: {
                         test_group_id: "Select test group",
@@ -78,6 +107,7 @@
                         return false;
                     }
                     var submitBtn = $('#submit_button');
+                    syncNormalRangeEditor();
                     if (!$("#test_configuration_form").valid()) {
                         return false;
                     }
@@ -97,6 +127,7 @@
                             }
                             return;
                         }
+                        syncNormalRangeEditor();
                         var formData = $('#test_configuration_form').serialize();
                         $('#test_configuration_form :input').prop('disabled', true);
                         submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Saving...');
@@ -204,9 +235,9 @@
             <div class="row" style="margin-top: 20px;">
                 <div class="col-md-8">
                     <div class="form-group">
-                        <label class="control-label col-sm-4" for="pwd">Normal Range</label>
+                        <label class="control-label col-sm-4" for="normal_range">Normal Range</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" value="<?php echo $test_configuration->normal_range ?>" id="normal_range" name="normal_range">
+                            <textarea class="form-control" id="normal_range" name="normal_range" rows="4"><?php echo str_replace('</textarea>', '&lt;/textarea&gt;', $test_configuration->normal_range); ?></textarea>
                         </div>
                     </div>
                 </div>

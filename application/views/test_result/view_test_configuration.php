@@ -245,6 +245,9 @@ $permissions = $this->session->userdata('permissions');
 
     </div>
 </div>
+<?php $ckeditor_base = base_url('assets/grocery_crud/texteditor/ckeditor/'); ?>
+<script src="<?php echo $ckeditor_base; ?>ckeditor.js"></script>
+<script src="<?php echo $ckeditor_base; ?>adapters/jquery.js"></script>
 <script>
     $(document).ready(function() {
         $('#test_group_id, #test_id').select2({ width: '100%' });
