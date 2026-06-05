@@ -76,7 +76,7 @@ class TestPanelResultController extends CI_Controller
         $blocks = $this->Report_model->get_report_results_grouped_by_section($report_id);
         $panel = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
         if ($panel !== 'Urine R/E') {
-            return $blocks;
+            return $this->Report_model->attach_section_descriptions_to_blocks($report, $blocks);
         }
 
         $skip = array(
@@ -92,7 +92,7 @@ class TestPanelResultController extends CI_Controller
             $out[] = $b;
         }
 
-        return $out;
+        return $this->Report_model->attach_section_descriptions_to_blocks($report, $out);
     }
 
     public function patient_unique_id_load()

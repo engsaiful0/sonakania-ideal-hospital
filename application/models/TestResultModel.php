@@ -525,6 +525,64 @@ class TestResultModel extends CI_Model
     }
 
     /**
+     * Saved section descriptions for a lab_reports print row.
+     *
+     * @param object $report
+     * @return array<int,string>
+     */
+    public function get_panel_report_description_list($report)
+    {
+        if (!is_object($report) || !$this->db->table_exists($this->test_result_descriptions_table())) {
+            return array();
+        }
+
+        $invoice = isset($report->patient_id) ? trim((string) $report->patient_id) : '';
+        $panel_name = isset($report->panel_name) ? trim((string) $report->panel_name) : '';
+        if ($invoice === '' || $panel_name === '') {
+            return array();
+        }
+
+        $pte = $this->db->where('invoice_no', $invoice)
+            ->order_by('patient_test_entry_id', 'DESC')
+            ->limit(1)
+            ->get('patient_test_entry')
+            ->row();
+        if (!$pte || empty($pte->patient_test_entry_id)) {
+            return array();
+        }
+
+        $test_group_id = 0;
+        if (isset($report->test_group_id) && (int) $report->test_group_id > 0) {
+            $test_group_id = (int) $report->test_group_id;
+        }
+
+        $this->db->where('test_name', $panel_name);
+        if ($test_group_id > 0) {
+            $this->db->where('test_group_id', $test_group_id);
+        }
+        $test = $this->db->limit(1)->get('test')->row();
+        if (!$test || empty($test->test_id)) {
+            return array();
+        }
+        $test_id = (int) $test->test_id;
+
+        $header = $this->db->select('tr.test_result_id')
+            ->from('test_result tr')
+            ->join($this->test_result_descriptions_table() . ' trd', 'trd.test_result_id = tr.test_result_id', 'inner')
+            ->where('tr.patient_test_entry_id', (int) $pte->patient_test_entry_id)
+            ->where('trd.test_id', $test_id)
+            ->order_by('tr.test_result_id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row();
+        if (!$header || empty($header->test_result_id)) {
+            return array();
+        }
+
+        return $this->get_test_result_description_list((int) $header->test_result_id, $test_id);
+    }
+
+    /**
      * Save section descriptions to test_result_descriptions
      * (test_result_id, test_id, result_description, user_id).
      *

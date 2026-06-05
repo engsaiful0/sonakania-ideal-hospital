@@ -82,6 +82,16 @@
         color: #000 !important;
     }
 
+    #report .print-section-description {
+        margin: 4px 8px 10px;
+        font-size: 13px;
+        color: #000 !important;
+    }
+
+    #report .print-section-description p {
+        margin: 0 0 4px;
+    }
+
     .p1 {
         line-height: 80% !important;
     }
@@ -150,7 +160,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                         <tr>
 						<td>Patient Name</td>
 						<td><b> <?php echo html_escape($report->patient_name); ?></b></td>
-						<td>Patient ID</td>
+						<td>Invoice No</td>
 						<td><b> <?php echo html_escape($report->patient_id); ?></b></td>
 						<td>Sex</td>
 						<td><b> <?php echo html_escape($report->sex); ?></b></td>
@@ -192,6 +202,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                         if ($section_heading === '' && isset($block['section_name'])) {
                             $section_heading = trim((string) $block['section_name']);
                         }
+                        $section_description = isset($block['result_description']) ? trim((string) $block['result_description']) : '';
                     ?>
                         <div class="report-section-block" style="margin-bottom:5px;">
                             <table class="print-result-table table-bordered">
@@ -211,17 +222,25 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                     </tr>
                                 <?php } ?>
                                 <?php foreach ($block['rows'] as $row) {
-                                    $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
+                                    $unit_suffix = isset($row->unit) && trim((string) $row->unit) !== ''
+                                        ? ' ' . html_escape(trim((string) $row->unit))
+                                        : '';
                                     $normal_range = $this->Report_model->format_normal_range($row);
                                 ?>
                                     <tr class="print-result-data-row">
-                                        <td><?php echo html_escape($row->parameter_name); ?><?php echo $unit; ?></td>
-                                        <td><?php echo html_escape((string) $row->result_value); ?></td>
+                                        <td><?php echo html_escape($row->parameter_name); ?></td>
+                                        <td><?php echo html_escape((string) $row->result_value) . $unit_suffix; ?></td>
                                         <td><?php echo html_escape($normal_range); ?></td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>
                             </table>
+                            <?php if ($section_description !== '') { ?>
+                                <div class="print-section-description">
+                                    <strong>Description:</strong>
+                                    <?php echo $this->Report_model->format_rich_text_for_print($section_description); ?>
+                                </div>
+                            <?php } ?>
                         </div>
                     <?php } ?>
                 <?php } else { ?>

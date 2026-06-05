@@ -372,8 +372,10 @@ return $this->db->get()->result();
                     $heading = trim((string) $r->section_name);
                 }
                 $blocks[$sid] = array(
+                    'section_id' => $sid,
                     'section_name' => $r->section_name,
                     'section_heading' => $heading,
+                    'result_description' => '',
                     'rows' => array(),
                 );
             }
@@ -392,6 +394,67 @@ return $this->db->get()->result();
                 $pb = isset($b->parameter_id) ? (int) $b->parameter_id : 0;
                 return $pa - $pb;
             });
+        }
+        unset($block);
+
+        return $blocks;
+    }
+
+    /**
+     * Prepare CKEditor HTML for print (removes hidden paste buffer duplicates).
+     *
+     * @param mixed $raw
+     * @return string
+     */
+    public function format_rich_text_for_print($raw)
+    {
+        $raw = (string) $raw;
+        if (trim($raw) === '') {
+            return '';
+        }
+        $raw = preg_replace('/<body[^>]*id=["\']cke_pastebin["\'][^>]*>.*?<\/body>/is', '', $raw);
+
+        return $raw;
+    }
+
+    /**
+     * Attach saved section descriptions (test_result_descriptions) to print blocks.
+     *
+     * @param object $report
+     * @param array  $blocks
+     * @return array
+     */
+    public function attach_section_descriptions_to_blocks($report, $blocks)
+    {
+        if (!is_array($blocks) || empty($blocks) || !is_object($report)) {
+            return $blocks;
+        }
+
+        $panel_id = isset($report->panel_id) ? (int) $report->panel_id : 0;
+        if ($panel_id < 1) {
+            return $blocks;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('TestResultModel');
+        $description_list = $CI->TestResultModel->get_panel_report_description_list($report);
+        if (empty($description_list)) {
+            return $blocks;
+        }
+
+        $sections = $this->get_sections_with_parameters($panel_id);
+        $by_section = array();
+        $index = 0;
+        foreach ($sections as $section) {
+            if (isset($description_list[$index]) && trim((string) $description_list[$index]) !== '') {
+                $by_section[(int) $section->id] = (string) $description_list[$index];
+            }
+            $index++;
+        }
+
+        foreach ($blocks as &$block) {
+            $section_id = isset($block['section_id']) ? (int) $block['section_id'] : 0;
+            $block['result_description'] = isset($by_section[$section_id]) ? $by_section[$section_id] : '';
         }
         unset($block);
 
