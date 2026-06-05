@@ -65,7 +65,10 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
-     * Section blocks for the print view; Urine R/E omits microscopic deposit sections.
+     * Section blocks for the print view.
+     *
+     * For urine (R/E and R/M/E) we omit microscopic deposit sections so they share
+     * the same layout/placement.
      *
      * @param object      $report   Row from Report_model::get_report_with_panel()
      * @param int         $report_id
@@ -75,7 +78,8 @@ class TestPanelResultController extends CI_Controller
     {
         $blocks = $this->Report_model->get_report_results_grouped_by_section($report_id);
         $panel = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
-        if ($panel !== 'Urine R/E') {
+        $urine_panels = array('Urine R/E', 'Urine R/M/E');
+        if (!in_array($panel, $urine_panels, true)) {
             return $this->Report_model->attach_section_descriptions_to_blocks($report, $blocks);
         }
 

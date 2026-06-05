@@ -57,19 +57,42 @@ class TestResultModel extends CI_Model
     }
 
     /**
+     * SQL match for billed test name against test_panels.panel_name (incl. urine aliases).
+     *
+     * @param string $panel_table_alias e.g. tp or tp2
+     * @return string
+     */
+    private function add_result_entry_panel_name_match_sql($panel_table_alias)
+    {
+        $alias = preg_replace('/[^a-zA-Z0-9_]/', '', (string) $panel_table_alias);
+        if ($alias === '') {
+            $alias = 'tp';
+        }
+
+        return '(' . $alias . '.panel_name = t.test_name'
+            . ' OR (t.test_name IN (\'Urine R/E\', \'Urine R/M/E\')'
+            . ' AND ' . $alias . '.panel_name IN (\'Urine R/E\', \'Urine R/M/E\')))';
+    }
+
+    /**
      * Extra SELECT fragments for add-test-result list/detail queries.
      *
      * @return string
      */
     private function add_result_entry_select_extras()
     {
+        $panel_match = $this->add_result_entry_panel_name_match_sql('tp');
+        $report_panel_match = $this->add_result_entry_panel_name_match_sql('tp2');
+
         return ",
             t.setting_type,
             (
                 SELECT tp.id
                 FROM test_panels tp
-                WHERE tp.panel_name = t.test_name
-                ORDER BY tp.id ASC
+                LEFT JOIN test_sections ts ON ts.panel_id = tp.id
+                WHERE {$panel_match}
+                GROUP BY tp.id
+                ORDER BY COUNT(ts.id) DESC, tp.id ASC
                 LIMIT 1
             ) AS resolved_panel_id,
             (
@@ -77,7 +100,7 @@ class TestResultModel extends CI_Model
                 FROM lab_reports lr
                 INNER JOIN test_panels tp2 ON tp2.id = lr.panel_id
                 WHERE lr.patient_id = pte.invoice_no
-                    AND tp2.panel_name = t.test_name
+                    AND {$report_panel_match}
             ) AS existing_lab_report_id";
     }
 

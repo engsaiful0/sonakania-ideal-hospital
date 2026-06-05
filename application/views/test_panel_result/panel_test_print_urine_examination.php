@@ -54,28 +54,6 @@
         padding-bottom: 3px;
     }
 
-    #report .print-result-dot-sep td {
-        border: none !important;
-        padding: 0 4px 4px !important;
-        line-height: 0;
-        background: transparent !important;
-    }
-
-    #report .print-row-dots {
-        display: block;
-        width: 100%;
-        height: 3px;
-        border: 0;
-        background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23555'/%3E%3C/svg%3E") repeat-x left center;
-        background-size: 14px 2px;
-    }
-
-    @media print {
-        #report .print-row-dots {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23000'/%3E%3C/svg%3E");
-        }
-    }
-
     .p1 {
         line-height: 80% !important;
     }
@@ -185,12 +163,32 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 $age_display = !empty($age_parts) ? implode(' ', $age_parts) : '—';
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;">
-                    <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
+                <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
                         <tr>
-                        <td>Patient Name:<b> <?php echo html_escape($report->patient_name); ?></b>, Age:<b> <?php echo html_escape($age_display); ?></b>, Sex:<b> <?php echo html_escape($report->sex); ?></b>, Patient ID:<b> <?php echo html_escape($report->patient_id); ?></b>, Report date:<b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+                            <td>Patient Name</td>
+                            <td><b> <?php echo html_escape($report->patient_name); ?></b></td>
+                            <td>Invoice No</td>
+                            <td><b> <?php echo html_escape($report->patient_id); ?></b></td>
+                            <td>Mobile</td>
+                            <td><b> <?php echo html_escape(isset($report->mobile_number) ? $report->mobile_number : ''); ?></b></td>
+                           
                         </tr>
                         <tr>
-                            <td>Referring Doctor: <b><?php echo html_escape($referring_doctor_label); ?></b></td>
+                        <td>Gender</td>
+                        <td><b> <?php echo html_escape($report->sex); ?></b></td>
+                            <td>Age</td>
+                            <td><b> <?php echo html_escape($age_display); ?></b></td>
+                            <td>Report date</td>
+                            <td><b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
+                           
+                        </tr>
+                        <tr>
+                            <td>Referring Doctor</td>
+                            <td colspan="5"><b><?php echo html_escape($referring_doctor_label); ?></b></td>
+                        </tr>
+                        <tr>
+                            <td>Test Name</td>
+                            <td colspan="5"><b><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : ''; ?></b></td>
                         </tr>
                     </table>
                 </div>
@@ -204,7 +202,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                    <?php } ?>
 
                 <p style="text-align: center;font-weight: bold;"><?php echo isset($group_name->machine_name) ? strtoupper(html_escape($group_name->machine_name)) : ''; ?></p>
-                <p style="text-align: center;font-weight: bold;"><?php echo isset($report->panel_name) ? strtoupper(html_escape($report->panel_name)) : ''; ?></p>
+               
                
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) {
@@ -244,9 +242,6 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                                                 <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
                                                             </tr>
-                                                            <tr class="print-result-dot-sep">
-                                                                <td colspan="2"><div class="print-row-dots"></div></td>
-                                                            </tr>
                                                         <?php } ?>
                                                     </tbody>
                                                 </table>
@@ -266,9 +261,6 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                                             <tr class="print-result-data-row">
                                                                 <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
-                                                            </tr>
-                                                            <tr class="print-result-dot-sep">
-                                                                <td colspan="2"><div class="print-row-dots"></div></td>
                                                             </tr>
                                                         <?php } ?>
                                                     </tbody>
@@ -292,9 +284,6 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                                             <tr class="print-result-data-row">
                                                 <td style="width: 80%;"><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
                                                 <td style="width: 20%;"><?php echo html_escape((string) $row->result_value); ?></td>
-                                            </tr>
-                                            <tr class="print-result-dot-sep">
-                                                <td colspan="2"><div class="print-row-dots"></div></td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>

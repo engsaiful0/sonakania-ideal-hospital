@@ -31,7 +31,45 @@ class Report_model extends CI_Model
     }
 
     /**
+     * Panel names that share the same urine examination configuration.
+     *
+     * @param string $test_name
+     * @return array<int,string>
+     */
+    public function panel_name_match_candidates($test_name)
+    {
+        $test_name = trim((string) $test_name);
+        static $alias_groups = array(
+            array('Urine R/E', 'Urine R/M/E'),
+        );
+
+        foreach ($alias_groups as $group) {
+            if (in_array($test_name, $group, true)) {
+                return $group;
+            }
+        }
+
+        return array($test_name);
+    }
+
+    /**
+     * Count configured sections on a panel row.
+     *
+     * @param object|null $panel
+     * @return int
+     */
+    public function count_panel_sections($panel)
+    {
+        if (!is_object($panel) || empty($panel->id)) {
+            return 0;
+        }
+
+        return (int) $this->db->where('panel_id', (int) $panel->id)->count_all_results('test_sections');
+    }
+
+    /**
      * Find a panel definition that matches a billed test (panel_name = test_name).
+     * Urine R/E and Urine R/M/E are treated as aliases; prefer the panel with sections.
      *
      * @param string $test_name
      * @param int    $test_group_id
@@ -44,14 +82,28 @@ class Report_model extends CI_Model
             return null;
         }
 
-        $this->db->from('test_panels');
-        $this->db->where('panel_name', $test_name);
+        $candidates = $this->panel_name_match_candidates($test_name);
         $test_group_id = (int) $test_group_id;
-        if ($test_group_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
-            $this->db->where('test_group_id', $test_group_id);
+        $best = null;
+        $best_sections = -1;
+
+        foreach ($candidates as $candidate) {
+            $this->db->from('test_panels');
+            $this->db->where('panel_name', $candidate);
+            if ($test_group_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
+                $this->db->where('test_group_id', $test_group_id);
+            }
+
+            foreach ($this->db->order_by('id', 'ASC')->get()->result() as $row) {
+                $sections = $this->count_panel_sections($row);
+                if ($sections > $best_sections) {
+                    $best = $row;
+                    $best_sections = $sections;
+                }
+            }
         }
 
-        return $this->db->order_by('id', 'ASC')->limit(1)->get()->row();
+        return $best;
     }
 
     /**
