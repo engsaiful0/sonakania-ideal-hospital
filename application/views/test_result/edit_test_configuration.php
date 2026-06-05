@@ -211,6 +211,16 @@
                     </div>
                 </div>
             </div>
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <label class="control-label col-sm-4" for="default_value">Default Value</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" value="<?php echo isset($test_configuration->default_value) ? $test_configuration->default_value : '' ?>" id="default_value" name="default_value">
+                        </div>
+                    </div>
+                </div>
+            </div>
          
             <div class="modal-footer">
                 <div class="row">

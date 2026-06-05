@@ -133,6 +133,7 @@ $permissions = $this->session->userdata('permissions');
                 <!--<td>Parameter Name</td>-->
                 <td>Unit</td>
                 <td>Normal Range</td>
+                <td>Default Value</td>
                 <td>Absolute Value</td>
                 <?php
                 $user_type_name = $this->session->userdata('user_type');
@@ -180,6 +181,9 @@ $permissions = $this->session->userdata('permissions');
                         ?></td>
                     <td><?php
                         echo $detailsList[$i]->normal_range;
+                        ?></td>
+                    <td><?php
+                        echo isset($detailsList[$i]->default_value) ? $detailsList[$i]->default_value : '';
                         ?></td>
                     <td><?php
                         echo $detailsList[$i]->absolute_value;

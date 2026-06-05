@@ -1091,6 +1091,7 @@ class TestPanelResultController extends CI_Controller
                 'test_id' => $this->input->post('test_id'),
                 'unit' => $this->input->post('unit'),
                 'normal_range' => $this->input->post('normal_range'),
+                'default_value' => $this->input->post('default_value'),
                 'absolute_value' => $this->input->post('absolute_value'),
             );
             $this->db->where('test_configuration_id', $test_configuration_id)->update('test_configuration', $data);
@@ -1115,6 +1116,7 @@ class TestPanelResultController extends CI_Controller
                 'test_id' => $this->input->post('test_id'),
                 'unit' => $this->input->post('unit'),
                 'normal_range' => $this->input->post('normal_range'),
+                'default_value' => $this->input->post('default_value'),
                 'absolute_value' => $this->input->post('absolute_value'),
                 'user_id' => $this->session->userdata('user_id'),
             );

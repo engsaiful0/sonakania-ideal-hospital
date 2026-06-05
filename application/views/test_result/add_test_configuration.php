@@ -222,7 +222,16 @@
                         </div>
                     </div>
                 </div>
-              
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4" for="default_value">Default Value</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="default_value" name="default_value">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="row">
 
