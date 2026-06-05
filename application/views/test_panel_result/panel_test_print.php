@@ -17,8 +17,19 @@
             margin-top: 150px !important;
         }
 
-        /* Make sure background fills (e.g. status badges) and panel borders
-         * are actually printed by Chrome/Edge. */
+        #report thead {
+            display: table-header-group !important;
+        }
+
+        #report #result-header th {
+            visibility: visible !important;
+            color: #000 !important;
+            border: 1px solid #000 !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
         #report,
         #report * {
             -webkit-print-color-adjust: exact !important;
@@ -39,55 +50,36 @@
         width: 100%;
         border-collapse: collapse;
         border: none !important;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
     }
 
-    /* Header row only — bordered box (same as single test report print) */
     #report #result-header th {
         border: 1px solid #333 !important;
         padding: 6px 8px;
-        vertical-align: top;
+        vertical-align: middle;
         text-align: left;
         font-weight: bold;
-        background: transparent !important;
+        color: #000 !important;
+        background: #fff !important;
     }
 
     #report .print-result-table tbody td {
         border: none !important;
-        padding: 6px 8px;
+        padding: 5px 8px;
         vertical-align: top;
         background: transparent !important;
+        color: #000 !important;
     }
 
     #report .print-result-table.table-striped > tbody > tr:nth-of-type(odd) {
         background-color: transparent !important;
     }
 
-  #report .print-result-table tbody tr.print-result-data-row td {
-        border-bottom: none !important;
-        padding-bottom: 4px;
-    }
-
-    #report .print-result-dot-sep td {
+    #report .print-section-heading-row td {
         border: none !important;
-        padding: 0 8px 5px !important;
-        line-height: 0;
-        background: transparent !important;
-    }
-
-    #report .print-row-dots {
-        display: block;
-        width: 100%;
-        height: 3px;
-        border: 0;
-        background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23555'/%3E%3C/svg%3E") repeat-x left center;
-        background-size: 14px 2px;
-    }
-
-    @media print {
-        #report .print-row-dots {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='2'%3E%3Ccircle cx='1' cy='1' r='0.55' fill='%23000'/%3E%3C/svg%3E");
-        }
+        padding: 10px 8px 4px !important;
+        font-weight: bold;
+        color: #000 !important;
     }
 
     .p1 {
@@ -152,9 +144,6 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 }
 
                 $age_display = !empty($age_parts) ? implode(' ', $age_parts) : '—';
-                $section_block_count = (!empty($section_blocks) && is_array($section_blocks)) ? count($section_blocks) : 0;
-                // Single section: panel name in header is enough — hide the section title row.
-                $hide_section_titles = ($section_block_count === 1);
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;margin-bottom:10px;">
                 <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
@@ -178,29 +167,37 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 
                 </div>
                 <?php if (!empty($section_blocks)) { ?>
-                    <?php foreach ($section_blocks as $block) { ?>
+                    <?php foreach ($section_blocks as $block) {
+                        $section_heading = isset($block['section_heading']) ? trim((string) $block['section_heading']) : '';
+                        if ($section_heading === '' && isset($block['section_name'])) {
+                            $section_heading = trim((string) $block['section_name']);
+                        }
+                    ?>
                         <div class="report-section-block" style="margin-bottom:5px;">
-                            <table class="print-result-table">
+                            <table class="print-result-table table-bordered">
                                 <thead>
                                     <tr id="result-header">
-                                        <th style="width:32%;">Investigation</th>
-                                        <th style="width:18%;">Result</th>
+                                        <th style="width:40%;">Investigation</th>
+                                        <th style="width:25%;">Value</th>
                                         <th style="width:35%;">Normal Range</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                <?php if ($section_heading !== '') { ?>
+                                    <tr class="print-section-heading-row">
+                                        <td><?php echo html_escape($section_heading); ?></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                <?php } ?>
                                 <?php foreach ($block['rows'] as $row) {
                                     $unit = isset($row->unit) && $row->unit !== '' ? ' ' . html_escape($row->unit) : '';
-                                    $badge = lab_report_status_badge($row->status);
                                     $normal_range = $this->Report_model->format_normal_range($row);
                                 ?>
                                     <tr class="print-result-data-row">
-                                        <td><strong><?php echo html_escape($row->parameter_name); ?></strong></td>
+                                        <td><?php echo html_escape($row->parameter_name); ?><?php echo $unit; ?></td>
                                         <td><?php echo html_escape((string) $row->result_value); ?></td>
                                         <td><?php echo html_escape($normal_range); ?></td>
-                                    </tr>
-                                    <tr class="print-result-dot-sep">
-                                        <td colspan="3"><div class="print-row-dots"></div></td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>

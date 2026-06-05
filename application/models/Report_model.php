@@ -286,6 +286,9 @@ class Report_model extends CI_Model
     {
         $select = 'lrr.*, tp.parameter_name, tp.unit, tp.input_type, tp.min_value, tp.max_value,'
             . ' ts.id AS section_id, ts.section_name';
+        if ($this->db->field_exists('heading', 'test_sections')) {
+            $select .= ', ts.heading';
+        }
         if ($this->db->field_exists('normal_range', 'test_parameters')) {
             $select .= ', tp.normal_range';
         }
@@ -310,12 +313,12 @@ return $this->db->get()->result();
      * Best-effort "Normal range" string for a result row:
      *  - Prefer literal `normal_range` text on test_parameters when present.
      *  - Else compose from min_value/max_value (with unit appended when available).
-     *  - Returns '—' when no info is available.
+     *  - Returns empty string when no info is available.
      */
     public function format_normal_range($row)
     {
         if (!is_object($row)) {
-            return '—';
+            return '';
         }
         if (isset($row->normal_range) && trim((string) $row->normal_range) !== '') {
             // The normal_range column may have been entered through a rich-text
@@ -347,7 +350,7 @@ return $this->db->get()->result();
         if ($hmax) {
             return '≤ ' . $fmt($row->max_value) . ($unit !== '' ? ' ' . $unit : '');
         }
-        return '—';
+        return '';
     }
 
     /**
@@ -360,8 +363,15 @@ return $this->db->get()->result();
         foreach ($rows as $r) {
             $sid = (int) $r->section_id;
             if (!isset($blocks[$sid])) {
+                $heading = '';
+                if (isset($r->heading) && trim((string) $r->heading) !== '') {
+                    $heading = trim((string) $r->heading);
+                } elseif (isset($r->section_name) && trim((string) $r->section_name) !== '') {
+                    $heading = trim((string) $r->section_name);
+                }
                 $blocks[$sid] = array(
                     'section_name' => $r->section_name,
+                    'section_heading' => $heading,
                     'rows' => array(),
                 );
             }
