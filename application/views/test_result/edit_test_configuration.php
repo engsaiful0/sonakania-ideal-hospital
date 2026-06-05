@@ -184,6 +184,7 @@
         $test = $this->db
             ->where('test_id', $test_configuration->test_id)
             ->get('test')->row();
+        $normal_range_for_edit = $this->Report_model->format_rich_text_for_print($test_configuration->normal_range);
         ?>
         <form id="test_configuration_form" method="post">
             <input name="test_configuration_id" type="hidden" value="<?php echo $test_configuration_id ?>">
@@ -237,7 +238,7 @@
                     <div class="form-group">
                         <label class="control-label col-sm-4" for="normal_range">Normal Range</label>
                         <div class="col-sm-8">
-                            <textarea class="form-control" id="normal_range" name="normal_range" rows="4"><?php echo str_replace('</textarea>', '&lt;/textarea&gt;', $test_configuration->normal_range); ?></textarea>
+                            <textarea class="form-control" id="normal_range" name="normal_range" rows="4"><?php echo str_replace('</textarea>', '&lt;/textarea&gt;', $normal_range_for_edit); ?></textarea>
                         </div>
                     </div>
                 </div>

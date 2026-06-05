@@ -1,5 +1,9 @@
 <?php
 $permissions = $this->session->userdata('permissions');
+if (!is_array($permissions)) {
+    $permissions = array();
+}
+$detailsList = (isset($detailsList) && is_array($detailsList)) ? $detailsList : array();
 ?><script>
     function test_name_load(test_group_id) {
         $('#img').show();
@@ -158,38 +162,32 @@ $permissions = $this->session->userdata('permissions');
             for ($i = 0; $i < count($detailsList); ++$i) {
                 $test_group = $this->db->where('test_group_id', $detailsList[$i]->test_group_id)
                     ->get('test_group')->row();
-                //echo '<pre>';
-                //print_r($detailsList[$i]->test_id);
-                //die;
                 $test = $this->db->where('test_id', $detailsList[$i]->test_id)
                     ->get('test')->row();
-                //echo '<pre>';
-                //print_r($detailsList[$i]->test_id);
-                //die;
                 $test_configuration_id = $detailsList[$i]->test_configuration_id;
                 $user = getUserById($detailsList[$i]->user_id);
             ?>
                 <tr id="test-configuration-row-<?php echo $test_configuration_id; ?>">
                     <td><?php echo $sl++ ?></td>
-                    <td><?php echo $test_group->test_group_name ?></td>
-                    <td><?php echo $test->test_name ?></td>
+                    <td><?php echo $test_group ? html_escape($test_group->test_group_name) : ''; ?></td>
+                    <td><?php echo $test ? html_escape($test->test_name) : ''; ?></td>
                     <!--                    <td><?php
                                                 //  echo $detailsList[$i]->test_parameter;
                                                 ?></td>-->
                     <td><?php
                         echo $detailsList[$i]->unit;
                         ?></td>
+                    <td><?php echo html_escape($this->Report_model->format_normal_range($detailsList[$i])); ?></td>
                     <td><?php
-                        echo $detailsList[$i]->normal_range;
+                        echo isset($detailsList[$i]->default_value) ? html_escape($detailsList[$i]->default_value) : '';
                         ?></td>
                     <td><?php
-                        echo isset($detailsList[$i]->default_value) ? $detailsList[$i]->default_value : '';
-                        ?></td>
-                    <td><?php
-                        echo $detailsList[$i]->absolute_value;
+                        echo html_escape($detailsList[$i]->absolute_value);
                         ?></td>
 
-                    <td><?php echo $user->user_name ?? "" ?> </td>
+                    <?php if ($user_type_name == 'Admin') { ?>
+                    <td><?php echo ($user && isset($user->user_name)) ? html_escape($user->user_name) : ''; ?></td>
+                    <?php } ?>
                     <?php if (in_array('edit_test_configuration', $permissions)) { ?>
                         <td>
                             <a id="biomedicaltest_id_<?php echo $detailsList[$i]->test_configuration_id ?>" onclick="modalLoadEdit(this.id)" class="btn btn-primary" data-target="#globalModalEdit" data-toggle="modal" data-placement="top" data-content="update" href=""><i class="glyphicon glyphicon-edit" aria-hidden="true"></i></a>

@@ -779,6 +779,22 @@ class TestResultController extends CI_Controller
      * @param int $exclude_configuration_id  Current row when editing (0 on add).
      * @return bool
      */
+    /**
+     * Strip CKEditor hidden paste buffer from normal_range before save.
+     *
+     * @param mixed $raw
+     * @return string
+     */
+    private function sanitize_configuration_normal_range($raw)
+    {
+        $raw = (string) $raw;
+        if (trim($raw) === '') {
+            return '';
+        }
+
+        return preg_replace('/<body[^>]*id=["\']cke_pastebin["\'][^>]*>.*?<\/body>/is', '', $raw);
+    }
+
     private function test_configuration_exists_for_test($test_id, $exclude_configuration_id = 0)
     {
         $test_id = (int) $test_id;
@@ -874,7 +890,7 @@ class TestResultController extends CI_Controller
                 //            'test_parameter' => $this->input->post('test_parameter'),
                 'test_id' => $test_id,
                 'unit' => $this->input->post('unit'),
-                'normal_range' => $this->input->post('normal_range'),
+                'normal_range' => $this->sanitize_configuration_normal_range($this->input->post('normal_range')),
                 'default_value' => $this->input->post('default_value'),
                 'absolute_value' => $this->input->post('absolute_value'),
             );
@@ -914,7 +930,7 @@ class TestResultController extends CI_Controller
                 //            'test_parameter' => $this->input->post('test_parameter'),
                 'test_id' => $test_id,
                 'unit' => $this->input->post('unit'),
-                'normal_range' => $this->input->post('normal_range'),
+                'normal_range' => $this->sanitize_configuration_normal_range($this->input->post('normal_range')),
                 'default_value' => $this->input->post('default_value'),
                 'absolute_value' => $this->input->post('absolute_value'),
                 'user_id' => $this->session->userdata('user_id'),
@@ -1463,6 +1479,7 @@ class TestResultController extends CI_Controller
         $data['detailsList'] = $this->TestResultModel->get_test_configuration_details($config['per_page'], $page, $test_group_id, $test_id);
         // Create the pagination links
         $data['pagination'] = $this->pagination->create_links();
+        $this->load->model('Report_model');
         // Load view
         $data['page_name'] = 'test_result/view_test_configuration';
         $data['page_title'] = 'View Pharmacy';
@@ -1492,6 +1509,7 @@ class TestResultController extends CI_Controller
 
     public function edit_test_configuration($test_configuration_id)
     {
+        $this->load->model('Report_model');
         $data['test_configuration_id'] = $test_configuration_id;
         $this->load->view('test_result/edit_test_configuration', $data);
     }
