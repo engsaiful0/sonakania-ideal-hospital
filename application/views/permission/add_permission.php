@@ -189,6 +189,19 @@
             }
         });
 
+        // Select/Deselect all checkboxes for Doctor Serial
+        $('#select_all_doctor_serial').on('change', function() {
+            $('.doctor_serial_checkbox').prop('checked', this.checked);
+        });
+        // Uncheck "Select All" if any individual checkbox is unchecked
+        $('.doctor_serial_checkbox').on('change', function() {
+            if (!$(this).prop('checked')) {
+                $('#select_all_doctor_serial').prop('checked', false);
+            } else if ($('.doctor_serial_checkbox:checked').length === $('.doctor_serial_checkbox').length) {
+                $('#select_all_doctor_serial').prop('checked', true);
+            }
+        });
+
           // Select/Deselect all checkboxes for Doctor Serial
           $('#select_doctor_serial').on('change', function() {
             $('.doctor_serial_checkbox').prop('checked', this.checked);

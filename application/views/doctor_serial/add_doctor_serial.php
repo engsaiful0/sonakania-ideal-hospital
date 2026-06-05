@@ -269,6 +269,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-4" for="name">Visiting Fee </label>
+                                    <div class="col-sm-8">
+                                        <input type="number" class="form-control" id="visiting_fee" value="" name="visiting_fee">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="row" style="margin-top:20px;">
                             <div class="col-md-4">
@@ -281,7 +289,7 @@
                                             $doctor = $this->db->select('*')->get('doctor')->result();
                                             foreach ($doctor as $doctor_value) {
                                             ?>
-                                                <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                             <?php
                                             }
                                             ?>
@@ -347,7 +355,7 @@
                                                     $doctor = $this->db->select('*')->get('doctor')->result();
                                                     foreach ($doctor as $doctor_value) {
                                                     ?>
-                                                        <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                        <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                                     <?php
                                                     }
                                                     ?>

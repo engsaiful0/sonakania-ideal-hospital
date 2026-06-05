@@ -1,25 +1,78 @@
+<?php $require_lab_test_group = $this->db->field_exists('test_group_id', 'lab_reports'); ?>
 <script>
     $(document).ready(function() {
-        $('#test_id').select2();
-        $('#test_group_id').select2();
+        <?php //if (!empty($require_lab_test_group)) { ?>
+        $('#test_group_id').select2({ width: '100%' });
+        $('#panel_test_id').select2({ width: '100%' });
+        <?php //} ?>
         $('#invoice_no').focus();
+
+        $('#test_group_id').on('change', function() {
+            test_group_change_panel_load($(this).val());
+        });
     });
 
-    
+    /**
+     * Load panel dropdown options for the selected test group (test_panels.test_group_id).
+     */
+    function test_group_change_panel_load(test_group_id) {
+        var $p = $('#panel_test_id');
+        var $cfg = $('#test_configuration');
+        $cfg.empty();
 
-    function test_name_load(test_group_id) {
+        if ($p.data('select2')) {
+            $p.select2('destroy');
+        }
+        $p.empty();
+        if (!test_group_id) {
+            $p.append($('<option></option>').attr('value', '').text('Select test group first'));
+            $p.select2({ width: '100%' });
+            return;
+        }
+
+        $p.append($('<option></option>').attr('value', '').text('Select Panel Test'));
+        $p.select2({ width: '100%' });
 
         $('#img').show();
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                document.getElementById("test_configuration").innerHTML = xhttp.responseText;
-                $('#img').hide();
+        $.ajax({
+            url: "<?php echo site_url('TestPanelResultController/panels_by_test_group'); ?>",
+            type: 'POST',
+            data: { test_group_id: test_group_id },
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).done(function(res) {
+            if ($p.data('select2')) {
+                $p.select2('destroy');
             }
-        }
-        xhttp.open("POST", "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send("test_group_id=" + test_group_id);
+            $p.empty();
+            if (res && res.success && res.panels && res.panels.length) {
+                $p.append($('<option></option>').attr('value', '').text('Select Panel Test'));
+                $.each(res.panels, function(i, row) {
+                    $p.append($('<option></option>').attr('value', row.id).text(row.panel_name));
+                });
+            } else if (res && res.success) {
+                $p.append($('<option></option>').attr('value', '').text('No panels for this group'));
+            } else {
+                $p.append($('<option></option>').attr('value', '').text('Select Panel Test'));
+            }
+            $p.select2({ width: '100%' });
+            $p.val('').trigger('change');
+        }).fail(function() {
+            if (typeof $.toast === 'function') {
+                $.toast({
+                    heading: 'Error',
+                    text: 'Could not load panels for this test group.',
+                    showHideTransition: 'slide',
+                    position: 'top-right',
+                    hideAfter: 4000,
+                    icon: 'error'
+                });
+            } else {
+                alert('Could not load panels for this test group.');
+            }
+        }).always(function() {
+            $('#img').hide();
+        });
     }
 
     function panel_test_load(panel_test_id) {
@@ -110,34 +163,41 @@
             }
         });
 
-        // Validate the form. We explicitly tell jQuery Validate to ignore
-        // the dynamically-injected panel parameter inputs (.panel-param) so
-        // that lab values outside the configured normal range never trigger
-        // errors like "Please enter a value less than or equal to 5.9."
+        // Validate the form
         $("#test_result_entry_form").validate({
-            ignore: ":hidden, .panel-param",
             rules: {
                 invoice_no: "required",
+                
                 test_group_id: "required",
+                
             },
             messages: {
                 invoice_no: "Enter invoice no",
+                
                 test_group_id: "Select test group name",
-
+                
             }
         });
 
-        // On form submission
-        $('#submit_button').click(function(e) {
+        // Single handler: Enter in a field triggers form submit, not button click — prevent native POST + AJAX double-save.
+        $('#test_result_entry_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__panelTestFormSubmitting) {
+                return false;
+            }
+
+            var $btn = $('#submit_button');
             var manual_or_dynamic_report = $('#manual_or_dynamic_report').val();
-            var formData = new FormData($('#test_result_entry_form')[0]); // Create FormData object with form data
             var panel_test_id = $('#panel_test_id').val();
 
             // Panel-test mode: when a panel is selected, save via the panel endpoint and print.
             if (panel_test_id) {
-                var $btn = $(this);
+                if (!$('#test_result_entry_form').valid()) {
+                    return false;
+                }
 
+                window.__panelTestFormSubmitting = true;
+                var formData = new FormData($('#test_result_entry_form')[0]);
                 $('#test_result_entry_form :input').prop('disabled', true);
                 $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
@@ -171,6 +231,7 @@
                             hideAfter: 3000,
                             icon: 'error'
                         });
+                        window.__panelTestFormSubmitting = false;
                         $('#test_result_entry_form :input').prop('disabled', false);
                         $btn.prop('disabled', false).html('Submit');
                     }
@@ -183,10 +244,11 @@
                         hideAfter: 3000,
                         icon: 'error'
                     });
+                    window.__panelTestFormSubmitting = false;
                     $('#test_result_entry_form :input').prop('disabled', false);
                     $btn.prop('disabled', false).html('Submit');
                 });
-                return;
+                return false;
             }
 
             // Check if the form is valid
@@ -205,7 +267,7 @@
                             hideAfter: 3000,
                             icon: 'error'
                         });
-                        return; // Stop the form submission
+                        return false; // Stop the form submission
                     }
                 }
 
@@ -231,14 +293,14 @@
                             hideAfter: 3000,
                             icon: 'error'
                         });
-                        return; // Stop the form submission
+                        return false; // Stop the form submission
                     }
                 }
 
-
-                var submitBtn = $(this);
+                window.__panelTestFormSubmitting = true;
+                var formData = new FormData($('#test_result_entry_form')[0]);
                 $('#test_result_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
                 $.ajax({
                     type: "POST",
@@ -258,24 +320,25 @@
                                 icon: 'success'
                             });
                             $('#test_result_entry_form')[0].reset();
-                            $('#test_result_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
                             setTimeout(function() {
                                 window.location.href = "<?php echo base_url('test-result-report-print') ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__panelTestFormSubmitting = false;
                             $('#test_result_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
+                            $btn.prop('disabled', false).html('Submit');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__panelTestFormSubmitting = false;
                         $('#test_result_entry_form :input').prop('disabled', false);
-                        submitBtn.prop('disabled', false).html('Save');
+                        $btn.prop('disabled', false).html('Submit');
                     }
                 });
             }
+            return false;
         });
 
     });
@@ -325,13 +388,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Age</label>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Year" oninput="validateIntegerInput(this)" class="form-control" id="age_year" name="age_year">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Month" oninput="validateIntegerInput(this)" class="form-control" id="age_month" name="age_month">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="text" placeholder="Day" oninput="validateIntegerInput(this)" class="form-control" id="age_day" name="age_day">
                             </div>
                         </div>
@@ -399,10 +462,7 @@
 
                     </div>
                 </div>
-
-                <div class="row" style="margin-top:20px">
-                    
-                    <div class="col-md-6">
+                <div class="col-md-6" style="display: none;">
                         <div class="form-group">
                             <label class="control-label col-sm-4" for="name">Test No</label>
                             <div class="col-sm-8">
@@ -415,14 +475,38 @@
                         </div>
 
                     </div>
+                
+                <div class="row" style="margin-top:20px">
+                
+                
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Panel Test</label>
+                            <label class="control-label col-sm-4" for="test_group_id">Test group</label>
                             <div class="col-sm-8">
-                                <?php
+                                <select class="form-control" id="test_group_id" name="test_group_id" required>
+                                    <option value="">Select test group</option>
+                                    <?php
+                                    $test_groups = $this->db->select('test_group_id, test_group_name')->order_by('test_group_name', 'ASC')->get('test_group')->result();
+                                    foreach ($test_groups as $tg_row) {
+                                    ?>
+                                        <option value="<?php echo (int) $tg_row->test_group_id; ?>"><?php echo html_escape($tg_row->test_group_name); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                
+                
+                
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-sm-4" for="name">Test *</label>
+                            <div class="col-sm-8">
+                                <?php 
+                                
                                 $panel_test = getAllPanelTest();
                                 ?>
-                                <select class="form-control" onchange="panel_test_load(this.value)" id="panel_test_id" name="panel_test_id">
+                                <select required class="form-control select2" onchange="panel_test_load(this.value)" id="panel_test_id" name="panel_test_id">
                                     <option value="">Select Panel Test</option>
                                     <?php foreach ($panel_test as $value) { ?>
                                         <option value="<?php echo $value->id; ?>"><?php echo $value->panel_name; ?></option>
@@ -431,14 +515,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6" id="manual_report_container" style="display: none;">
-                        <div class="form-group">
-                            <label class="control-label col-sm-4" for="name">Or Manual Report Upload</label>
-                            <div class="col-sm-8">
-                                <input type="file" class="form-control" id="manual_report" name="manual_report">
-                            </div>
-                        </div>
-                    </div>
+                    
 
 
 

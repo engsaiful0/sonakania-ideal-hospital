@@ -54,6 +54,17 @@
                 <td class="bg-primary">OPD</td>
                 <td class="bg-success"><input type="checkbox" class="report_permission_checkbox permission_checkbox select_all_opd_report_checkbox" id="select_all_opd_report"> All</td>
                 <td><input type="checkbox" class="report_permission_checkbox opd_report_checkbox permission_checkbox" name="permissions[opd_report][]" value="opd_report_daily"> OPD Report</td>
+                <td><input type="checkbox" class="report_permission_checkbox opd_report_checkbox permission_checkbox" name="permissions[opd_report][]" value="doctor_serial_report_daily"> Doctor Serial Report</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="bg-primary">Doctor Serial</td>
+                <td class="bg-success"><input type="checkbox" class="report_permission_checkbox permission_checkbox select_all_doctor_serial_report_checkbox" id="select_all_doctor_serial_report"> All</td>
+                <td><input type="checkbox" class="report_permission_checkbox doctor_serial_report_checkbox permission_checkbox" name="permissions[doctor_serial_report][]" value="doctor_serial_report_daily"> Doctor Serial Report</td>
                 <td></td>
                 <td></td>
                 <td></td>

@@ -321,43 +321,44 @@
             }
         });
 
-        // On form submission
-        $('#submit_button').click(function(e) {
+        $('#test_entry_return_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__returnTestEntrySubmitting) {
+                return false;
+            }
 
-            var submitBtn = $(this);
-            var formData = $('#test_entry_return_form').serialize();
+            var submitBtn = $('#submit_button');
+            if (!$("#test_entry_return_form").valid()) {
+                return false;
+            }
 
-            // ✅ Check if form is valid
-            if ($("#test_entry_return_form").valid()) {
-
-                // ✅ Check if at least one total_return has a value > 0
-                let hasValidReturn = false;
-                $('input[name="total_return[]"]').each(function() {
-                    let val = parseFloat($(this).val());
-                    if (!isNaN(val) && val > 0) {
-                        hasValidReturn = true;
-                        return false; // exit loop early
-                    }
-                });
-
-                if (!hasValidReturn) {
-                    $.toast({
-                        heading: 'Warning',
-                        text: 'At least one return amount must be greater than 0.',
-                        showHideTransition: 'fade',
-                        position: 'top-right',
-                        hideAfter: 3000,
-                        icon: 'warning'
-                    });
-                    return; // prevent form submission
+            let hasValidReturn = false;
+            $('input[name="total_return[]"]').each(function() {
+                let val = parseFloat($(this).val());
+                if (!isNaN(val) && val > 0) {
+                    hasValidReturn = true;
+                    return false;
                 }
+            });
 
-                // ✅ Proceed with submission
-                $('#test_entry_return_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+            if (!hasValidReturn) {
+                $.toast({
+                    heading: 'Warning',
+                    text: 'At least one return amount must be greater than 0.',
+                    showHideTransition: 'fade',
+                    position: 'top-right',
+                    hideAfter: 3000,
+                    icon: 'warning'
+                });
+                return false;
+            }
 
-                $.ajax({
+            window.__returnTestEntrySubmitting = true;
+            var formData = $('#test_entry_return_form').serialize();
+            $('#test_entry_return_form :input').prop('disabled', true);
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+
+            $.ajax({
                     type: "POST",
                     url: "<?php echo base_url('TestController/return_test_entry_save'); ?>",
                     data: formData,
@@ -373,24 +374,24 @@
                                 icon: 'success'
                             });
                             $('#test_entry_return_form')[0].reset();
-                            $('#test_entry_return_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Save');
                             setTimeout(function() {
                                 window.location.href = "<?php echo base_url('print-test-entry') ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__returnTestEntrySubmitting = false;
                             $('#test_entry_return_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Save');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__returnTestEntrySubmitting = false;
                         $('#test_entry_return_form :input').prop('disabled', false);
                         submitBtn.prop('disabled', false).html('Save');
                     }
                 });
-            }
+            return false;
         });
 
     });

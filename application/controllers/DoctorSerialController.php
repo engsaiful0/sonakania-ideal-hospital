@@ -224,7 +224,7 @@ class DoctorSerialController extends CI_Controller
     public function doctor_serial_report()
     {
         $page_data = array(
-            'page_name' => 'doctor_serial/doctor_serial_report',
+            'page_name' => 'doctor_serial/report/doctor_serial_report',
             'page_title' => 'OPD Patient Report',
             'sidebar' => 'patient/patient_sidebar'
         );
@@ -238,7 +238,7 @@ class DoctorSerialController extends CI_Controller
         $data['from_date'] = $data[0];
         $data['to_date'] = $data[1];
         $data['doctor_id'] = $data[2];
-        $this->load->view('doctor_serial/doctor_serial_report_details', $data);
+        $this->load->view('doctor_serial/report/doctor_serial_report_details', $data);
     }
 
     public function add_doctor_serial()
@@ -329,6 +329,7 @@ class DoctorSerialController extends CI_Controller
             $data['serial_numaber'] = $this->input->post('serial_numaber');
             $data['visiting_date'] = date('Y-m-d', strtotime($this->input->post('visiting_date')));
             $data['visiting_time'] = $this->input->post('visiting_time');
+            $data['visiting_fee'] = $this->input->post('visiting_fee');
             
             $data['discount_reference'] = $this->input->post('discount_reference');
 
@@ -388,6 +389,7 @@ class DoctorSerialController extends CI_Controller
             $data['visiting_date'] = date('Y-m-d', strtotime($this->input->post('visiting_date')));
             
             $data['visiting_time'] = $this->input->post('visiting_time');
+            $data['visiting_fee'] = $this->input->post('visiting_fee');
             
             $data['discount_reference'] = $this->input->post('discount_reference');
             $data['age_year'] = $this->input->post('age_year');

@@ -46,11 +46,11 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_delete();
         //        endif;
         $crud->required_fields('test_group_code', 'test_group_name');
-        $crud->columns('test_group_code', 'test_group_name');
-        $crud->fields('test_group_code', 'test_group_name');
+        $crud->columns('test_group_code', 'test_group_name','machine_name');
+        $crud->fields('test_group_code', 'test_group_name','machine_name');
         $crud->callback_add_field('test_group_code', function () {
             $uniqu_id = $this->db->select('*')->get('test_group');
-            $test_group_code = 'TG' . str_pad($uniqu_id->num_rows() + 1, 3, '0', STR_PAD_LEFT);
+            $test_group_code = 'TG' . str_pad($uniqu_id->num_rows() + 1, 2, '0', STR_PAD_LEFT);
 
 
             return '<input type="text" maxlength="50" value="' . $test_group_code . '" name="test_group_code"  readonly>';
@@ -144,15 +144,17 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('test_name','setting_type', 'price','test_category');
+        $crud->required_fields('test_name','setting_type', 'price','test_category','test_group_id');
         $crud->set_relation('test_group_id', 'test_group', '{test_group_code}-{test_group_name}');
         $crud->set_relation('test_sub_group_id', 'test_sub_group', 'sub_group_name');
+        $crud->set_relation('test_group_id', 'test_group', 'test_group_name');
         $crud->set_relation('test_category_id', 'test_categories', 'test_category_name');
-        $crud->columns('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
-        $crud->fields('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence');
+        $crud->columns('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence','test_group_id');
+        $crud->fields('test_name','setting_type','test_category_id', 'price', 'doctor_commission', 'urgent_fee', 'test_by_gender', 'sequence','test_group_id');
         $crud->field_type('test_by_gender', 'dropdown', array('Male' => 'Male', 'Female' => 'Female', 'Both' => 'Both'));
         $crud->field_type('setting_type', 'dropdown', array('Normal' => 'Normal', 'Unique' => 'Unique'));
         $crud->display_as('test_name', 'Test Name');
+        $crud->display_as('test_group_id', 'Test Group Name');
         $crud->display_as('test_category_id', 'Category Name');
 
 
@@ -211,13 +213,14 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('panel_name','panel_name_bangla');
-        
-        $crud->columns('panel_name', 'panel_name_bangla','description');
-        $crud->fields('panel_name', 'panel_name_bangla','description');
+        $crud->required_fields('panel_name','panel_name_bangla','test_group_id');
+        $crud->set_relation('test_group_id', 'test_group', 'test_group_name');
+        $crud->columns('panel_name', 'panel_name_bangla','description','test_group_id');
+        $crud->fields('panel_name', 'panel_name_bangla','description','test_group_id');
         $crud->display_as('panel_name', 'Panel Name');
         $crud->display_as('panel_name_bangla', 'Panel Name Bangla');
         $crud->display_as('description', 'Description');
+        $crud->display_as('test_group_id', 'Test Group Name');
         $output = $crud->render();
         $this->load->view('frame/grocery_crud_view.php', $output);
     }
@@ -248,6 +251,7 @@ class SettingsTestController extends CI_Controller
         error_reporting(0);
         $crud = new Grocery_crud();
         $crud->set_table('test_parameters');
+        $crud->order_by('id', 'ASC');
         $crud->set_subject('Test Parameter');
         $user_type = $this->session->userdata('user_type');
         //        if ($user_type != 'admin'):
@@ -255,10 +259,10 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('parameter_name','unit','input_type','min_value','max_value');
+        $crud->required_fields('parameter_name','unit','input_type','min_value','max_value','serial');
         $crud->set_relation('section_id', 'test_sections', 'section_name');
-        $crud->columns('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range');
-        $crud->fields('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range');
+        $crud->columns('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range', 'serial');
+        $crud->fields('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range', 'serial');
         $crud->display_as('section_id', 'Section Name');
         $crud->display_as('parameter_name', 'Parameter Name');
         $crud->display_as('unit', 'Unit');

@@ -30,9 +30,79 @@ class Report_model extends CI_Model
         return $this->db->get_where('test_panels', array('id' => (int) $id))->row();
     }
 
+    /**
+     * Find a panel definition that matches a billed test (panel_name = test_name).
+     *
+     * @param string $test_name
+     * @param int    $test_group_id
+     * @return object|null
+     */
+    public function resolve_panel_for_test($test_name, $test_group_id = 0)
+    {
+        $test_name = trim((string) $test_name);
+        if ($test_name === '') {
+            return null;
+        }
+
+        $this->db->from('test_panels');
+        $this->db->where('panel_name', $test_name);
+        $test_group_id = (int) $test_group_id;
+        if ($test_group_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
+            $this->db->where('test_group_id', $test_group_id);
+        }
+
+        return $this->db->order_by('id', 'ASC')->limit(1)->get()->row();
+    }
+
+    /**
+     * Latest lab_reports row for an invoice + panel (patient_id stores invoice no).
+     *
+     * @param string $invoice_no
+     * @param int    $panel_id
+     * @return object|null
+     */
+    public function find_lab_report_for_invoice_and_panel($invoice_no, $panel_id)
+    {
+        $invoice_no = trim((string) $invoice_no);
+        $panel_id = (int) $panel_id;
+        if ($invoice_no === '' || $panel_id < 1) {
+            return null;
+        }
+
+        return $this->db->where('patient_id', $invoice_no)
+            ->where('panel_id', $panel_id)
+            ->order_by('id', 'DESC')
+            ->limit(1)
+            ->get($this->table_reports)
+            ->row();
+    }
+
     public function get_all_panels()
     {
         return $this->db->order_by('panel_name', 'ASC')->get('test_panels')->result();
+    }
+
+    /**
+     * Panels linked to a test group (test_panels.test_group_id).
+     * If the column does not exist, returns all panels (legacy DB).
+     *
+     * @param int $test_group_id
+     * @return array
+     */
+    public function get_panels_by_test_group_id($test_group_id)
+    {
+        $test_group_id = (int) $test_group_id;
+        if ($test_group_id < 1) {
+            return array();
+        }
+        if (!$this->db->field_exists('test_group_id', 'test_panels')) {
+            return $this->get_all_panels();
+        }
+
+        return $this->db->where('test_group_id', $test_group_id)
+            ->order_by('panel_name', 'ASC')
+            ->get('test_panels')
+            ->result();
     }
 
     /**
@@ -48,6 +118,7 @@ class Report_model extends CI_Model
 
         foreach ($sections as $s) {
             $s->parameters = $this->db->where('section_id', (int) $s->id)
+                ->order_by('serial', 'ASC')
                 ->order_by('id', 'ASC')
                 ->get('test_parameters')
                 ->result();
@@ -72,6 +143,27 @@ class Report_model extends CI_Model
         return $this->db->insert('lab_report_results', $data);
     }
 
+    public function update_report($id, $data)
+    {
+        $id = (int) $id;
+        if ($id < 1) {
+            return false;
+        }
+        $this->db->where('id', $id)->update($this->table_reports, $data);
+
+        return $this->db->affected_rows() >= 0;
+    }
+
+    public function delete_results_for_report($report_id)
+    {
+        $report_id = (int) $report_id;
+        if ($report_id < 1) {
+            return false;
+        }
+
+        return (bool) $this->db->where('report_id', $report_id)->delete('lab_report_results');
+    }
+
     public function get_report($id)
     {
         return $this->db->get_where($this->table_reports, array('id' => (int) $id))->row();
@@ -79,11 +171,111 @@ class Report_model extends CI_Model
 
     public function get_report_with_panel($id)
     {
-        $this->db->select('lr.*, pp.panel_name,pp.description')
+        $id = (int) $id;
+        $this->db->select('lr.*, pp.panel_name,pp.test_group_id, pp.description', false)
             ->from($this->table_reports . ' lr')
             ->join('test_panels pp', 'pp.id = lr.panel_id', 'left')
-            ->where('lr.id', (int) $id);
-        return $this->db->get()->row();
+            ->where('lr.id', $id);
+        $row = $this->db->get()->row();
+        if (!$row) {
+            return null;
+        }
+
+        // Resolve names explicitly (avoids SELECT alias issues with lr.* / drivers).
+        $row->panel_test_group_name = '';
+        $row->report_test_group_name = '';
+        $tg_from_report = null;
+
+        if ($this->db->field_exists('test_group_id', $this->table_reports)
+            && isset($row->test_group_id) && (int) $row->test_group_id > 0) {
+            $this->db->reset_query();
+            $tg_from_report = $this->db->where('test_group_id', (int) $row->test_group_id)->get('test_group')->row();
+            if ($tg_from_report && isset($tg_from_report->test_group_name)) {
+                $row->report_test_group_name = trim((string) $tg_from_report->test_group_name);
+            }
+        }
+
+        $panel_id = isset($row->panel_id) ? (int) $row->panel_id : 0;
+        if ($panel_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
+            $this->db->reset_query();
+            $pp = $this->db->select('test_group_id')->where('id', $panel_id)->get('test_panels')->row();
+            if ($pp && isset($pp->test_group_id) && (int) $pp->test_group_id > 0) {
+                $this->db->reset_query();
+                $tg_panel = $this->db->where('test_group_id', (int) $pp->test_group_id)->get('test_group')->row();
+                if ($tg_panel && isset($tg_panel->test_group_name)) {
+                    $row->panel_test_group_name = trim((string) $tg_panel->test_group_name);
+                }
+            }
+        }
+
+        // Panel row has no test_group_id: still show group saved on this lab report (add-panel form).
+        if ($row->panel_test_group_name === '' && $tg_from_report && isset($tg_from_report->test_group_name)) {
+            $row->panel_test_group_name = trim((string) $tg_from_report->test_group_name);
+        }
+
+        return $row;
+    }
+
+    /**
+     * Referring doctor for a lab report (patient_test_entry.reference_doctor_id via invoice).
+     *
+     * @param object|null $report lab_reports row (patient_id = invoice no)
+     * @return object|null doctor row
+     */
+    public function get_referring_doctor_for_report($report)
+    {
+        if (!is_object($report)) {
+            return null;
+        }
+
+        $doctor_id = 0;
+        if ($this->db->field_exists('reference_doctor_id', $this->table_reports)
+            && isset($report->reference_doctor_id) && (int) $report->reference_doctor_id > 0) {
+            $doctor_id = (int) $report->reference_doctor_id;
+        }
+
+        if ($doctor_id < 1 && isset($report->patient_id) && trim((string) $report->patient_id) !== '') {
+            $pte = $this->db->where('invoice_no', trim((string) $report->patient_id))
+                ->order_by('patient_test_entry_id', 'DESC')
+                ->limit(1)
+                ->get('patient_test_entry')
+                ->row();
+            if ($pte && isset($pte->reference_doctor_id) && (int) $pte->reference_doctor_id > 0) {
+                $doctor_id = (int) $pte->reference_doctor_id;
+            }
+        }
+
+        if ($doctor_id < 1) {
+            return null;
+        }
+
+        return $this->db->where('doctor_id', $doctor_id)->get('doctor')->row();
+    }
+
+    /**
+     * Display label: "Name, Degree" for print headers.
+     *
+     * @param object|null $doctor
+     * @return string
+     */
+    public function format_referring_doctor_label($doctor)
+    {
+        if (!is_object($doctor)) {
+            return '—';
+        }
+        $name = isset($doctor->doctor_name) ? trim((string) $doctor->doctor_name) : '';
+        $degree = isset($doctor->degree) ? trim((string) $doctor->degree) : '';
+        if ($name !== '' && $degree !== '') {
+            return $name . ', ' . $degree;
+        }
+        if ($name !== '') {
+            return $name;
+        }
+        if ($degree !== '') {
+            return $degree;
+        }
+
+        return '—';
     }
 
     /**
@@ -97,14 +289,21 @@ class Report_model extends CI_Model
         if ($this->db->field_exists('normal_range', 'test_parameters')) {
             $select .= ', tp.normal_range';
         }
+        // test_parameters.serial defines display order. Always alias it so it
+        // cannot collide with any column from lrr.*, and sort numerically so
+        // "10" comes after "9" if the column is stored as text.
+        $select .= ', tp.serial AS parameter_serial';
+
         $this->db->select($select)
-            ->from('lab_report_results lrr')
-            ->join('test_parameters tp', 'tp.id = lrr.parameter_id')
-            ->join('test_sections ts', 'ts.id = tp.section_id')
-            ->where('lrr.report_id', (int) $report_id)
-            ->order_by('ts.id', 'ASC')
-            ->order_by('tp.id', 'ASC');
-        return $this->db->get()->result();
+    ->from('lab_report_results lrr')
+    ->join('test_parameters tp', 'tp.id = lrr.parameter_id')
+    ->join('test_sections ts', 'ts.id = tp.section_id')
+    ->where('lrr.report_id', (int) $report_id)
+    ->order_by('ts.id', 'ASC')
+    ->order_by('CAST(tp.serial AS UNSIGNED)', '', false)
+    ->order_by('tp.id', 'ASC');
+
+return $this->db->get()->result();
     }
 
     /**
@@ -168,7 +367,23 @@ class Report_model extends CI_Model
             }
             $blocks[$sid]['rows'][] = $r;
         }
-        return array_values($blocks);
+        $blocks = array_values($blocks);
+
+        foreach ($blocks as &$block) {
+            usort($block['rows'], function ($a, $b) {
+                $sa = isset($a->parameter_serial) ? (int) $a->parameter_serial : 0;
+                $sb = isset($b->parameter_serial) ? (int) $b->parameter_serial : 0;
+                if ($sa !== $sb) {
+                    return $sa - $sb;
+                }
+                $pa = isset($a->parameter_id) ? (int) $a->parameter_id : 0;
+                $pb = isset($b->parameter_id) ? (int) $b->parameter_id : 0;
+                return $pa - $pb;
+            });
+        }
+        unset($block);
+
+        return $blocks;
     }
 
     public function get_by_panel($panel_id)

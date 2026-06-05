@@ -29,35 +29,83 @@
                 // Validate the form
                 $("#test_configuration_form").validate({
                     rules: {
-                        test_group_id_edit: "required",
-                        test_id_edit: "required",
+                        test_group_id: "required",
+                        test_id: "required",
                         normal_range: "required",
-                        absolute_value: "required",
                     },
                     messages: {
-                        test_group_id_edit: "Enter test group",
-                        test_id_edit: "Please test name",
+                        test_group_id: "Select test group",
+                        test_id: "Select test name",
                         normal_range: "Please enter normal range",
-                        absolute_value: "Please enter absolute value",
                     }
                 });
 
-                // On form submission
-                $('#submit_button').click(function(e) {
+                function checkTestConfigurationDuplicateEdit(testId, configId, done) {
+                    if (!testId) {
+                        done(false, '');
+                        return;
+                    }
+                    $.ajax({
+                        type: 'POST',
+                        url: "<?php echo site_url('TestResultController/test_configuration_duplicate_check'); ?>",
+                        data: { test_id: testId, test_configuration_id: configId },
+                        dataType: 'json',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).done(function(res) {
+                        done(!!(res && res.exists), (res && res.message) ? res.message : 'Configuration for this test already exists.');
+                    }).fail(function() {
+                        done(false, '');
+                    });
+                }
+
+                $('#test_id_edit').on('change', function() {
+                    var testId = $(this).val();
+                    var configId = $('input[name="test_configuration_id"]').val();
+                    $('#test_id_duplicate_msg_edit').hide().text('');
+                    if (!testId) {
+                        return;
+                    }
+                    checkTestConfigurationDuplicateEdit(testId, configId, function(exists, message) {
+                        if (exists) {
+                            $('#test_id_duplicate_msg_edit').text(message).show();
+                        }
+                    });
+                });
+
+                $('#test_configuration_form').on('submit', function(e) {
                     e.preventDefault();
-                    var submitBtn = $(this);
-                    var formData = $('#test_configuration_form').serialize();
-
-                    // Check if the form is valid
-                    if ($("#test_configuration_form").valid()) {
+                    if (window.__testConfigEditSubmitting) {
+                        return false;
+                    }
+                    var submitBtn = $('#submit_button');
+                    if (!$("#test_configuration_form").valid()) {
+                        return false;
+                    }
+                    var testId = $('#test_id_edit').val();
+                    var configId = $('input[name="test_configuration_id"]').val();
+                    window.__testConfigEditSubmitting = true;
+                    submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Checking...');
+                    checkTestConfigurationDuplicateEdit(testId, configId, function(exists, message) {
+                        if (exists) {
+                            window.__testConfigEditSubmitting = false;
+                            submitBtn.prop('disabled', false).html('Submit');
+                            $('#test_id_duplicate_msg_edit').text(message).show();
+                            if (typeof $.toast === 'function') {
+                                $.toast({ heading: 'Duplicate', text: message, showHideTransition: 'slide', position: 'top-right', hideAfter: 4000, icon: 'warning' });
+                            } else {
+                                alert(message);
+                            }
+                            return;
+                        }
+                        var formData = $('#test_configuration_form').serialize();
                         $('#test_configuration_form :input').prop('disabled', true);
-                        submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
+                        submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Saving...');
                         $.ajax({
                             type: "POST",
                             url: "<?php echo base_url('TestResultController/edit_test_configuration_save'); ?>",
                             data: formData,
                             dataType: "json",
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
                             success: function(response) {
                                 if (response.success) {
                                     $.toast({
@@ -68,25 +116,30 @@
                                         hideAfter: 1000,
                                         icon: 'success'
                                     });
-                                    $('#test_configuration_form')[0].reset();
-                                    $('#test_configuration_form :input').prop('disabled', false);
-                                    submitBtn.prop('disabled', false).html('Save');
                                     setTimeout(function() {
                                         window.location.href = "<?php echo base_url('view-test-configuration') ?>";
                                     }, 1002);
                                 } else {
-                                    alert('Error: ' + response.message);
+                                    window.__testConfigEditSubmitting = false;
                                     $('#test_configuration_form :input').prop('disabled', false);
-                                    submitBtn.prop('disabled', false).html('Save');
+                                    submitBtn.prop('disabled', false).html('Submit');
+                                    var errMsg = response.message || 'Update failed.';
+                                    if (typeof $.toast === 'function') {
+                                        $.toast({ heading: 'Error', text: errMsg, showHideTransition: 'slide', position: 'top-right', hideAfter: 4000, icon: 'error' });
+                                    } else {
+                                        alert(errMsg);
+                                    }
                                 }
                             },
-                            error: function(xhr, status, error) {
-                                alert("An error occurred: " + error);
+                            error: function() {
+                                window.__testConfigEditSubmitting = false;
+                                alert("An error occurred while saving.");
                                 $('#test_configuration_form :input').prop('disabled', false);
-                                submitBtn.prop('disabled', false).html('Save');
+                                submitBtn.prop('disabled', false).html('Submit');
                             }
                         });
-                    }
+                    });
+                    return false;
                 });
             });
         </script>
@@ -131,10 +184,8 @@
                         <div class="col-sm-8">
                             <select type="text" required="" class="form-control" id="test_id_edit" name="test_id">
                                 <option value="<?php echo $test->test_id; ?>"><?php echo $test->test_name; ?></option>
-
-
-
                             </select>
+                            <p id="test_id_duplicate_msg_edit" class="text-danger" style="display:none;margin-top:6px;margin-bottom:0;"></p>
 
                         </div>
                     </div>
@@ -145,7 +196,7 @@
                     <div class="form-group">
                         <label class="control-label col-sm-4" for="pwd">Unit</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" required="" value="<?php echo $test_configuration->unit ?>" id="unit" name="unit">
+                            <input type="text" class="form-control"  value="<?php echo $test_configuration->unit ?>" id="unit" name="unit">
                         </div>
                     </div>
                 </div>
@@ -155,21 +206,12 @@
                     <div class="form-group">
                         <label class="control-label col-sm-4" for="pwd">Normal Range</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" required="" value="<?php echo $test_configuration->normal_range ?>" id="normal_range" name="normal_range">
+                            <input type="text" class="form-control" value="<?php echo $test_configuration->normal_range ?>" id="normal_range" name="normal_range">
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row" style="margin-top: 20px;">
-                <div class="col-md-8">
-                    <div class="form-group">
-                        <label class="control-label col-sm-4" for="pwd">Absolute Value</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" value="<?php echo $test_configuration->absolute_value ?>" id="absolute_value" name="absolute_value">
-                        </div>
-                    </div>
-                </div>
-            </div>
+         
             <div class="modal-footer">
                 <div class="row">
 

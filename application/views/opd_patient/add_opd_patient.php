@@ -286,7 +286,7 @@
                                     </div>
                                     <div class="col-sm-3">
                                         <input type="text" placeholder="Day" oninput="validateIntegerInput(this)" class="form-control" id="age_day" name="age_day">
-                                    </div>
+                                    </div>f
 
                                 </div>
                             </div>
@@ -361,7 +361,7 @@
                                             $doctor = $this->db->select('*')->get('doctor')->result();
                                             foreach ($doctor as $doctor_value) {
                                             ?>
-                                                <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                             <?php
                                             }
                                             ?>
@@ -475,7 +475,7 @@
                                                     $doctor = $this->db->select('*')->get('doctor')->result();
                                                     foreach ($doctor as $doctor_value) {
                                                     ?>
-                                                        <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                        <option value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                                     <?php
                                                     }
                                                     ?>

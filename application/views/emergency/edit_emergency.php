@@ -125,19 +125,24 @@
             }
         });
 
-        // On form submission
-        $('#submit_button').click(function(e) {
+        // Single handler: Enter submits the form — prevent native POST + AJAX double-save.
+        $('#emergency_data_entry_form').on('submit', function(e) {
             e.preventDefault();
+            if (window.__emergencyEditSubmitting) {
+                return false;
+            }
 
-            var submitBtn = $(this);
+            var submitBtn = $('#submit_button');
+            if (!$("#emergency_data_entry_form").valid()) {
+                return false;
+            }
+
+            window.__emergencyEditSubmitting = true;
             var formData = $('#emergency_data_entry_form').serialize();
+            $('#emergency_data_entry_form :input').prop('disabled', true);
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
 
-            // Check if the form is valid
-            if ($("#emergency_data_entry_form").valid()) {
-                $('#emergency_data_entry_form :input').prop('disabled', true);
-                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-
-                $.ajax({
+            $.ajax({
                     type: "POST",
                     url: "<?php echo base_url('EmergencyController/update_emergency_data'); ?>",
                     data: formData,
@@ -153,24 +158,24 @@
                                 icon: 'success'
                             });
                             $('#emergency_data_entry_form')[0].reset();
-                            $('#emergency_data_entry_form :input').prop('disabled', false);
-                            submitBtn.prop('disabled', false).html('Update');
                             setTimeout(function() {
                                 window.location.href = "<?php echo base_url('print-emergency') ?>";
                             }, 1002);
                         } else {
                             alert('Error: ' + response.message);
+                            window.__emergencyEditSubmitting = false;
                             $('#emergency_data_entry_form :input').prop('disabled', false);
                             submitBtn.prop('disabled', false).html('Update');
                         }
                     },
                     error: function(xhr, status, error) {
                         alert("An error occurred: " + error);
+                        window.__emergencyEditSubmitting = false;
                         $('#emergency_data_entry_form :input').prop('disabled', false);
                         submitBtn.prop('disabled', false).html('Update');
                     }
                 });
-            }
+            return false;
         });
     });
 </script>
@@ -642,7 +647,7 @@
                                                 $doctor = $this->db->select('*')->get('doctor')->result();
                                                 foreach ($doctor as $doctor_value) {
                                                 ?>
-                                                    <option <?php echo $emeergency->reference_doctor_id == $doctor_value->doctor_id ? "selected" : "" ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name ?></option>
+                                                    <option <?php echo $emeergency->reference_doctor_id == $doctor_value->doctor_id ? "selected" : "" ?> value="<?php echo $doctor_value->doctor_id ?>"><?php echo $doctor_value->doctor_name.' - '.$doctor_value->doctor_unique_id ?></option>
                                                 <?php
                                                 }
                                                 ?>

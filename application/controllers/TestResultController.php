@@ -29,6 +29,7 @@ class TestResultController extends CI_Controller
 
 
         $this->load->library('pagination');
+        $this->load->model('TestResultModel');
     }
     public function patient_unique_id_load()
     {
@@ -54,8 +55,22 @@ class TestResultController extends CI_Controller
     public function test_name_load()
     {
         $test_group_id = $this->input->post('test_group_id', true);
+        $allow_all_when_no_group = ((string) $this->input->post('allow_all_when_no_group', true) === '1');
+
         if ($test_group_id === null || $test_group_id === '' || !ctype_digit((string) $test_group_id)) {
-            echo '<option value="">All tests in group</option>';
+            if ($allow_all_when_no_group) {
+                $tests = $this->db->order_by('test_name', 'ASC')->get('test')->result();
+                ?>
+        <option value="">All tests</option>
+                <?php
+                foreach ($tests as $value) {
+                    ?>
+            <option value="<?php echo (int) $value->test_id; ?>"><?php echo html_escape($value->test_name); ?></option>
+                    <?php
+                }
+            } else {
+                echo '<option value="">All tests in group</option>';
+            }
             return;
         }
 
@@ -113,21 +128,25 @@ class TestResultController extends CI_Controller
 
     public function test_configuration_load()
     {
-        $test_group_id = $_POST['test_group_id'];
-        $patient_test_entry_id = $_POST['patient_test_entry_id'];
+        $test_group_id = $this->input->post('test_group_id', true);
+        $patient_test_entry_id = $this->input->post('patient_test_entry_id', true);
 
-        // $test_configuration = $this->db
-        //     ->where('name_only', 'no')
-        //     ->where('test_group_id', $test_group_id)
-        //     ->get('test')->result();
+        if ($patient_test_entry_id === null || $patient_test_entry_id === '' || !ctype_digit((string) $patient_test_entry_id)) {
+            echo '<p class="text-warning">Enter a valid invoice to load patient tests.</p>';
+            return;
+        }
+
+        $apply_group = ($test_group_id !== null && $test_group_id !== '' && ctype_digit((string) $test_group_id));
 
         $this->db->select('test.test_name,test.test_id');
         $this->db->from('test');
         $this->db->join('patient_test_entry_details', 'patient_test_entry_details.test_id = test.test_id');
-        $this->db->where('patient_test_entry_details.patient_test_entry_id', $patient_test_entry_id);
+        $this->db->where('patient_test_entry_details.patient_test_entry_id', (int) $patient_test_entry_id);
+        if ($apply_group) {
+            $this->db->where('test.test_group_id', (int) $test_group_id);
+        }
         $this->db->where('test.name_only', 'no');
         $this->db->where('test.setting_type', 'Normal');
-        // $this->db->where('test.test_group_id', $test_group_id);
 
         $query = $this->db->get();
         $test_configuration = $query->result();
@@ -145,7 +164,7 @@ class TestResultController extends CI_Controller
                                 <!--<input type="hidden"  class="form-control" value="<?php echo $value->test_configuration_id ?>"  id="test_configuration_id"  name="test_configuration_id[]">-->
                                 <input type="text" class="form-control" id="test_configuration_value" name="test_configuration_value[]">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-3" style="display: none;">
                                 <select class="form-control" name="bold[]">
                                     <option>No</option>
                                     <option>Yes</option>
@@ -165,7 +184,7 @@ class TestResultController extends CI_Controller
                                 <!--<input type="hidden"  class="form-control" value="<?php echo $value->test_configuration_id ?>"  id="test_configuration_id"  name="test_configuration_id[]">-->
                                 <input type="text" class="form-control" id="test_configuration_value" name="test_configuration_value[]">
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-3" style="display: none;">
                                 <select class="form-control" name="bold[]">
                                     <option>No</option>
                                     <option>Yes</option>
@@ -227,6 +246,17 @@ class TestResultController extends CI_Controller
 
     public function test_result_edit($test_result_id)
     {
+        $test_result_id = (int) $test_result_id;
+        if ($test_result_id < 1) {
+            show_404();
+        }
+
+        $entry_detail = $this->TestResultModel->get_entry_detail_id_for_test_result($test_result_id);
+        if ($entry_detail) {
+            redirect('enter-test-result/' . (int) $entry_detail->patient_test_entry_details_id);
+            return;
+        }
+
         $data['test_result_id'] = $test_result_id;
         $this->load->view('test_result/test_result_edit', $data, TRUE);
         $page_data = array(
@@ -239,12 +269,345 @@ class TestResultController extends CI_Controller
 
     public function add_test_result()
     {
+        $invoice_id = trim((string) $this->input->get('invoice_id', true));
+        $mobile_number = trim((string) $this->input->get('mobile_number', true));
+        $test_name = trim((string) $this->input->get('test_name', true));
+        $offset_seg = $this->uri->segment(3);
+        $offset = ($offset_seg !== null && $offset_seg !== '' && ctype_digit((string) $offset_seg)) ? (int) $offset_seg : 0;
+
+        $config = array();
+        $config['base_url'] = site_url('TestResultController/add_test_result');
+        $config['reuse_query_string'] = true;
+        $config['total_rows'] = $this->TestResultModel->count_add_test_result_entries($invoice_id, $mobile_number, $test_name);
+        $config['per_page'] = 100;
+        $config['uri_segment'] = 3;
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['prev_link'] = '<i class="fa fa-long-arrow-left"></i> Previous';
+        $config['next_link'] = 'Next <i class="fa fa-long-arrow-right"></i>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $this->pagination->initialize($config);
+
         $page_data = array(
+            'detailsList' => $this->TestResultModel->get_add_test_result_entries($config['per_page'], $offset, $invoice_id, $mobile_number, $test_name),
+            'pagination' => $this->pagination->create_links(),
+            'sl_start' => $offset + 1,
+            'filter_invoice_id' => $invoice_id,
+            'filter_mobile_number' => $mobile_number,
+            'filter_test_name' => $test_name,
             'page_name' => 'test_result/add_test_result',
             'page_title' => 'Add Test Result',
             'sidebar' => 'test_result/test_result_sidebar'
         );
         $this->load->view('content', $page_data);
+    }
+
+    public function add_test_result_list_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $invoice_id = trim((string) $this->input->get_post('invoice_id', true));
+        $mobile_number = trim((string) $this->input->get_post('mobile_number', true));
+        $test_name = trim((string) $this->input->get_post('test_name', true));
+        $offset_raw = $this->input->get_post('offset', true);
+        $offset = ($offset_raw !== null && $offset_raw !== '' && ctype_digit((string) $offset_raw)) ? (int) $offset_raw : 0;
+
+        $config = array();
+        $config['base_url'] = site_url('TestResultController/add_test_result');
+        $config['reuse_query_string'] = true;
+        $config['total_rows'] = $this->TestResultModel->count_add_test_result_entries($invoice_id, $mobile_number, $test_name);
+        $config['per_page'] = 100;
+        $config['uri_segment'] = 3;
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['prev_link'] = '<i class="fa fa-long-arrow-left"></i> Previous';
+        $config['next_link'] = 'Next <i class="fa fa-long-arrow-right"></i>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $this->pagination->initialize($config);
+
+        $payload = array(
+            'success' => true,
+            'html' => $this->load->view('test_result/partials/add_test_result_list', array(
+                'detailsList' => $this->TestResultModel->get_add_test_result_entries($config['per_page'], $offset, $invoice_id, $mobile_number, $test_name),
+                'pagination' => $this->pagination->create_links(),
+                'sl_start' => $offset + 1,
+            ), true),
+        );
+        $this->output->set_content_type('application/json')->set_output(json_encode($payload));
+    }
+
+    public function add_test_result_entry_form_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $entry_detail_id = (int) $this->input->post('patient_test_entry_details_id', true);
+        $entry = $this->TestResultModel->get_add_test_result_entry($entry_detail_id);
+        if (!$entry) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Selected test entry was not found.')));
+            return;
+        }
+
+        if ((int) $entry->existing_test_result_id > 0) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array(
+                    'success' => false,
+                    'message' => 'Result already exists for this test. Use edit if needed.',
+                    'existing_test_result_id' => (int) $entry->existing_test_result_id,
+                    'print_url' => site_url('TestResultController/test_result_report_print_again/' . (int) $entry->existing_test_result_id),
+                )));
+            return;
+        }
+
+        $html = $this->load->view('test_result/partials/add_test_result_entry_form', array(
+            'entry' => $entry,
+        ), true);
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array('success' => true, 'html' => $html)));
+    }
+
+    /**
+     * Full-page test result entry for one or more patient_test_entry_details rows (same group).
+     */
+    public function enter_test_result($patient_test_entry_details_id = 0)
+    {
+        $ids_param = trim((string) $this->input->get('ids'));
+        if ($ids_param !== '') {
+            $ids = array_filter(array_map('intval', explode(',', $ids_param)));
+            $validation = $this->TestResultModel->validate_group_result_selection($ids);
+            if (!$validation['ok']) {
+                $this->session->set_flashdata('test_result_error', $validation['message']);
+                redirect('add-test-result');
+                return;
+            }
+            $entries = $validation['entries'];
+        } else {
+            $entry = $this->TestResultModel->get_add_test_result_entry((int) $patient_test_entry_details_id);
+            if (!$entry) {
+                show_404();
+            }
+            if ($this->TestResultModel->entry_is_panel_test($entry)) {
+                $this->enter_panel_test_result_page($entry);
+                return;
+            }
+            $entries = array($entry);
+        }
+
+        $entry = $entries[0];
+        $patient = $this->db->where('patient_test_entry_id', (int) $entry->patient_test_entry_id)
+            ->get('patient_test_entry')
+            ->row();
+        if (!$patient) {
+            show_404();
+        }
+
+        $test_group_id = (int) $entry->test_group_id;
+        $test_result_id = $this->TestResultModel->find_existing_test_result_for_group(
+            (int) $entry->patient_test_entry_id,
+            $test_group_id
+        );
+        if ($test_result_id < 1) {
+            foreach ($entries as $row) {
+                $found = $this->TestResultModel->find_existing_test_result_id(
+                    (int) $row->patient_test_entry_id,
+                    (int) $row->test_id
+                );
+                if ($found > 0) {
+                    $test_result_id = $found;
+                    break;
+                }
+            }
+        }
+
+        $edit_mode = $test_result_id > 0;
+        $test_result = null;
+        $existing_values = array();
+        $test_result_no = '';
+
+        if ($edit_mode) {
+            $test_result = $this->db->where('test_result_id', $test_result_id)->get('test_result')->row();
+            if (!$test_result) {
+                show_404();
+            }
+            $test_result_no = $test_result->test_result_no;
+            foreach ($entries as $row) {
+                $tid = (int) $row->test_id;
+                $value = '';
+                $detail = $this->db->where('test_result_id', $test_result_id)
+                    ->where('test_id', $tid)
+                    ->where('IFNULL(is_deleted, 0) =', 0, false)
+                    ->order_by('test_result_details_id', 'DESC')
+                    ->limit(1)
+                    ->get('test_result_details')
+                    ->row();
+                if (!$detail) {
+                    $detail = $this->db->where('test_result_id', $test_result_id)
+                        ->where('test_id', $tid)
+                        ->order_by('test_result_details_id', 'DESC')
+                        ->limit(1)
+                        ->get('test_result_details')
+                        ->row();
+                }
+                if ($detail) {
+                    $value = (string) $detail->test_configuration_value;
+                }
+                if ($value === '' && (int) $row->existing_test_result_id > 0
+                    && (int) $row->existing_test_result_id !== $test_result_id) {
+                    $alt = $this->db->where('test_result_id', (int) $row->existing_test_result_id)
+                        ->where('test_id', $tid)
+                        ->where('IFNULL(is_deleted, 0) =', 0, false)
+                        ->order_by('test_result_details_id', 'DESC')
+                        ->limit(1)
+                        ->get('test_result_details')
+                        ->row();
+                    if ($alt) {
+                        $value = (string) $alt->test_configuration_value;
+                    }
+                }
+                $existing_values[$tid] = $value;
+            }
+        } else {
+            $serial = $this->db->select('*')->get('test_result');
+            $test_result_no = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
+        }
+
+        $detail_ids = array();
+        foreach ($entries as $row) {
+            $detail_ids[] = (int) $row->patient_test_entry_details_id;
+        }
+
+        $page_data = array(
+            'page_name' => 'test_result/enter_test_result',
+            'page_title' => $edit_mode ? 'Edit Test Result' : 'Enter Test Result',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'entry' => $entry,
+            'entries' => $entries,
+            'patient' => $patient,
+            'test_result' => $test_result,
+            'test_result_no' => $test_result_no,
+            'test_result_id' => $test_result_id,
+            'existing_values' => $existing_values,
+            'existing_value' => isset($existing_values[(int) $entry->test_id]) ? $existing_values[(int) $entry->test_id] : '',
+            'edit_mode' => $edit_mode,
+            'multi_mode' => count($entries) > 1,
+            'selected_detail_ids' => implode(',', $detail_ids),
+            'referring_doctor_label' => $this->format_referring_doctor_label($entry),
+            'back_url' => site_url('add-test-result'),
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
+     * Panel test result entry (sections/parameters from test_panels settings).
+     *
+     * @param object $entry Row from TestResultModel::get_add_test_result_entry()
+     */
+    private function enter_panel_test_result_page($entry)
+    {
+        $this->load->model('Report_model');
+
+        if ((int) $entry->existing_lab_report_id > 0) {
+            redirect('panel-test-edit/' . (int) $entry->existing_lab_report_id);
+            return;
+        }
+
+        $panel = $this->Report_model->resolve_panel_for_test(
+            isset($entry->test_name) ? $entry->test_name : '',
+            isset($entry->test_group_id) ? (int) $entry->test_group_id : 0
+        );
+        if (!$panel && isset($entry->resolved_panel_id) && (int) $entry->resolved_panel_id > 0) {
+            $panel = $this->Report_model->get_panel((int) $entry->resolved_panel_id);
+        }
+        if (!$panel) {
+            $this->session->set_flashdata(
+                'test_result_error',
+                'The Setting Not Found'
+            );
+            redirect('add-test-result');
+            return;
+        }
+
+        $existing = $this->Report_model->find_lab_report_for_invoice_and_panel(
+            isset($entry->invoice_no) ? $entry->invoice_no : '',
+            (int) $panel->id
+        );
+        if ($existing) {
+            redirect('panel-test-edit/' . (int) $existing->id);
+            return;
+        }
+
+        $patient = $this->db->where('patient_test_entry_id', (int) $entry->patient_test_entry_id)
+            ->get('patient_test_entry')
+            ->row();
+        if (!$patient) {
+            show_404();
+        }
+
+        $panel_test_group_id = (int) $entry->test_group_id;
+        if ($this->db->field_exists('test_group_id', 'test_panels')
+            && isset($panel->test_group_id) && (int) $panel->test_group_id > 0) {
+            $panel_test_group_id = (int) $panel->test_group_id;
+        }
+
+        $page_data = array(
+            'page_name' => 'test_result/enter_panel_test_result',
+            'page_title' => 'Enter Panel Test Result',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'entry' => $entry,
+            'patient' => $patient,
+            'panel' => $panel,
+            'panel_id' => (int) $panel->id,
+            'panel_test_group_id' => $panel_test_group_id,
+            'require_lab_test_group' => $this->db->field_exists('test_group_id', 'lab_reports'),
+            'referring_doctor_label' => $this->format_referring_doctor_label($entry),
+            'back_url' => site_url('add-test-result'),
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
+     * @param object $entry
+     * @return string
+     */
+    private function format_referring_doctor_label($entry)
+    {
+        $ref_name = isset($entry->referring_doctor_name) ? trim((string) $entry->referring_doctor_name) : '';
+        $ref_degree = isset($entry->referring_doctor_degree) ? trim((string) $entry->referring_doctor_degree) : '';
+        if ($ref_name !== '' && $ref_degree !== '') {
+            return $ref_name . ', ' . $ref_degree;
+        }
+        if ($ref_name !== '') {
+            return $ref_name;
+        }
+
+        return $ref_degree;
     }
 
     public function view_biomedical_test()
@@ -401,6 +764,66 @@ class TestResultController extends CI_Controller
         $this->load->view('content', $page_data);
     }
 
+    /**
+     * Whether test_configuration already has a row for this test_id.
+     *
+     * @param int $test_id
+     * @param int $exclude_configuration_id  Current row when editing (0 on add).
+     * @return bool
+     */
+    private function test_configuration_exists_for_test($test_id, $exclude_configuration_id = 0)
+    {
+        $test_id = (int) $test_id;
+        if ($test_id < 1) {
+            return false;
+        }
+        $this->db->where('test_id', $test_id);
+        $exclude_configuration_id = (int) $exclude_configuration_id;
+        if ($exclude_configuration_id > 0) {
+            $this->db->where('test_configuration_id !=', $exclude_configuration_id);
+        }
+
+        return ((int) $this->db->count_all_results('test_configuration')) > 0;
+    }
+
+    /**
+     * AJAX: check duplicate configuration for a test (by test_id).
+     * POST: test_id, optional test_configuration_id (edit).
+     */
+    public function test_configuration_duplicate_check()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $test_id = (int) $this->input->post('test_id', true);
+        $exclude_id = (int) $this->input->post('test_configuration_id', true);
+        if ($test_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => true, 'exists' => false)));
+            return;
+        }
+
+        $exists = $this->test_configuration_exists_for_test($test_id, $exclude_id);
+        $test_name = '';
+        if ($exists) {
+            $row = $this->db->select('test_name')->where('test_id', $test_id)->get('test')->row();
+            $test_name = ($row && isset($row->test_name)) ? (string) $row->test_name : '';
+        }
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array(
+                'success' => true,
+                'exists' => $exists,
+                'test_name' => $test_name,
+                'message' => $exists
+                    ? 'Configuration for this test already exists' . ($test_name !== '' ? ' (' . $test_name . ').' : '.')
+                    : '',
+            )));
+    }
+
     public function edit_test_configuration_save()
     {
         $test_configuration_id = $this->input->post('test_configuration_id');
@@ -423,10 +846,25 @@ class TestResultController extends CI_Controller
                 $manual_report = $this->input->post('manual_report_previous');
             }
 
+            $test_id = (int) $this->input->post('test_id', true);
+            if ($test_id < 1) {
+                echo json_encode(array('success' => false, 'message' => 'Please select a test name.'));
+                return;
+            }
+            if ($this->test_configuration_exists_for_test($test_id, (int) $test_configuration_id)) {
+                $test_row = $this->db->select('test_name')->where('test_id', $test_id)->get('test')->row();
+                $label = ($test_row && isset($test_row->test_name)) ? $test_row->test_name : 'this test';
+                echo json_encode(array(
+                    'success' => false,
+                    'message' => 'Configuration already exists for: ' . $label,
+                ));
+                return;
+            }
+
             $data = array(
                 'test_group_id' => $this->input->post('test_group_id'),
                 //            'test_parameter' => $this->input->post('test_parameter'),
-                'test_id' => $this->input->post('test_id'),
+                'test_id' => $test_id,
                 'unit' => $this->input->post('unit'),
                 'normal_range' => $this->input->post('normal_range'),
                 'absolute_value' => $this->input->post('absolute_value'),
@@ -447,10 +885,25 @@ class TestResultController extends CI_Controller
     {
         if ($this->input->is_ajax_request()) {
 
+            $test_id = (int) $this->input->post('test_id', true);
+            if ($test_id < 1) {
+                echo json_encode(array('success' => false, 'message' => 'Please select a test name.'));
+                return;
+            }
+            if ($this->test_configuration_exists_for_test($test_id)) {
+                $test_row = $this->db->select('test_name')->where('test_id', $test_id)->get('test')->row();
+                $label = ($test_row && isset($test_row->test_name)) ? $test_row->test_name : 'this test';
+                echo json_encode(array(
+                    'success' => false,
+                    'message' => 'Configuration already exists for: ' . $label,
+                ));
+                return;
+            }
+
             $data = array(
                 'test_group_id' => $this->input->post('test_group_id'),
                 //            'test_parameter' => $this->input->post('test_parameter'),
-                'test_id' => $this->input->post('test_id'),
+                'test_id' => $test_id,
                 'unit' => $this->input->post('unit'),
                 'normal_range' => $this->input->post('normal_range'),
                 'absolute_value' => $this->input->post('absolute_value'),
@@ -516,108 +969,90 @@ class TestResultController extends CI_Controller
 
     public function edit_test_result_data_save()
     {
-        if ($this->input->is_ajax_request()) {
-            $test_result_id = $this->input->post('test_result_id');
-          
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $test_result_id = (int) $this->input->post('test_result_id');
+        if ($test_result_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid test result.')));
+            return;
+        }
+
+        $manual_report = $this->input->post('manual_report_previous');
+        if (!empty($_FILES['manual_report']['name'])) {
             $config['upload_path'] = 'assets/manual_report/';
             $config['allowed_types'] = 'gif|jpg|png|pdf';
-            $config['overwrite'] = FALSE;
-            $config['encrypt_name'] = FALSE; // Keep the original file name
-            $error = array();
-            $sdata = array();
-            $manual_report = '';
-            // Get the original file name
-            $file_name = $_FILES['manual_report']['name'];
-
-            // Append the invoice number before the original file name
-            $new_file_name = $this->input->post('invoice_no') . '_' . $file_name;
-
-            // Update the file name in the $_FILES array to reflect the new name
-            $_FILES['manual_report']['name'] = $new_file_name;
-
-            // Load the upload library with the config settings
+            $config['overwrite'] = false;
+            $config['encrypt_name'] = false;
+            $_FILES['manual_report']['name'] = $this->input->post('invoice_no') . '_' . $_FILES['manual_report']['name'];
             $this->load->library('upload', $config);
-
-            // Attempt to upload the renamed file
             if ($this->upload->do_upload('manual_report')) {
-                // Get the uploaded file's data
-                $sdata = $this->upload->data();
-
-                // Get the renamed file name after upload
-                $manual_report = $sdata['file_name'];
-            } else {
-                // Handle the upload error
-                $error = $this->upload->display_errors();
-                $manual_report = ''; // Reset if there's an error
+                $upload_data = $this->upload->data();
+                $manual_report = $upload_data['file_name'];
             }
-
-            if ($manual_report == '') {
-                $manual_report = $this->input->post('manual_report_previous');
-            }
-
-
-            $data = array(
-                'patient_test_entry_id' => $this->input->post('patient_test_entry_id'),
-                'invoice_no' => $this->input->post('invoice_no'),
-                'manual_report' => $manual_report,
-                'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report'),
-                'test_group_id' => $this->input->post('test_group_id'),
-                'test_result_no' => $this->input->post('test_result_no'),
-                'date' => date('Y-m-d', strtotime($this->input->post('date'))),
-                'user_id' => $this->session->userdata('user_id'),
-            );
-            $this->db->where('test_result_id', $test_result_id)->update('test_result', $data);
-
-            $delete_data = array(
-                'is_deleted' => '1'
-            );
-            $this->db->where('test_result_id', $test_result_id)->update('test_result_details', $delete_data); /* To delete the previous */
-
-            $test_id = $this->input->post('test_id');
-            //        $test_configuration_id = $this->input->post('test_configuration_id');
-            $test_configuration_value = $this->input->post('test_configuration_value') ?? [];
-            if (is_array($test_configuration_value) && count($test_configuration_value) > 0) {
-                for ($i = 0; $i < count($test_configuration_value); $i++) {
-                    $data = array(
-                        'test_id' => $test_id[$i] ?? null,
-                        'test_configuration_value' => $test_configuration_value[$i],
-                        'bold' => $bold[$i] ?? 0,
-                        'test_result_no' => $this->input->post('test_result_no'),
-                        'test_result_id' => $test_result_id,
-                        'date' => date('Y-m-d', strtotime($this->input->post('date'))),
-                        'user_id' => $this->session->userdata('user_id'),
-                    );
-                    $result = $this->db->insert('test_result_details', $data);
-                }
-            } else {
-                log_message('error', 'test_configuration_value is not an array or is empty.');
-            }
-
-            $sdata['print_test_result_id'] = $test_result_id;
-            $sdata['success'] = 'saved successully';
-            $this->session->set_userdata($sdata);
-            $response = array('success' => true, 'message' => 'Data updated successfully.');
-            echo json_encode($response);
-        } else {
-            // If it's not an AJAX request, show an error
-            $response = array('error' => true, 'message' => 'Invalid request.');
-            echo json_encode($response);
         }
+
+        $data = array(
+            'patient_test_entry_id' => $this->input->post('patient_test_entry_id'),
+            'invoice_no' => $this->input->post('invoice_no'),
+            'manual_report' => $manual_report,
+            'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report'),
+            'test_group_id' => $this->input->post('test_group_id'),
+            'test_result_no' => $this->input->post('test_result_no'),
+            'date' => date('Y-m-d', strtotime($this->input->post('date'))),
+            'user_id' => $this->session->userdata('user_id'),
+        );
+        $this->db->where('test_result_id', $test_result_id)->update('test_result', $data);
+
+        $this->db->where('test_result_id', $test_result_id)->update('test_result_details', array('is_deleted' => '1'));
+
+        $test_id = $this->input->post('test_id');
+        $test_configuration_value = $this->input->post('test_configuration_value') ?? array();
+        $bold = $this->input->post('bold');
+        if (is_array($test_configuration_value) && count($test_configuration_value) > 0) {
+            for ($i = 0; $i < count($test_configuration_value); $i++) {
+                $row = array(
+                    'test_id' => is_array($test_id) ? ($test_id[$i] ?? null) : $test_id,
+                    'test_configuration_value' => $test_configuration_value[$i],
+                    'bold' => (is_array($bold) ? ($bold[$i] ?? 0) : ($bold ?? 0)),
+                    'test_result_no' => $this->input->post('test_result_no'),
+                    'test_result_id' => $test_result_id,
+                    'date' => date('Y-m-d', strtotime($this->input->post('date'))),
+                    'user_id' => $this->session->userdata('user_id'),
+                );
+                $this->db->insert('test_result_details', $row);
+            }
+        }
+
+        $this->session->set_userdata(array(
+            'print_test_result_id' => $test_result_id,
+            'success' => 'saved successully',
+        ));
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array(
+                'success' => true,
+                'message' => 'Data updated successfully.',
+                'print_url' => site_url('TestResultController/test_result_report_print_again/' . $test_result_id),
+            )));
     }
     function sms_send($patient)
     {
-        $compnay = $this->db->where('company_id', '1')->get('company')->row();
-        $company_name = $compnay->company_name;
-
         $sms_api = getSMSAPI();
+        if (!$sms_api || !isset($sms_api->is_test_result_ready_notification_sms_send) || $sms_api->is_test_result_ready_notification_sms_send !== 'yes') {
+            return null;
+        }
+
+        $compnay = $this->db->where('company_id', '1')->get('company')->row();
+        $company_name = ($compnay && isset($compnay->company_name)) ? $compnay->company_name : '';
+
         $url = "http://bulksmsbd.net/api/smsapi";
         $api_key = $sms_api->api_key;
         $senderid = $sms_api->senderid;
-        // $number = "88016xxxxxxxx,88019xxxxxxxx";
-        // echo '<pre>';
-        // print_r($patient->mobile_number);
-        // die;
-        if ($sms_api->is_test_result_ready_notification_sms_send == 'yes') { // if is_sms_send==yes, then sms will be sent
+        if ($patient && isset($patient->mobile_number) && $patient->mobile_number !== '') {
             $number = "88" . $patient->mobile_number;
             $message = "Dear patient, your report is ready! Patient Name: " . $patient->patient_name . ", Mobile: " . $patient->mobile_number . ", Invoice No: " . $patient->invoice_no.','.$company_name;
 
@@ -646,93 +1081,245 @@ class TestResultController extends CI_Controller
             curl_close($ch);
             return $response;
         }
+
+        return null;
+    }
+
+    /**
+     * Save or update a group test result (one header, multiple test lines).
+     *
+     * @param int $test_result_id 0 to insert a new header
+     */
+    private function save_group_test_result_data_save($test_result_id = 0)
+    {
+        $test_result_id = (int) $test_result_id;
+        $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id', true);
+        $test_group_id = (int) $this->input->post('test_group_id', true);
+        $test_id = $this->input->post('test_id');
+        $test_ids = is_array($test_id) ? array_values(array_filter(array_map('intval', $test_id))) : array();
+
+        if ($patient_test_entry_id < 1 || $test_group_id < 1 || empty($test_ids)) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid test information.')));
+            return;
+        }
+
+        $test_configuration_value = $this->input->post('test_configuration_value') ?? array();
+        if (!is_array($test_configuration_value)) {
+            $test_configuration_value = array();
+        }
+        $bold = $this->input->post('bold');
+        $has_value = false;
+        foreach ($test_configuration_value as $value) {
+            if (trim((string) $value) !== '') {
+                $has_value = true;
+                break;
+            }
+        }
+        if (!$has_value) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Please enter at least one result value.')));
+            return;
+        }
+
+        $post_date = trim((string) ($this->input->post('date') ?? ''));
+        $post_time = trim((string) ($this->input->post('time') ?? ''));
+        if ($post_date !== '') {
+            $parsed_date = strtotime($post_date);
+            $result_date = ($parsed_date !== false) ? date('Y-m-d', $parsed_date) : date('Y-m-d');
+        } else {
+            $result_date = date('Y-m-d');
+        }
+        $result_time = $post_time !== '' ? $post_time : date('H:i:s');
+
+        $header = array(
+            'patient_test_entry_id' => $patient_test_entry_id,
+            'test_group_id' => $test_group_id,
+            'invoice_no' => $this->input->post('invoice_no'),
+            'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report') ?: 'Dynamic',
+            'date' => $result_date,
+            'time' => $result_time,
+            'user_id' => $this->session->userdata('user_id'),
+        );
+
+        if ($test_result_id > 0) {
+            $existing = $this->db->where('test_result_id', $test_result_id)->get('test_result')->row();
+            if (!$existing || (int) $existing->patient_test_entry_id !== $patient_test_entry_id) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Test result not found.')));
+                return;
+            }
+            $test_result_no = $existing->test_result_no;
+            $this->db->where('test_result_id', $test_result_id)->update('test_result', $header);
+            $is_update = true;
+        } else {
+            $header['manual_report'] = '';
+            $header['test_result_no'] = $this->input->post('test_result_no');
+            if (!$this->db->insert('test_result', $header)) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Could not save test result.')));
+                return;
+            }
+            $test_result_id = (int) $this->db->insert_id();
+            $test_result_no = $header['test_result_no'];
+            $patient = getPatientTestEntry($patient_test_entry_id);
+            $is_update = false;
+        }
+
+        for ($i = 0; $i < count($test_ids); $i++) {
+            $tid = (int) $test_ids[$i];
+            $value = isset($test_configuration_value[$i]) ? trim((string) $test_configuration_value[$i]) : '';
+            $bold_val = is_array($bold) ? ($bold[$i] ?? 0) : ($bold ?? 0);
+
+            if ($value === '') {
+                $this->db->where('test_result_id', $test_result_id)
+                    ->where('test_id', $tid)
+                    ->update('test_result_details', array('is_deleted' => '1'));
+                continue;
+            }
+
+            $detail_row = array(
+                'test_configuration_value' => $value,
+                'bold' => $bold_val,
+                'date' => $header['date'],
+                'user_id' => $this->session->userdata('user_id'),
+                'is_deleted' => '0',
+            );
+
+            $active_detail = $this->db->where('test_result_id', $test_result_id)
+                ->where('test_id', $tid)
+                ->where('IFNULL(is_deleted, 0) =', 0, false)
+                ->order_by('test_result_details_id', 'DESC')
+                ->limit(1)
+                ->get('test_result_details')
+                ->row();
+
+            if ($active_detail) {
+                $this->db->where('test_result_details_id', (int) $active_detail->test_result_details_id)
+                    ->update('test_result_details', $detail_row);
+            } else {
+                $this->db->where('test_result_id', $test_result_id)
+                    ->where('test_id', $tid)
+                    ->update('test_result_details', array('is_deleted' => '1'));
+
+                $detail_row['test_id'] = $tid;
+                $detail_row['test_result_no'] = $test_result_no;
+                $detail_row['test_result_id'] = $test_result_id;
+                $this->db->insert('test_result_details', $detail_row);
+            }
+        }
+
+        if (isset($patient) && $patient) {
+            $this->sms_send($patient);
+        }
+
+        $this->session->set_userdata(array(
+            'print_test_result_id' => $test_result_id,
+            'success' => 'saved successully',
+        ));
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array(
+                'success' => true,
+                'message' => $is_update ? 'Data updated successfully.' : 'Data saved successfully.',
+                'test_result_id' => $test_result_id,
+                'print_url' => site_url('TestResultController/test_result_report_print_again/' . $test_result_id),
+            )));
+    }
+
+    /**
+     * @deprecated Use save_group_test_result_data_save()
+     */
+    private function update_single_test_result_data_save($test_result_id)
+    {
+        $this->save_group_test_result_data_save($test_result_id);
+    }
+
+    /**
+     * Resolve test_result_id for save (POST, entry detail row, or patient+test lookup).
+     *
+     * @return int
+     */
+    private function resolve_test_result_id_for_save()
+    {
+        $test_result_id = (int) $this->input->post('test_result_id');
+        if ($test_result_id > 0) {
+            return $test_result_id;
+        }
+
+        $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id');
+        $test_group_id = (int) $this->input->post('test_group_id');
+        if ($patient_test_entry_id > 0 && $test_group_id > 0) {
+            $found = $this->TestResultModel->find_existing_test_result_for_group(
+                $patient_test_entry_id,
+                $test_group_id
+            );
+            if ($found > 0) {
+                return $found;
+            }
+        }
+
+        $entry_detail_id = (int) $this->input->post('patient_test_entry_details_id');
+        if ($entry_detail_id > 0) {
+            $entry = $this->TestResultModel->get_add_test_result_entry($entry_detail_id);
+            if ($entry && (int) $entry->existing_test_result_id > 0) {
+                return (int) $entry->existing_test_result_id;
+            }
+            if ($entry) {
+                $found = $this->TestResultModel->find_existing_test_result_id(
+                    (int) $entry->patient_test_entry_id,
+                    (int) $entry->test_id
+                );
+                if ($found > 0) {
+                    return $found;
+                }
+            }
+        }
+
+        $test_id = $this->input->post('test_id');
+        $first_test_id = (is_array($test_id) && isset($test_id[0])) ? (int) $test_id[0] : (int) $test_id;
+
+        return $this->TestResultModel->find_existing_test_result_id($patient_test_entry_id, $first_test_id);
+    }
+
+    public function validate_group_selection_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $ids_raw = $this->input->post('detail_ids');
+        $ids = is_array($ids_raw)
+            ? array_filter(array_map('intval', $ids_raw))
+            : array_filter(array_map('intval', explode(',', (string) $ids_raw)));
+
+        $validation = $this->TestResultModel->validate_group_result_selection($ids);
+        $payload = array(
+            'success' => $validation['ok'],
+            'message' => $validation['message'],
+        );
+        if ($validation['ok']) {
+            $payload['redirect_url'] = site_url('enter-test-result?ids=' . implode(',', $ids));
+        }
+        $this->output->set_content_type('application/json')->set_output(json_encode($payload));
     }
 
     public function add_test_result_data_save()
     {
         if ($this->input->is_ajax_request()) {
-            $config['upload_path'] = 'assets/manual_report/';
-            $config['allowed_types'] = 'gif|jpg|png|pdf';
-            $config['overwrite'] = FALSE;
-            $config['encrypt_name'] = FALSE; // Keep the original file name
-            $error = array();
-            $sdata = array();
-            $manual_report = '';
-            // Get the original file name
-            $file_name = $_FILES['manual_report']['name'];
-
-            // Append the invoice number before the original file name
-            $new_file_name = $this->input->post('invoice_no') . '_' . $file_name;
-
-            // Update the file name in the $_FILES array to reflect the new name
-            $_FILES['manual_report']['name'] = $new_file_name;
-
-            // Load the upload library with the config settings
-            $this->load->library('upload', $config);
-
-            // Attempt to upload the renamed file
-            if ($this->upload->do_upload('manual_report')) {
-                // Get the uploaded file's data
-                $sdata = $this->upload->data();
-
-                // Get the renamed file name after upload
-                $manual_report = $sdata['file_name'];
-            } else {
-                // Handle the upload error
-                $error = $this->upload->display_errors();
-                $manual_report = ''; // Reset if there's an error
-            }
-
-
-            $data = array(
-                'patient_test_entry_id' => $this->input->post('patient_test_entry_id'),
-                'test_group_id' => $this->input->post('test_group_id'),
-                'invoice_no' => $this->input->post('invoice_no'),
-                'manual_or_dynamic_report' => $this->input->post('manual_or_dynamic_report'),
-                'manual_report' => $manual_report,
-                'test_result_no' => $this->input->post('test_result_no'),
-                'date' => date('Y-m-d', strtotime($this->input->post('date'))),
-                'time' => $this->input->post('time'),
-                'user_id' => $this->session->userdata('user_id'),
-            );
-            $patient = getPatientTestEntry($this->input->post('patient_test_entry_id'));
-            $this->db->insert('test_result', $data);
-            $test_result_id = $this->db->insert_id();
+            $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id');
             $test_id = $this->input->post('test_id');
-            //        $test_configuration_id = $this->input->post('test_configuration_id');
-            $test_configuration_value = $this->input->post('test_configuration_value') ?? [];
-            $bold = $this->input->post('bold');
-            $result = '';
-            if (is_array($test_configuration_value) && count($test_configuration_value) > 0) {
-                for ($i = 0; $i < count($test_configuration_value); $i++) {
-                    $data = array(
-                        'test_id' => $test_id[$i] ?? null,
-                        'test_configuration_value' => $test_configuration_value[$i],
-                        'bold' => $bold[$i] ?? 0,
-                        'test_result_no' => $this->input->post('test_result_no'),
-                        'test_result_id' => $test_result_id,
-                        'date' => date('Y-m-d', strtotime($this->input->post('date'))),
-                        'user_id' => $this->session->userdata('user_id'),
-                    );
-                    $result = $this->db->insert('test_result_details', $data);
-                }
-            } else {
-                log_message('error', 'test_configuration_value is not an array or is empty.');
+            $first_test_id = (is_array($test_id) && isset($test_id[0])) ? (int) $test_id[0] : (int) $test_id;
+            if ($patient_test_entry_id < 1 || $first_test_id < 1) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Invalid test information.')));
+                return;
             }
 
-            $sdata['print_test_result_id'] = $test_result_id;
-            $sdata['success'] = 'saved successully';
-            $this->session->set_userdata($sdata);
-            $response = array('success' => true, 'message' => 'Data saved successfully.');
-            if ($result) {
-                $response['sms_response'] = $this->sms_send($patient); // To send sms
-            }
-            // Return a JSON response
-            echo json_encode($response);
+            $test_result_id = $this->resolve_test_result_id_for_save();
+            $this->save_group_test_result_data_save($test_result_id);
         } else {
-            // If it's not an AJAX request, show an error
-            $response = array('error' => true, 'message' => 'Invalid request.');
-            echo json_encode($response);
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
         }
     }
 
@@ -764,7 +1351,7 @@ class TestResultController extends CI_Controller
         $page_data = array(
             'page_name' => 'test_result/add_test_configuration',
             'page_title' => 'Add Test Configuration',
-            'sidebar' => 'test_result/test_result_sidebar'
+            'sidebar' => 'settings/settings_sidebar'
         );
         $this->load->view('content', $page_data);
     }
@@ -869,7 +1456,7 @@ class TestResultController extends CI_Controller
         // Load view
         $data['page_name'] = 'test_result/view_test_configuration';
         $data['page_title'] = 'View Pharmacy';
-        $data['sidebar'] = 'test_result/test_result_sidebar';
+        $data['sidebar'] = 'settings/settings_sidebar';
         $this->load->view('content', $data);
     }
     public function view_test_configuration1($offset = 0)
@@ -911,14 +1498,53 @@ class TestResultController extends CI_Controller
     }
     public function test_result_delete_ajax()
     {
-        $test_result_id = $this->input->post('test_result_id');
+        $test_result_id = (int) $this->input->post('test_result_id');
+        if ($test_result_id < 1) {
+            echo json_encode(array('status' => 'error', 'message' => 'Invalid test result.'));
+            return;
+        }
+
         if ($this->db->where('test_result_id', $test_result_id)->delete('test_result')) {
             $this->db->where('test_result_id', $test_result_id)->delete('test_result_details');
-            $response = array('status' => 'success', 'message' => 'Data has been deleted successfully.');
+            $response = array('status' => 'success', 'message' => 'Result deleted successfully.');
         } else {
-            $response = array('status' => 'error', 'message' => 'Failed to delete patient.');
+            $response = array('status' => 'error', 'message' => 'Failed to delete result.');
         }
         echo json_encode($response);
+    }
+
+    /**
+     * Delete one test line from a result (or whole result if it was the last line).
+     */
+    public function test_result_detail_delete_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $test_result_id = (int) $this->input->post('test_result_id');
+        $test_id = (int) $this->input->post('test_id');
+        if ($test_result_id < 1 || $test_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $this->db->where('test_result_id', $test_result_id)
+            ->where('test_id', $test_id)
+            ->update('test_result_details', array('is_deleted' => '1'));
+
+        $remaining = (int) $this->db->where('test_result_id', $test_result_id)
+            ->where('IFNULL(is_deleted, 0) =', 0, false)
+            ->count_all_results('test_result_details');
+
+        if ($remaining === 0) {
+            $this->db->where('test_result_id', $test_result_id)->delete('test_result');
+            $this->db->where('test_result_id', $test_result_id)->delete('test_result_details');
+        }
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array('success' => true, 'message' => 'Result deleted successfully.')));
     }
     public function test_configuration_delete_ajax()
     {

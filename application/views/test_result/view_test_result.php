@@ -162,7 +162,7 @@ $permissions = $this->session->userdata('permissions');
                 <td>Invoice No</td>
                 <td>Test No</td>
                 <td>Test Group Name</td>
-                <td>Manual Report</td>
+                
                 <?php
                     $user_type_name = $this->session->userdata('user_type');
                     if ($user_type_name == 'Admin') {
@@ -204,7 +204,7 @@ $permissions = $this->session->userdata('permissions');
                     <td><?php echo $detailsList[$i]->invoice_no ?></td>
                     <td><?php echo $detailsList[$i]->test_result_no ?></td>
                     <td><?php echo $test_group->test_group_name ?></td>
-                    <td>
+                    <td style="display: none;">
                     <a target="_blank" href="<?php echo base_url() ?>assets/manual_report/<?php echo $detailsList[$i]->manual_report ?>" class="btn btn-primary">View</a>
                         
                     </td>

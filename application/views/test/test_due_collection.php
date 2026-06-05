@@ -28,7 +28,10 @@ $permissions = $this->session->userdata('permissions');
             },
             select: function(event, ui) {
                 $('#invoice_no').val(ui.item.label);
-                $('form').submit();
+                var $sf = $('#test_due_search_form');
+                if ($sf.length) {
+                    $sf.trigger('submit');
+                }
                 return false;
             }
         });
@@ -49,7 +52,10 @@ $permissions = $this->session->userdata('permissions');
             },
             select: function(event, ui) {
                 $('#patient_name').val(ui.item.label);
-                $('form').submit();
+                var $sf = $('#test_due_search_form');
+                if ($sf.length) {
+                    $sf.trigger('submit');
+                }
                 return false;
             }
         });
@@ -70,40 +76,45 @@ $permissions = $this->session->userdata('permissions');
             },
             select: function(event, ui) {
                 $('#mobile').val(ui.item.label);
-                $('form').submit();
+                var $sf = $('#test_due_search_form');
+                if ($sf.length) {
+                    $sf.trigger('submit');
+                }
                 return false;
             }
         });
     });
-    $(document).ready(function() {
-
-        // Validate the form
-        $("#due_payment_form").validate({
-            rules: {
-                given: "required",
-            },
-            messages: {
-                given: "Enter given amount",
-            }
-        });
-
-
-
-
-    });
 </script>
 <script>
     $(document).ready(function() {
+        $('.due-payment-form').each(function() {
+            $(this).validate({
+                rules: {
+                    given: 'required',
+                },
+                messages: {
+                    given: 'Enter given amount',
+                },
+            });
+        });
+
         $(document).on('submit', '.due-payment-form', function(e) {
             e.preventDefault();
 
-            const form = $(this);
-            const submitBtn = form.find('.submit-due-btn');
-            const formData = form.serialize();
+            var form = $(this);
+            if (form.data('duePaymentInFlight')) {
+                return false;
+            }
+            if (!form.valid()) {
+                return false;
+            }
 
-            const given = form.find('[name="given"]').val();
+            form.data('duePaymentInFlight', true);
+            var submitBtn = form.find('.submit-due-btn');
+            var formData = form.serialize();
+
             form.find(':input').prop('disabled', true);
-            submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
             $.ajax({
                 type: "POST",
@@ -121,20 +132,23 @@ $permissions = $this->session->userdata('permissions');
                             icon: 'success'
                         });
                         setTimeout(function() {
-                                window.location.href = "<?php echo base_url('print-test-entry-after-due-payment') ?>";
-                            }, 1002);
+                            window.location.href = "<?php echo base_url('print-test-entry-after-due-payment') ?>";
+                        }, 1002);
                     } else {
                         alert("Error: " + response.message);
+                        form.data('duePaymentInFlight', false);
                         form.find(':input').prop('disabled', false);
-                        submitBtn.html('Pay');
+                        submitBtn.prop('disabled', false).html('Pay');
                     }
                 },
                 error: function(xhr, status, error) {
                     alert("AJAX error: " + error);
+                    form.data('duePaymentInFlight', false);
                     form.find(':input').prop('disabled', false);
-                    submitBtn.html('Pay');
+                    submitBtn.prop('disabled', false).html('Pay');
                 }
             });
+            return false;
         });
     });
 </script>
@@ -148,7 +162,7 @@ $permissions = $this->session->userdata('permissions');
 
 
         <?php if (in_array('test_search_due', $permissions)) { ?>
-            <form method="post" action="<?php echo base_url('test-due-collection') ?>">
+            <form id="test_due_search_form" method="post" action="<?php echo base_url('test-due-collection') ?>">
                 <table class="table table-bordered table-hover table-condensed table-responsive" style="width: 90%;">
                     <tr>
                         <td>Patient Name</td>

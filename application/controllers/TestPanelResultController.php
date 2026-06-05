@@ -30,6 +30,71 @@ class TestPanelResultController extends CI_Controller
 
         $this->load->library('pagination');
     }
+
+    /**
+     * Panel names that use the urine-style print layout.
+     *
+     * @param object|null $report Row from Report_model::get_report_with_panel()
+     * @return bool
+     */
+    private function uses_urine_examination_print_layout($report)
+    {
+        $name = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
+        static $panels = array(
+            'Urine Examination Report',
+            'Urine R/E',
+            'Urine R/M/E',
+        );
+
+        return in_array($name, $panels, true);
+    }
+
+    /**
+     * Which `test_panel_result/*` view to use for printing a lab report.
+     *
+     * @param object|null $report Row from Report_model::get_report_with_panel()
+     * @return string View path (no .php) under application/views/
+     */
+    private function panel_test_print_view($report)
+    {
+        if ($this->uses_urine_examination_print_layout($report)) {
+            return 'test_panel_result/panel_test_print_urine_examination';
+        }
+
+        return 'test_panel_result/panel_test_print';
+    }
+
+    /**
+     * Section blocks for the print view; Urine R/E omits microscopic deposit sections.
+     *
+     * @param object      $report   Row from Report_model::get_report_with_panel()
+     * @param int         $report_id
+     * @return array
+     */
+    private function panel_test_print_section_blocks($report, $report_id)
+    {
+        $blocks = $this->Report_model->get_report_results_grouped_by_section($report_id);
+        $panel = (is_object($report) && isset($report->panel_name)) ? trim((string) $report->panel_name) : '';
+        if ($panel !== 'Urine R/E') {
+            return $blocks;
+        }
+
+        $skip = array(
+            'Microscopic Examination(Unorganised Deposits)',
+            'Microscopic Examination(Organised Deposits)',
+        );
+        $out = array();
+        foreach ($blocks as $b) {
+            $sec = isset($b['section_name']) ? trim((string) $b['section_name']) : '';
+            if (in_array($sec, $skip, true)) {
+                continue;
+            }
+            $out[] = $b;
+        }
+
+        return $out;
+    }
+
     public function patient_unique_id_load()
     {
         $parameter = $_POST['parameter'];
@@ -82,11 +147,11 @@ class TestPanelResultController extends CI_Controller
         $auto_print = (int) $this->input->get('print') === 1;
 
         $page_data = array(
-            'page_name'      => 'test_panel_result/panel_test_print',
+            'page_name'      => $this->panel_test_print_view($report),
             'page_title'     => 'Print Panel Test',
             'sidebar'        => 'test_result/test_result_sidebar',
             'report'         => $report,
-            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'section_blocks' => $this->panel_test_print_section_blocks($report, $id),
             'auto_print'     => $auto_print,
         );
         $this->load->view('content', $page_data);
@@ -219,6 +284,57 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
+     * AJAX: panels for a test group (test_panels filtered by test_group_id).
+     * POST: test_group_id — returns JSON { success, panels: [{ id, panel_name }, ...] }.
+     */
+    public function panels_by_test_group()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $this->load->model('Report_model');
+        $gid = (int) $this->input->post('test_group_id', true);
+        $rows = $this->Report_model->get_panels_by_test_group_id($gid);
+
+        $panels = array();
+        foreach ($rows as $r) {
+            $panels[] = array(
+                'id' => (int) $r->id,
+                'panel_name' => isset($r->panel_name) ? (string) $r->panel_name : '',
+            );
+        }
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array('success' => true, 'panels' => $panels)));
+    }
+
+    /**
+     * Edit an existing lab_reports row + its lab_report_results (same UX as add_panel_test).
+     * URL: TestPanelResultController/panel_test_edit/{id} or route panel-test-edit/{id}
+     */
+    public function panel_test_edit($id = 0)
+    {
+        $this->load->model('Report_model');
+        $id = (int) $id;
+        $report = $this->Report_model->get_report_with_panel($id);
+        if (!$report) {
+            show_404();
+        }
+
+        $page_data = array(
+            'page_name' => 'test_panel_result/panel_test_edit',
+            'page_title' => 'Edit Panel Test',
+            'sidebar' => 'test_result/test_result_sidebar',
+            'report' => $report,
+            'report_id' => $id,
+        );
+        $this->load->view('content', $page_data);
+    }
+
+    /**
      * Listing page for panel-test (lab_reports) entries.
      * Filters: patient (name/id), panel_id, date_from, date_to. Pagination via CI library.
      */
@@ -302,11 +418,11 @@ class TestPanelResultController extends CI_Controller
         $auto_print = (int) $this->input->get('print') === 1;
 
         $page_data = array(
-            'page_name' => 'test_panel_result/panel_test_print',
+            'page_name' => $this->panel_test_print_view($report),
             'page_title' => 'Panel Test Report',
             'sidebar' => 'test_result/test_result_sidebar',
             'report' => $report,
-            'section_blocks' => $this->Report_model->get_report_results_grouped_by_section($id),
+            'section_blocks' => $this->panel_test_print_section_blocks($report, $id),
             'auto_print' => $auto_print,
         );
         $this->load->view('content', $page_data);
@@ -353,6 +469,20 @@ class TestPanelResultController extends CI_Controller
             echo '<p class="text-muted">No sections/parameters defined for "' . html_escape($panel->panel_name) . '".</p>';
             return;
         }
+
+        $report_id = (int) $this->input->post('report_id', true);
+        $value_map = array();
+        if ($report_id > 0) {
+            $existing = $this->Report_model->get_report($report_id);
+            if ($existing && (int) $existing->panel_id === $panel_id) {
+                foreach ($this->Report_model->get_report_results($report_id) as $rr) {
+                    $pid = isset($rr->parameter_id) ? (int) $rr->parameter_id : 0;
+                    if ($pid > 0) {
+                        $value_map[$pid] = isset($rr->result_value) ? (string) $rr->result_value : '';
+                    }
+                }
+            }
+        }
         ?>
         <h4 class="text-primary" style="margin-top:0;">
             <?php echo html_escape($panel->panel_name); ?>
@@ -380,29 +510,40 @@ class TestPanelResultController extends CI_Controller
                                 <div class="row">
                                     <?php foreach ($pair as $p) {
                                         $pname = 'parameters[' . (int) $p->id . ']';
-                                        $unit = isset($p->unit) && $p->unit !== '' ? ' <span class="text-muted">(' . html_escape($p->unit) . ')</span>' : '';
+                                        $unit_name = isset($p->unit) ? trim((string) $p->unit) : '';
+                                        $unit_addon = $unit_name !== ''
+                                            ? '<span class="input-group-addon">' . html_escape($unit_name) . '</span>'
+                                            : '';
                                         $type = isset($p->input_type) ? $p->input_type : 'text';
+                                        $cur = isset($value_map[(int) $p->id]) ? $value_map[(int) $p->id] : '';
+                                        $cur_esc = html_escape($cur, true);
                                     ?>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
+                                                <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name); ?></label>
                                                 <div class="col-sm-7">
+                                                    <div class="input-group">
                                                     <?php if ($type === 'numeric') {
                                                         // NOTE: do NOT emit min/max attributes here. jQuery Validate
                                                         // (loaded globally for this form) would auto-enforce them and
                                                         // surface errors like "Please enter a value less than or
                                                         // equal to 5.9." The normal range is purely informational
                                                         // for the lab and is shown on the printed report.
-                                                        echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '">';
+                                                        echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '" value="' . $cur_esc . '">';
                                                     } elseif ($type === 'boolean') {
+                                                        $selEmpty = ($cur === '') ? ' selected' : '';
+                                                        $selNeg = ($cur === 'Negative') ? ' selected' : '';
+                                                        $selPos = ($cur === 'Positive') ? ' selected' : '';
                                                         echo '<select class="form-control panel-param" name="' . $pname . '">'
-                                                            . '<option value="">—</option>'
-                                                            . '<option value="Negative">Negative</option>'
-                                                            . '<option value="Positive">Positive</option>'
+                                                            . '<option value=""' . $selEmpty . '>—</option>'
+                                                            . '<option value="Negative"' . $selNeg . '>Negative</option>'
+                                                            . '<option value="Positive"' . $selPos . '>Positive</option>'
                                                             . '</select>';
                                                     } else {
-                                                        echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500">';
-                                                    } ?>
+                                                        echo '<input type="text" class="form-control panel-param" name="' . $pname . '" maxlength="500" value="' . $cur_esc . '">';
+                                                    }
+                                                    echo $unit_addon; ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -462,6 +603,16 @@ class TestPanelResultController extends CI_Controller
             'panel_id' => $panel_id,
             'report_date' => date('Y-m-d'),
         );
+        if ($this->db->field_exists('test_group_id', 'lab_reports')) {
+            $raw_gid = $this->input->post('test_group_id', true);
+            $gid = ($raw_gid !== null && $raw_gid !== '' && ctype_digit((string) $raw_gid)) ? (int) $raw_gid : 0;
+            if ($gid < 1) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Please select a test group.')));
+                return;
+            }
+            $report_data['test_group_id'] = $gid;
+        }
         $report_id = (int) $this->Report_model->insert_report($report_data);
         if ($report_id < 1) {
             $this->output->set_content_type('application/json')
@@ -503,6 +654,119 @@ class TestPanelResultController extends CI_Controller
         $this->output->set_content_type('application/json')->set_output(json_encode(array(
             'success' => true,
             'message' => 'Panel test report saved.',
+            'report_id' => $report_id,
+            'rows' => $saved_rows,
+            'print_url' => $print_url,
+        )));
+    }
+
+    /**
+     * AJAX update for a panel test entry. Updates lab_reports and replaces lab_report_results.
+     * POST: report_id, panel_test_id (must match saved report), same patient/parameter fields as save_panel_test.
+     */
+    public function update_panel_test()
+    {
+        if (!$this->input->is_ajax_request()) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid request.')));
+            return;
+        }
+
+        $this->load->model('Report_model');
+
+        $report_id = (int) $this->input->post('report_id', true);
+        if ($report_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Missing report.')));
+            return;
+        }
+
+        $existing = $this->Report_model->get_report($report_id);
+        if (!$existing) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Report not found.')));
+            return;
+        }
+
+        $panel_id = (int) $this->input->post('panel_test_id', true);
+        if ($panel_id < 1 || (int) $existing->panel_id !== $panel_id) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid panel for this report.')));
+            return;
+        }
+
+        $panel = $this->Report_model->get_panel($panel_id);
+        if (!$panel) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Panel not found.')));
+            return;
+        }
+
+        $patient_name = trim((string) $this->input->post('patient_name', true));
+        if ($patient_name === '') {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Patient name is required.')));
+            return;
+        }
+
+        $report_data = array(
+            'patient_name' => $patient_name,
+            'age_year' => (string) $this->input->post('age_year', true),
+            'age_month' => (string) $this->input->post('age_month', true),
+            'age_day' => (string) $this->input->post('age_day', true),
+            'sex' => (string) $this->input->post('gender', true),
+            'patient_id' => (string) $this->input->post('invoice_no', true),
+            'panel_id' => $panel_id,
+        );
+
+        if ($this->db->field_exists('test_group_id', 'lab_reports')) {
+            $raw_gid = $this->input->post('test_group_id', true);
+            $gid = ($raw_gid !== null && $raw_gid !== '' && ctype_digit((string) $raw_gid)) ? (int) $raw_gid : 0;
+            if ($gid < 1) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(array('success' => false, 'message' => 'Please select a test group.')));
+                return;
+            }
+            $report_data['test_group_id'] = $gid;
+        }
+
+        $this->Report_model->update_report($report_id, $report_data);
+        $this->Report_model->delete_results_for_report($report_id);
+
+        $parameters = $this->input->post('parameters');
+        if (!is_array($parameters)) {
+            $parameters = array();
+        }
+        $saved_rows = 0;
+        foreach ($parameters as $parameter_id => $value) {
+            $parameter_id = (int) $parameter_id;
+            if ($parameter_id < 1) {
+                continue;
+            }
+            $parameter = $this->Report_model->get_parameter($parameter_id);
+            if (!$parameter) {
+                continue;
+            }
+            if (is_array($value)) {
+                $value = '';
+            }
+            $value = trim((string) $value);
+            $status = $this->report_engine->evaluate($value, $parameter);
+
+            $this->Report_model->insert_result(array(
+                'report_id' => $report_id,
+                'parameter_id' => $parameter_id,
+                'result_value' => $value,
+                'status' => $status,
+            ));
+            $saved_rows++;
+        }
+
+        $print_url = site_url('TestPanelResultController/panel_test_print/' . $report_id) . '?print=1';
+
+        $this->output->set_content_type('application/json')->set_output(json_encode(array(
+            'success' => true,
+            'message' => 'Panel test report updated.',
             'report_id' => $report_id,
             'rows' => $saved_rows,
             'print_url' => $print_url,

@@ -261,6 +261,9 @@
              <?php if (in_array('test_setting_group', $permissions)) { ?>
                  <li><a class="box_a" href="<?php echo base_url('test-category') ?>">Test Category</a></li>
              <?php } ?>
+             <?php if (in_array('test_setting_group', $permissions)) { ?>
+                 <li><a class="box_a" href="<?php echo base_url('group') ?>">Test Group</a></li>
+             <?php } ?>
              <?php if (in_array('test_setting_sub_group', $permissions)) { ?>
                  <!-- <li><a class="box_a" href="<?php echo base_url('sub-group') ?>">Sub-Group</a></li> -->
              <?php } ?>
@@ -271,7 +274,16 @@
              <li><a class="box_a" href="<?php echo base_url('panel') ?>">Panel</a></li>
              <li><a class="box_a" href="<?php echo base_url('section') ?>">Section</a></li>
              <li><a class="box_a" href="<?php echo base_url('parameter') ?>">Parameter</a></li>
-          
+             <?php if (in_array('add_test_configuration', $permissions) || in_array('view_test_configuration', $permissions)) { ?>
+      
+                <?php if (in_array('add_test_configuration', $permissions)) { ?>
+                    <li><a class="box_a" href="<?php echo base_url() ?>add-test-configuration">Add</a></li>
+                <?php } ?>
+                <?php if (in_array('view_test_configuration', $permissions)) { ?>
+                    <li><a class="box_a" href="<?php echo base_url() . "index.php/TestResultController/view_test_configuration"; ?>">View</a></li>
+                <?php } ?>
+            
+    <?php } ?>
              
          </ul>
      </li>

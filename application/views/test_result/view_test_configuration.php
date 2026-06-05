@@ -17,7 +17,7 @@ $permissions = $this->session->userdata('permissions');
         };
         xhttp.open('POST', "<?php echo site_url('TestResultController/test_name_load'); ?>", true);
         xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        xhttp.send('test_group_id=' + encodeURIComponent(test_group_id));
+        xhttp.send('test_group_id=' + encodeURIComponent(test_group_id) + '&allow_all_when_no_group=1');
     }
     jQuery(document).ready(function() {
         jQuery('.alert-auto-hide').fadeTo(800, 200, function() {
@@ -96,21 +96,26 @@ $permissions = $this->session->userdata('permissions');
                             <select class="form-control" onchange="test_name_load(this.value)" id="test_group_id" name="test_group_id">
                                 <option value="">All groups</option>
                                 <?php
-                                $test_group = $this->db->select('*')->order_by('test_category_name', 'ASC')->get('test_categories')->result();
+                                $test_group = $this->db->select('*')->order_by('test_group_name', 'ASC')->get('test_group')->result();
                                 foreach ($test_group as $value) {
-                                    $g_sel = ($sel_group !== '' && (string) $value->test_category_id  === (string) $sel_group) ? ' selected' : '';
+                                    $g_sel = ($sel_group !== '' && (string) $value->test_group_id  === (string) $sel_group) ? ' selected' : '';
                                 ?>
-                                    <option value="<?php echo (int) $value->test_category_id ; ?>"<?php echo $g_sel; ?>><?php echo html_escape($value->test_category_name); ?></option>
+                                    <option value="<?php echo (int) $value->test_group_id ; ?>"<?php echo $g_sel; ?>><?php echo html_escape($value->test_group_name); ?></option>
                                 <?php } ?>
                             </select>
                         </td>
                         <td style="width: 300px;">
+                            <?php
+                            $all_tests = $this->db->select('*')->order_by('test_name', 'ASC')->get('test')->result();
+                            $tests_for_dropdown = ($sel_group !== '' && !empty($filter_tests)) ? $filter_tests : $all_tests;
+                            $first_test_option_label = ($sel_group !== '') ? 'All tests in group' : 'All tests';
+                            ?>
                             <select class="form-control" id="test_id" name="test_id">
-                                <option value="">All tests in group</option>
-                                <?php foreach ($filter_tests as $t) {
-                                    $t_sel = ($sel_test !== '' && (string) $t->test_id === (string) $sel_test) ? ' selected' : '';
+                                <option value=""><?php echo html_escape($first_test_option_label); ?></option>
+                                <?php foreach ($tests_for_dropdown as $value) {
+                                    $t_sel = ($sel_test !== '' && (string) $value->test_id === (string) $sel_test) ? ' selected' : '';
                                 ?>
-                                    <option value="<?php echo (int) $t->test_id; ?>"<?php echo $t_sel; ?>><?php echo html_escape($t->test_name); ?></option>
+                                    <option value="<?php echo (int) $value->test_id; ?>"<?php echo $t_sel; ?>><?php echo html_escape($value->test_name); ?></option>
                                 <?php } ?>
                             </select>
                         </td>
