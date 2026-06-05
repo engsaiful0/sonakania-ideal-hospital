@@ -270,17 +270,21 @@
                         ->get('test')->row();
                     if ($test_result_details_value->test_configuration_value == '')
                         continue;
+                    $unit_suffix = ($test_configuration && isset($test_configuration->unit) && trim((string) $test_configuration->unit) !== '')
+                        ? ' ' . html_escape(trim((string) $test_configuration->unit))
+                        : '';
+                    $result_value = html_escape((string) $test_result_details_value->test_configuration_value) . $unit_suffix;
                 ?>
                     <tr>
 
-                        <td><?php echo $test->test_name ?></td>
+                        <td><?php echo html_escape($test->test_name); ?></td>
                         <td><?php
                             if ($test_result_details_value->bold == 'Yes') {
                             ?>
-                                <p style=" font-weight: bold"><?php echo $test_result_details_value->test_configuration_value ?></p>
+                                <p style="font-weight: bold;"><?php echo $result_value; ?></p>
                             <?php
                             } else {
-                                echo $test_result_details_value->test_configuration_value;
+                                echo $result_value;
                             }
                             ?>
                         </td>

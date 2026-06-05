@@ -236,12 +236,13 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('section_name','section_name_bangla','heading','description');
+        $crud->required_fields('section_name');
         $crud->set_relation('panel_id', 'test_panels', 'panel_name');
-        $crud->columns('panel_id', 'section_name', 'section_name_bangla','heading','description');
-        $crud->fields('panel_id', 'section_name', 'section_name_bangla','heading','description');
+        $crud->columns('panel_id', 'section_name', 'section_name_bangla','heading','description','description_allowed');
+        $crud->fields('panel_id', 'section_name', 'section_name_bangla','heading','description','description_allowed');
         $crud->display_as('panel_id', 'Panel Name');
         $crud->display_as('section_name', 'Section Name');
+        $crud->field_type('description_allowed', 'dropdown', array('Yes' => 'Yes', 'No' => 'No'));
         $crud->display_as('section_name_bangla', 'Section Name Bangla');
         $output = $crud->render();
         $this->load->view('frame/grocery_crud_view.php', $output);

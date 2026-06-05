@@ -539,13 +539,16 @@ class TestPanelResultController extends CI_Controller
             if ($heading === '' && isset($s->section_name)) {
                 $heading = trim((string) $s->section_name);
             }
+            $allows_description = $this->Report_model->section_allows_description($s);
             $section_desc = '';
-            if (isset($description_list[$section_desc_index]) && trim((string) $description_list[$section_desc_index]) !== '') {
-                $section_desc = $description_list[$section_desc_index];
-            } elseif (isset($s->description) && trim((string) $s->description) !== '') {
-                $section_desc = (string) $s->description;
+            if ($allows_description) {
+                if (isset($description_list[$section_desc_index]) && trim((string) $description_list[$section_desc_index]) !== '') {
+                    $section_desc = $description_list[$section_desc_index];
+                } elseif (isset($s->description) && trim((string) $s->description) !== '') {
+                    $section_desc = (string) $s->description;
+                }
+                $section_desc_index++;
             }
-            $section_desc_index++;
             // Each section sits inside its own full-width row + clearfix so
             // section blocks always start on a fresh line and parameter
             // columns from different sections can never float into each other.
@@ -612,6 +615,7 @@ class TestPanelResultController extends CI_Controller
                                 </div>
                             <?php }
                         } ?>
+                        <?php if ($allows_description) { ?>
                         <div class="row" style="margin-top:10px;">
                             <div class="col-md-12">
                                 <div class="form-group" style="margin-bottom:0;">
@@ -623,6 +627,7 @@ class TestPanelResultController extends CI_Controller
                                 </div>
                             </div>
                         </div>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -1618,6 +1623,7 @@ class TestPanelResultController extends CI_Controller
      */
     private function save_panel_section_descriptions()
     {
+        $this->load->model('Report_model');
         $this->load->model('TestResultModel');
 
         $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id', true);
@@ -1639,7 +1645,27 @@ class TestPanelResultController extends CI_Controller
         }
 
         $section_descriptions = $this->input->post('section_descriptions');
-        $this->TestResultModel->save_test_result_descriptions($test_result_id, $test_id, $section_descriptions);
+        if (!is_array($section_descriptions)) {
+            $section_descriptions = array();
+        }
+
+        $ordered_descriptions = array();
+        $panel_id = (int) $this->input->post('panel_test_id', true);
+        if ($panel_id > 0) {
+            foreach ($this->Report_model->get_sections_with_parameters($panel_id) as $section) {
+                if (!$this->Report_model->section_allows_description($section)) {
+                    continue;
+                }
+                $section_id = (int) $section->id;
+                $ordered_descriptions[] = isset($section_descriptions[$section_id])
+                    ? (string) $section_descriptions[$section_id]
+                    : '';
+            }
+        } else {
+            $ordered_descriptions = array_values($section_descriptions);
+        }
+
+        $this->TestResultModel->save_test_result_descriptions($test_result_id, $test_id, $ordered_descriptions);
 
         return $test_result_id;
     }

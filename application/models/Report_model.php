@@ -127,6 +127,50 @@ class Report_model extends CI_Model
         return $sections;
     }
 
+    /**
+     * Whether a panel section may show/save/print interpretation text.
+     *
+     * @param object $section
+     * @return bool
+     */
+    public function section_allows_description($section)
+    {
+        if (!is_object($section) || !isset($section->description_allowed)) {
+            return true;
+        }
+
+        return strcasecmp(trim((string) $section->description_allowed), 'Yes') === 0;
+    }
+
+    /**
+     * Map saved description rows (panel section order) to section_id keys.
+     *
+     * @param int   $panel_id
+     * @param array $description_list
+     * @return array<int,string>
+     */
+    public function map_description_list_to_sections($panel_id, $description_list)
+    {
+        $by_section = array();
+        if (!is_array($description_list) || empty($description_list)) {
+            return $by_section;
+        }
+
+        $sections = $this->get_sections_with_parameters((int) $panel_id);
+        $index = 0;
+        foreach ($sections as $section) {
+            if (!$this->section_allows_description($section)) {
+                continue;
+            }
+            if (isset($description_list[$index]) && trim((string) $description_list[$index]) !== '') {
+                $by_section[(int) $section->id] = (string) $description_list[$index];
+            }
+            $index++;
+        }
+
+        return $by_section;
+    }
+
     public function get_parameter($id)
     {
         return $this->db->get_where('test_parameters', array('id' => (int) $id))->row();
@@ -459,19 +503,22 @@ return $this->db->get()->result();
             return $blocks;
         }
 
+        $by_section = $this->map_description_list_to_sections($panel_id, $description_list);
         $sections = $this->get_sections_with_parameters($panel_id);
-        $by_section = array();
-        $index = 0;
+        $sections_by_id = array();
         foreach ($sections as $section) {
-            if (isset($description_list[$index]) && trim((string) $description_list[$index]) !== '') {
-                $by_section[(int) $section->id] = (string) $description_list[$index];
-            }
-            $index++;
+            $sections_by_id[(int) $section->id] = $section;
         }
 
         foreach ($blocks as &$block) {
             $section_id = isset($block['section_id']) ? (int) $block['section_id'] : 0;
-            $block['result_description'] = isset($by_section[$section_id]) ? $by_section[$section_id] : '';
+            $block['result_description'] = '';
+            if ($section_id > 0
+                && isset($sections_by_id[$section_id])
+                && $this->section_allows_description($sections_by_id[$section_id])
+                && isset($by_section[$section_id])) {
+                $block['result_description'] = $by_section[$section_id];
+            }
         }
         unset($block);
 
