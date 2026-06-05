@@ -1,5 +1,10 @@
 <?php
 $permissions = $this->session->userdata('permissions');
+if (!is_array($permissions)) {
+    $permissions = array();
+}
+$can_delete_result = in_array('delete_test_result', $permissions, true)
+    || in_array('delete_panel_test_result', $permissions, true);
 $rows = isset($detailsList) && is_array($detailsList) ? $detailsList : array();
 $sl = isset($sl_start) ? (int) $sl_start : 1;
 ?>
@@ -68,6 +73,14 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
                                     <i class="glyphicon glyphicon-edit"></i> Edit
                                 </a>
                             <?php } ?>
+                            <?php if ($can_delete_result) { ?>
+                                <button type="button" class="btn btn-xs btn-danger btn-delete-panel-result"
+                                    data-report-id="<?php echo $existing_panel; ?>"
+                                    data-test-id="<?php echo (int) $row->test_id; ?>"
+                                    data-patient-entry-id="<?php echo (int) $row->patient_test_entry_id; ?>">
+                                    <i class="glyphicon glyphicon-trash"></i> Delete
+                                </button>
+                            <?php } ?>
                         <?php } elseif (!$is_panel && $existing_single > 0) { ?>
                             <?php if (in_array('print_test_result', $permissions)) { ?>
                                 <a class="btn btn-xs btn-info" target="_blank" href="<?php echo site_url('TestResultController/test_result_report_print_again/' . $existing_single); ?>">
@@ -79,7 +92,7 @@ $sl = isset($sl_start) ? (int) $sl_start : 1;
                                     <i class="glyphicon glyphicon-edit"></i> Edit
                                 </a>
                             <?php } ?>
-                            <?php if (in_array('delete_test_result', $permissions)) { ?>
+                            <?php if ($can_delete_result) { ?>
                                 <button type="button" class="btn btn-xs btn-danger btn-delete-result"
                                     data-test-result-id="<?php echo $existing_single; ?>"
                                     data-test-id="<?php echo (int) $row->test_id; ?>"

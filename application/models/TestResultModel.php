@@ -38,6 +38,25 @@ class TestResultModel extends CI_Model
     }
 
     /**
+     * Subquery: latest active saved result for this invoice line.
+     *
+     * @return string
+     */
+    private function add_result_entry_existing_test_result_subquery()
+    {
+        return ",
+            (
+                SELECT MAX(tr.test_result_id)
+                FROM test_result tr
+                INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
+                WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
+                    AND trd.test_id = pted.test_id
+                    AND IFNULL(trd.is_deleted, 0) = 0
+                    AND TRIM(IFNULL(trd.test_configuration_value, '')) != ''
+            ) AS existing_test_result_id";
+    }
+
+    /**
      * Extra SELECT fragments for add-test-result list/detail queries.
      *
      * @return string
@@ -110,13 +129,7 @@ class TestResultModel extends CI_Model
             tg.test_group_name,
             d.doctor_name AS referring_doctor_name,
             d.degree AS referring_doctor_degree,
-            (
-                SELECT MAX(tr.test_result_id)
-                FROM test_result tr
-                INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
-                WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
-                    AND trd.test_id = pted.test_id
-            ) AS existing_test_result_id" . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
+            " . $this->add_result_entry_existing_test_result_subquery() . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
@@ -211,13 +224,7 @@ class TestResultModel extends CI_Model
             tg.test_group_name,
             d.doctor_name AS referring_doctor_name,
             d.degree AS referring_doctor_degree,
-            (
-                SELECT MAX(tr.test_result_id)
-                FROM test_result tr
-                INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
-                WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
-                    AND trd.test_id = pted.test_id
-            ) AS existing_test_result_id" . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
+            " . $this->add_result_entry_existing_test_result_subquery() . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
@@ -318,13 +325,7 @@ class TestResultModel extends CI_Model
             t.test_group_id,
             d.doctor_name AS referring_doctor_name,
             d.degree AS referring_doctor_degree,
-            (
-                SELECT MAX(tr.test_result_id)
-                FROM test_result tr
-                INNER JOIN test_result_details trd ON trd.test_result_id = tr.test_result_id
-                WHERE tr.patient_test_entry_id = pte.patient_test_entry_id
-                    AND trd.test_id = pted.test_id
-            ) AS existing_test_result_id" . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
+            " . $this->add_result_entry_existing_test_result_subquery() . $this->add_result_entry_unit_select() . $this->add_result_entry_select_extras() . "
         ", false);
         $this->db->from('patient_test_entry_details pted');
         $this->db->join('patient_test_entry pte', 'pte.patient_test_entry_id = pted.patient_test_entry_id', 'inner');
@@ -475,74 +476,145 @@ class TestResultModel extends CI_Model
     }
 
     /**
-     * Saved section descriptions keyed by section_id.
+     * Table name for saved panel/unique test descriptions.
+     *
+     * @return string
+     */
+    private function test_result_descriptions_table()
+    {
+        return 'test_result_descriptions';
+    }
+
+    /**
+     * Next primary key (table has no AUTO_INCREMENT).
+     *
+     * @return int
+     */
+    private function next_test_result_description_id()
+    {
+        $row = $this->db->select_max('test_result_description_id', 'max_id')
+            ->get($this->test_result_descriptions_table())
+            ->row();
+
+        return ($row && !empty($row->max_id)) ? ((int) $row->max_id + 1) : 1;
+    }
+
+    /**
+     * Saved section descriptions in panel section order (one row per section).
      *
      * @return array<int,string>
      */
-    public function get_test_result_descriptions_map($test_result_id, $test_id = 0)
+    public function get_test_result_description_list($test_result_id, $test_id = 0)
     {
-        $map = array();
+        $list = array();
         $test_result_id = (int) $test_result_id;
-        if ($test_result_id < 1 || !$this->db->table_exists('test_result_description')) {
-            return $map;
+        if ($test_result_id < 1 || !$this->db->table_exists($this->test_result_descriptions_table())) {
+            return $list;
         }
 
         $this->db->where('test_result_id', $test_result_id);
         if ((int) $test_id > 0) {
             $this->db->where('test_id', (int) $test_id);
         }
-        foreach ($this->db->get('test_result_description')->result() as $row) {
-            $map[(int) $row->section_id] = isset($row->description) ? (string) $row->description : '';
+        $this->db->order_by('test_result_description_id', 'ASC');
+        foreach ($this->db->get($this->test_result_descriptions_table())->result() as $row) {
+            $list[] = isset($row->result_description) ? (string) $row->result_description : '';
         }
 
-        return $map;
+        return $list;
     }
 
     /**
-     * Upsert section descriptions for a test result.
+     * Save section descriptions to test_result_descriptions
+     * (test_result_id, test_id, result_description, user_id).
      *
      * @param int   $test_result_id
      * @param int   $test_id
-     * @param array $section_descriptions [section_id => description]
+     * @param array $section_descriptions [section_id => html/text]
      * @return bool
      */
     public function save_test_result_descriptions($test_result_id, $test_id, $section_descriptions)
     {
         $test_result_id = (int) $test_result_id;
         $test_id = (int) $test_id;
-        if ($test_result_id < 1 || $test_id < 1 || !$this->db->table_exists('test_result_description')) {
+        if ($test_result_id < 1 || $test_id < 1 || !$this->db->table_exists($this->test_result_descriptions_table())) {
             return false;
         }
         if (!is_array($section_descriptions)) {
             $section_descriptions = array();
         }
 
-        foreach ($section_descriptions as $section_id => $description) {
-            $section_id = (int) $section_id;
-            if ($section_id < 1) {
-                continue;
-            }
-            $description = trim((string) $description);
+        $this->db->where('test_result_id', $test_result_id)
+            ->where('test_id', $test_id)
+            ->delete($this->test_result_descriptions_table());
 
-            $existing = $this->db->where('test_result_id', $test_result_id)
-                ->where('test_id', $test_id)
-                ->where('section_id', $section_id)
-                ->get('test_result_description')
-                ->row();
+        $user_id = $this->session->userdata('user_id');
+        $next_id = $this->next_test_result_description_id();
 
-            if ($existing) {
-                $this->db->where('test_result_description_id', (int) $existing->test_result_description_id)
-                    ->update('test_result_description', array('description' => $description));
-            } else {
-                $this->db->insert('test_result_description', array(
-                    'test_result_id' => $test_result_id,
-                    'test_id' => $test_id,
-                    'section_id' => $section_id,
-                    'description' => $description,
-                ));
-            }
+        foreach ($section_descriptions as $description) {
+            $description = (string) $description;
+            $this->db->insert($this->test_result_descriptions_table(), array(
+                'test_result_description_id' => $next_id,
+                'test_result_id' => $test_result_id,
+                'test_id' => $test_id,
+                'result_description' => $description,
+                'user_id' => $user_id ? (int) $user_id : null,
+            ));
+            $next_id++;
         }
 
         return true;
+    }
+
+    /**
+     * Remove panel-test auxiliary rows (descriptions + empty test_result header).
+     *
+     * @param int $patient_test_entry_id
+     * @param int $test_id
+     * @return void
+     */
+    public function delete_panel_test_related_records($patient_test_entry_id, $test_id)
+    {
+        $patient_test_entry_id = (int) $patient_test_entry_id;
+        $test_id = (int) $test_id;
+        if ($patient_test_entry_id < 1 || $test_id < 1) {
+            return;
+        }
+
+        $test_result_ids = array();
+        if ($this->db->table_exists('test_result_descriptions')) {
+            $this->db->select('DISTINCT test_result_id', false)
+                ->from('test_result_descriptions')
+                ->where('test_id', $test_id);
+            $desc_rows = $this->db->get()->result();
+            foreach ($desc_rows as $dr) {
+                if (!empty($dr->test_result_id)) {
+                    $test_result_ids[] = (int) $dr->test_result_id;
+                }
+            }
+            $this->db->where('test_id', $test_id)->delete('test_result_descriptions');
+        }
+
+        $header = $this->db->select('test_result_id')
+            ->from('test_result')
+            ->where('patient_test_entry_id', $patient_test_entry_id)
+            ->order_by('test_result_id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row();
+        if ($header && !empty($header->test_result_id)) {
+            $test_result_ids[] = (int) $header->test_result_id;
+        }
+
+        $test_result_ids = array_values(array_unique(array_filter($test_result_ids)));
+        foreach ($test_result_ids as $test_result_id) {
+            $remaining = (int) $this->db->where('test_result_id', $test_result_id)
+                ->where('IFNULL(is_deleted, 0) =', 0, false)
+                ->count_all_results('test_result_details');
+            if ($remaining === 0) {
+                $this->db->where('test_result_id', $test_result_id)->delete('test_result');
+                $this->db->where('test_result_id', $test_result_id)->delete('test_result_details');
+            }
+        }
     }
 }

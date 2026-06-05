@@ -248,6 +248,51 @@
             });
         });
 
+        $(document).on('click', '.btn-delete-panel-result', function() {
+            var $btn = $(this);
+            confirmSwal({
+                title: 'Delete this panel result?',
+                text: 'The panel report and saved descriptions will be removed.',
+                icon: 'warning',
+                confirmText: 'Yes, delete it!'
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: "<?php echo site_url('TestPanelResultController/delete_panel_test_ajax'); ?>",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        report_id: $btn.data('report-id'),
+                        test_id: $btn.data('test-id'),
+                        patient_test_entry_id: $btn.data('patient-entry-id')
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({
+                                title: 'Deleted',
+                                text: res.message || 'Panel result deleted successfully.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            loadList(0);
+                        } else {
+                            showSwalError(res.message || 'Failed to delete panel result.');
+                            $btn.prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        showSwalError('Failed to delete panel result.');
+                        $btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+
         $(document).on('click', '.btn-delete-result', function() {
             var $btn = $(this);
             confirmSwal({

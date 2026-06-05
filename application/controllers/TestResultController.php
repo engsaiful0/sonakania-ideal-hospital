@@ -1541,6 +1541,12 @@ class TestResultController extends CI_Controller
             ->where('test_id', $test_id)
             ->update('test_result_details', array('is_deleted' => '1'));
 
+        if ($this->db->table_exists('test_result_descriptions')) {
+            $this->db->where('test_result_id', $test_result_id)
+                ->where('test_id', $test_id)
+                ->delete('test_result_descriptions');
+        }
+
         $remaining = (int) $this->db->where('test_result_id', $test_result_id)
             ->where('IFNULL(is_deleted, 0) =', 0, false)
             ->count_all_results('test_result_details');
@@ -1548,6 +1554,9 @@ class TestResultController extends CI_Controller
         if ($remaining === 0) {
             $this->db->where('test_result_id', $test_result_id)->delete('test_result');
             $this->db->where('test_result_id', $test_result_id)->delete('test_result_details');
+            if ($this->db->table_exists('test_result_descriptions')) {
+                $this->db->where('test_result_id', $test_result_id)->delete('test_result_descriptions');
+            }
         }
 
         $this->output->set_content_type('application/json')

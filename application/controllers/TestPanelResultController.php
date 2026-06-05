@@ -447,6 +447,43 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
+     * AJAX delete for panel tests from add-test-result list.
+     * POST: report_id, test_id, patient_test_entry_id
+     */
+    public function delete_panel_test_ajax()
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $report_id = (int) $this->input->post('report_id');
+        $test_id = (int) $this->input->post('test_id');
+        $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id');
+
+        if ($report_id < 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Invalid panel report.')));
+            return;
+        }
+
+        $this->load->model('Report_model');
+        $this->load->model('TestResultModel');
+
+        $report = $this->Report_model->get_report($report_id);
+        if (!$report) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(array('success' => false, 'message' => 'Panel report not found.')));
+            return;
+        }
+
+        $this->Report_model->delete_report_with_results($report_id);
+        $this->TestResultModel->delete_panel_test_related_records($patient_test_entry_id, $test_id);
+
+        $this->output->set_content_type('application/json')
+            ->set_output(json_encode(array('success' => true, 'message' => 'Panel result deleted successfully.')));
+    }
+
+    /**
      * Returns the HTML fragment of section headings + parameter inputs for the chosen panel.
      * POST: panel_test_id
      */
@@ -486,26 +523,29 @@ class TestPanelResultController extends CI_Controller
             }
         }
 
-        $description_map = array();
+        $description_list = array();
         if ($test_result_id > 0) {
             $this->load->model('TestResultModel');
-            $description_map = $this->TestResultModel->get_test_result_descriptions_map($test_result_id, $test_id);
+            $description_list = $this->TestResultModel->get_test_result_description_list($test_result_id, $test_id);
         }
         ?>
         <h4 class="text-primary" style="margin-top:0;">
             <?php echo html_escape($panel->panel_name); ?>
         </h4>
-        <?php foreach ($sections as $s) {
+        <?php
+        $section_desc_index = 0;
+        foreach ($sections as $s) {
             $heading = isset($s->heading) ? trim((string) $s->heading) : '';
             if ($heading === '' && isset($s->section_name)) {
                 $heading = trim((string) $s->section_name);
             }
             $section_desc = '';
-            if (isset($description_map[(int) $s->id]) && trim($description_map[(int) $s->id]) !== '') {
-                $section_desc = $description_map[(int) $s->id];
+            if (isset($description_list[$section_desc_index]) && trim((string) $description_list[$section_desc_index]) !== '') {
+                $section_desc = $description_list[$section_desc_index];
             } elseif (isset($s->description) && trim((string) $s->description) !== '') {
                 $section_desc = (string) $s->description;
             }
+            $section_desc_index++;
             // Each section sits inside its own full-width row + clearfix so
             // section blocks always start on a fresh line and parameter
             // columns from different sections can never float into each other.
@@ -1571,7 +1611,7 @@ class TestPanelResultController extends CI_Controller
     }
 
     /**
-     * Persist per-section descriptions to test_result_description when
+     * Persist per-section descriptions to test_result_descriptions when
      * patient_test_entry_id and test_id are posted (enter-test-result flow).
      *
      * @return int test_result_id or 0
