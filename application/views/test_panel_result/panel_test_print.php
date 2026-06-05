@@ -171,7 +171,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
 						<td><b> <?php echo html_escape($age_display); ?></b></td>
 						 <td>Report date</td>
 						  <td><b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
-						 <td>Print date and Time</td>
+						 <td>Print date</td>
 						 <td><b> <?php echo date('d-m-Y', strtotime($report->report_date)); ?></b></td>
 						</tr>
                        
@@ -237,7 +237,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                             </table>
                             <?php if ($section_description !== '') { ?>
                                 <div class="print-section-description">
-                                    <strong>Description:</strong>
+                                    <strong>Interpretation Guide:</strong>
                                     <?php echo $this->Report_model->format_rich_text_for_print($section_description); ?>
                                 </div>
                             <?php } ?>
