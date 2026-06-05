@@ -1,78 +1,54 @@
+<?php
+/** Local CKEditor — same bundle as Grocery CRUD (settings → test_sections description). */
+$ckeditor_base = base_url('assets/grocery_crud/texteditor/ckeditor/');
+?>
+<script src="<?php echo $ckeditor_base; ?>ckeditor.js"></script>
+<script src="<?php echo $ckeditor_base; ?>adapters/jquery.js"></script>
 <script>
-(function(window) {
+(function(window, $) {
     'use strict';
-
-    var CKEDITOR_CDN = 'https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js';
-
-    function loadScriptOnce(src, cb) {
-        var existing = document.querySelector('script[data-panel-ckeditor="1"]');
-        if (existing) {
-            if (typeof cb === 'function') {
-                if (typeof window.CKEDITOR !== 'undefined') {
-                    cb();
-                } else {
-                    existing.addEventListener('load', cb, { once: true });
-                }
-            }
-            return;
-        }
-        var s = document.createElement('script');
-        s.src = src;
-        s.setAttribute('data-panel-ckeditor', '1');
-        s.onload = function() {
-            if (typeof cb === 'function') {
-                cb();
-            }
-        };
-        document.head.appendChild(s);
-    }
-
-    function editorContainer() {
-        return document.getElementById('test_configuration') || document.body;
-    }
 
     window.destroyPanelSectionEditors = function() {
         if (typeof window.CKEDITOR === 'undefined') {
             return;
         }
-        var container = editorContainer();
-        var nodes = container.querySelectorAll('.panel-section-desc');
-        for (var i = 0; i < nodes.length; i++) {
-            var id = nodes[i].id;
+        $('#test_configuration').find('textarea.panel-section-desc').each(function() {
+            var id = this.id;
             if (id && window.CKEDITOR.instances[id]) {
                 window.CKEDITOR.instances[id].destroy(true);
             }
-        }
+            $(this).removeData('ckeditor-init');
+        });
     };
 
     window.initPanelSectionEditors = function() {
-        loadScriptOnce(CKEDITOR_CDN, function() {
-            var container = editorContainer();
-            var nodes = container.querySelectorAll('.panel-section-desc');
-            for (var i = 0; i < nodes.length; i++) {
-                var ta = nodes[i];
-                if (!ta.id) {
-                    var sid = ta.getAttribute('data-section-id') || i;
-                    ta.id = 'panel_section_desc_' + sid;
+        if (typeof window.CKEDITOR === 'undefined' || !$.fn.ckeditor) {
+            return;
+        }
+
+        // Brief delay so AJAX-injected markup is painted before replace().
+        window.setTimeout(function() {
+            $('#test_configuration').find('textarea.panel-section-desc').each(function() {
+                var $ta = $(this);
+                if ($ta.data('ckeditor-init')) {
+                    return;
                 }
-                if (window.CKEDITOR.instances[ta.id]) {
-                    continue;
+                if (!this.id) {
+                    this.id = 'panel_section_desc_' + ($ta.attr('data-section-id') || $.now());
                 }
-                window.CKEDITOR.replace(ta.id, {
-                    height: 140,
+                var id = this.id;
+                if (window.CKEDITOR.instances[id]) {
+                    window.CKEDITOR.instances[id].destroy(true);
+                }
+                $ta.ckeditor({
+                    toolbar: 'Full',
+                    height: 160,
                     removePlugins: 'elementspath',
-                    resize_enabled: true,
-                    toolbar: [
-                        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
-                        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-                        { name: 'links', items: ['Link', 'Unlink'] },
-                        { name: 'insert', items: ['Table', 'HorizontalRule'] },
-                        { name: 'styles', items: ['Format'] },
-                        { name: 'tools', items: ['Maximize', 'Source'] }
-                    ]
+                    resize_enabled: true
                 });
-            }
-        });
+                $ta.data('ckeditor-init', 1);
+            });
+        }, 50);
     };
 
     window.syncPanelSectionEditors = function() {
@@ -86,5 +62,5 @@
             window.CKEDITOR.instances[name].updateElement();
         }
     };
-})(window);
+})(window, jQuery);
 </script>

@@ -576,7 +576,7 @@ class TestPanelResultController extends CI_Controller
                             <div class="col-md-12">
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label class="control-label">Description</label>
-                                    <textarea class="form-control panel-section-desc" rows="4"
+                                    <textarea class="form-control panel-section-desc texteditor" rows="4"
                                         id="panel_section_desc_<?php echo (int) $s->id; ?>"
                                         data-section-id="<?php echo (int) $s->id; ?>"
                                         name="section_descriptions[<?php echo (int) $s->id; ?>]"><?php echo htmlspecialchars($section_desc, ENT_QUOTES, 'UTF-8'); ?></textarea>
