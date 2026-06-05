@@ -213,10 +213,12 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('panel_name','panel_name_bangla','test_group_id');
+        $crud->required_fields('test_id','panel_name','panel_name_bangla','test_group_id');
         $crud->set_relation('test_group_id', 'test_group', 'test_group_name');
-        $crud->columns('panel_name', 'panel_name_bangla','description','test_group_id');
-        $crud->fields('panel_name', 'panel_name_bangla','description','test_group_id');
+        $crud->set_relation('test_id', 'test', 'test_name');
+        $crud->columns('test_id','panel_name', 'panel_name_bangla','description','test_group_id');
+        $crud->fields('test_id','panel_name', 'panel_name_bangla','description','test_group_id');
+        $crud->display_as('test_id', 'Test Name');
         $crud->display_as('panel_name', 'Panel Name');
         $crud->display_as('panel_name_bangla', 'Panel Name Bangla');
         $crud->display_as('description', 'Description');

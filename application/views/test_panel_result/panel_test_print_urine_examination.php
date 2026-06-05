@@ -206,6 +206,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) {
+                        $section_heading = isset($block['section_heading']) ? trim((string) $block['section_heading']) : '';
                         $block_rows = isset($block['rows']) && is_array($block['rows']) ? $block['rows'] : array();
                         $n = count($block_rows);
                         $use_two_cols = $n > 1;
@@ -220,7 +221,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                     ?>
                         <div class="report-section-block urine-two-col-section" >
                             <p style="margin-bottom:1px;">
-                                <?php echo html_escape($block['section_name']); ?>
+                                <?php echo html_escape($section_heading); ?>
                     </p>
                             <?php if ($use_two_cols) { ?>
                                 <table class="urine-split-shell" role="presentation">

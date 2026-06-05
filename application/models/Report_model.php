@@ -68,22 +68,46 @@ class Report_model extends CI_Model
     }
 
     /**
-     * Find a panel definition that matches a billed test (panel_name = test_name).
-     * Urine R/E and Urine R/M/E are treated as aliases; prefer the panel with sections.
+     * Find a panel definition for a billed test.
+     * Prefers test_panels.test_id when available; falls back to panel_name matching.
      *
      * @param string $test_name
      * @param int    $test_group_id
+     * @param int    $test_id
      * @return object|null
      */
-    public function resolve_panel_for_test($test_name, $test_group_id = 0)
+    public function resolve_panel_for_test($test_name, $test_group_id = 0, $test_id = 0)
     {
+        $test_id = (int) $test_id;
+        $test_group_id = (int) $test_group_id;
+
+        if ($test_id > 0 && $this->db->field_exists('test_id', 'test_panels')) {
+            $this->db->from('test_panels');
+            $this->db->where('test_id', $test_id);
+            if ($test_group_id > 0 && $this->db->field_exists('test_group_id', 'test_panels')) {
+                $this->db->where('test_group_id', $test_group_id);
+            }
+
+            $best = null;
+            $best_sections = -1;
+            foreach ($this->db->order_by('id', 'ASC')->get()->result() as $row) {
+                $sections = $this->count_panel_sections($row);
+                if ($sections > $best_sections) {
+                    $best = $row;
+                    $best_sections = $sections;
+                }
+            }
+            if ($best) {
+                return $best;
+            }
+        }
+
         $test_name = trim((string) $test_name);
         if ($test_name === '') {
             return null;
         }
 
         $candidates = $this->panel_name_match_candidates($test_name);
-        $test_group_id = (int) $test_group_id;
         $best = null;
         $best_sections = -1;
 

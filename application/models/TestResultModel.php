@@ -57,21 +57,28 @@ class TestResultModel extends CI_Model
     }
 
     /**
-     * SQL match for billed test name against test_panels.panel_name (incl. urine aliases).
+     * SQL match for billed test against test_panels (test_id preferred, panel_name fallback).
      *
      * @param string $panel_table_alias e.g. tp or tp2
+     * @param string $test_id_ref       e.g. pted.test_id
      * @return string
      */
-    private function add_result_entry_panel_name_match_sql($panel_table_alias)
+    private function add_result_entry_panel_match_sql($panel_table_alias, $test_id_ref = 'pted.test_id')
     {
         $alias = preg_replace('/[^a-zA-Z0-9_]/', '', (string) $panel_table_alias);
         if ($alias === '') {
             $alias = 'tp';
         }
 
-        return '(' . $alias . '.panel_name = t.test_name'
+        $name_match = '(' . $alias . '.panel_name = t.test_name'
             . ' OR (t.test_name IN (\'Urine R/E\', \'Urine R/M/E\')'
             . ' AND ' . $alias . '.panel_name IN (\'Urine R/E\', \'Urine R/M/E\')))';
+
+        if ($this->db->field_exists('test_id', 'test_panels')) {
+            return '(' . $alias . '.test_id = ' . $test_id_ref . ' OR ' . $name_match . ')';
+        }
+
+        return $name_match;
     }
 
     /**
@@ -81,8 +88,11 @@ class TestResultModel extends CI_Model
      */
     private function add_result_entry_select_extras()
     {
-        $panel_match = $this->add_result_entry_panel_name_match_sql('tp');
-        $report_panel_match = $this->add_result_entry_panel_name_match_sql('tp2');
+        $panel_match = $this->add_result_entry_panel_match_sql('tp', 'pted.test_id');
+        $report_panel_match = $this->add_result_entry_panel_match_sql('tp2', 'pted.test_id');
+        $test_id_order = $this->db->field_exists('test_id', 'test_panels')
+            ? '(tp.test_id = pted.test_id) DESC, '
+            : '';
 
         return ",
             t.setting_type,
@@ -92,7 +102,7 @@ class TestResultModel extends CI_Model
                 LEFT JOIN test_sections ts ON ts.panel_id = tp.id
                 WHERE {$panel_match}
                 GROUP BY tp.id
-                ORDER BY COUNT(ts.id) DESC, tp.id ASC
+                ORDER BY {$test_id_order}COUNT(ts.id) DESC, tp.id ASC
                 LIMIT 1
             ) AS resolved_panel_id,
             (

@@ -540,7 +540,8 @@ class TestResultController extends CI_Controller
 
         $panel = $this->Report_model->resolve_panel_for_test(
             isset($entry->test_name) ? $entry->test_name : '',
-            isset($entry->test_group_id) ? (int) $entry->test_group_id : 0
+            isset($entry->test_group_id) ? (int) $entry->test_group_id : 0,
+            isset($entry->test_id) ? (int) $entry->test_id : 0
         );
         if (!$panel && isset($entry->resolved_panel_id) && (int) $entry->resolved_panel_id > 0) {
             $panel = $this->Report_model->get_panel((int) $entry->resolved_panel_id);
