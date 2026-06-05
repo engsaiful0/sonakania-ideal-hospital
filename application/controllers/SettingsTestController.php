@@ -236,10 +236,10 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('section_name','section_name_bangla');
+        $crud->required_fields('section_name','section_name_bangla','heading','description');
         $crud->set_relation('panel_id', 'test_panels', 'panel_name');
-        $crud->columns('panel_id', 'section_name', 'section_name_bangla');
-        $crud->fields('panel_id', 'section_name', 'section_name_bangla');
+        $crud->columns('panel_id', 'section_name', 'section_name_bangla','heading','description');
+        $crud->fields('panel_id', 'section_name', 'section_name_bangla','heading','description');
         $crud->display_as('panel_id', 'Panel Name');
         $crud->display_as('section_name', 'Section Name');
         $crud->display_as('section_name_bangla', 'Section Name Bangla');
@@ -259,10 +259,10 @@ class SettingsTestController extends CI_Controller
         //            $crud->unset_edit();
         //            $crud->unset_delete();
         //        endif;
-        $crud->required_fields('parameter_name','unit','input_type','min_value','max_value','serial');
+        $crud->required_fields('section_id','parameter_name',);
         $crud->set_relation('section_id', 'test_sections', 'section_name');
-        $crud->columns('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range', 'serial');
-        $crud->fields('section_id', 'parameter_name', 'unit', 'input_type', 'normal_range', 'serial');
+        $crud->columns('section_id', 'parameter_name', 'unit','default_value', 'input_type', 'normal_range', 'serial');
+        $crud->fields('section_id', 'parameter_name', 'unit', 'default_value', 'input_type', 'normal_range', 'serial');
         $crud->display_as('section_id', 'Section Name');
         $crud->display_as('parameter_name', 'Parameter Name');
         $crud->display_as('unit', 'Unit');
