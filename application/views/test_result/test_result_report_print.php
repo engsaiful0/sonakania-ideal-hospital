@@ -178,23 +178,63 @@
         }
         $test_group = $this->db->where('test_group_id', $gid)->get('test_group')->row();
     }
+    $age_parts = array();
 
+    if ($patient_test_entry->age_year > 0) {
+        $age_parts[] = $patient_test_entry->age_year . ' ' . ($patient_test_entry->age_year == 1 ? 'Year' : 'Years');
+    }
+
+    if ($patient_test_entry->age_month > 0) {
+        $age_parts[] = $patient_test_entry->age_month . ' ' . ($patient_test_entry->age_month == 1 ? 'Month' : 'Months');
+    }
+
+    if ($patient_test_entry->age_day > 0) {
+        $age_parts[] = $patient_test_entry->age_day . ' ' . ($patient_test_entry->age_day == 1 ? 'Day' : 'Days');
+    }
+
+    $age_display = !empty($age_parts) ? implode(' ', $age_parts) : '';
     ?>
     <?php
     $compnay = $this->db->where('company_id', '1')->get('company')->row();
     ?>
 
     <div class="name" style="width: 100%;margin-bottom: 10px;">
-        <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
+        <table border="0" style="width:100%; border-collapse:collapse; margin:0 auto; color:black; font-size:13px;">
             <tr>
-                <td>Patient Name:<b><?php echo $patient_test_entry->patient_name ?></b>, Date:<b> <?php echo date('d-m-Y', strtotime($patient_test_entry->date)) ?></b>, Age:<b> <?php echo $patient_test_entry->age ?></b>, Gender:<b> <?php echo $patient_test_entry->gender ?></b>, Mobile:<b><?php echo $patient_test_entry->mobile ?></b>, Invoice No:<b><?php echo $patient_test_entry->invoice_no ?></b></td>
+                <td><strong>Patient Name</strong></td>
+                <td>: <?php echo html_escape($patient_test_entry->patient_name); ?></td>
+
+                <td><strong>Invoice No</strong></td>
+                <td>: <?php echo html_escape($patient_test_entry->invoice_no); ?></td>
+                <td><strong>Mobile</strong></td>
+                <td>: <?php echo html_escape($patient_test_entry->mobile_number); ?></td>
+                
             </tr>
+
             <tr>
-                <td>Referring Doctor: <b><?php echo $doctor->doctor_name ?>, <?php echo $doctor->degree ?></b></td>
+            <td><strong>Gender</strong></td>
+            <td>: <?php echo html_escape($patient_test_entry->gender); ?></td>
+                <td><strong>Age</strong></td>
+                <td>: <?php echo html_escape($age_display); ?></td>
+                <td><strong>Report Date</strong></td>
+                <td>: <?php echo date('d-m-Y', strtotime($patient_test_entry->date)); ?></td>
+               
+            </tr>
+
+
+
+            <tr>
+                <td><strong>Ref. Doctor</strong></td>
+                <td colspan="5">
+                    : <?php echo html_escape($doctor->doctor_name); ?>
+                    <?php if (!empty($doctor->degree)) : ?>
+                        (<?php echo html_escape($doctor->degree); ?>)
+                    <?php endif; ?>
+                </td>
             </tr>
         </table>
 
-          
+
         <?php if (!empty($test_group)) { ?>
             <p style="margin-top: 6px; margin-bottom: 0; text-align: center; font-weight: bold;">
                 <u><?php echo strtoupper(html_escape($test_group->test_group_name)) . ' REPORT'; ?></u>
@@ -209,49 +249,49 @@
         ?>
         <table class="print-result-table table-bordered" border="0" style="width: 100%;border-collapse:collapse">
             <thead>
-            <tr id="result-header">
-                <th style="width:40%;">Investigation</th>
-                <th style="width:25%;">Value</th>
-                <th style="width:35%;">Normal Range</th>
-            </tr>
-            </thead>
-     
-            <tbody>
-            <?php
-            error_reporting(0);
-            $sl = 1;
-            $coun_test_total_count = 1;
-            $coun_test_differential = 1;
-            foreach ($test_result_details as $test_result_details_value) {
-                $test_configuration = $this->db->where('test_id', $test_result_details_value->test_id)
-                    ->where('is_deleted', '0')
-                    ->get('test_configuration')->row();
-                $test = $this->db->where('test_id', $test_result_details_value->test_id)
-                    ->get('test')->row();
-                if ($test_result_details_value->test_configuration_value == '')
-                    continue;
-            ?>
-                <tr>
-
-                    <td><?php echo $test->test_name ?></td>
-                    <td><?php
-                        if ($test_result_details_value->bold == 'Yes') {
-                        ?>
-                            <p style=" font-weight: bold"><?php echo $test_result_details_value->test_configuration_value ?></p>
-                        <?php
-                        } else {
-                            echo $test_result_details_value->test_configuration_value;
-                        }
-                        ?>
-                    </td>
-
-                    <td style="text-align: left"><?php echo $test_configuration->normal_range ?></td>
+                <tr id="result-header">
+                    <th style="width:40%;">Investigation</th>
+                    <th style="width:25%;">Value</th>
+                    <th style="width:35%;">Normal Range</th>
                 </tr>
-            <?php
+            </thead>
+
+            <tbody>
+                <?php
+                error_reporting(0);
+                $sl = 1;
+                $coun_test_total_count = 1;
+                $coun_test_differential = 1;
+                foreach ($test_result_details as $test_result_details_value) {
+                    $test_configuration = $this->db->where('test_id', $test_result_details_value->test_id)
+                        ->where('is_deleted', '0')
+                        ->get('test_configuration')->row();
+                    $test = $this->db->where('test_id', $test_result_details_value->test_id)
+                        ->get('test')->row();
+                    if ($test_result_details_value->test_configuration_value == '')
+                        continue;
+                ?>
+                    <tr>
+
+                        <td><?php echo $test->test_name ?></td>
+                        <td><?php
+                            if ($test_result_details_value->bold == 'Yes') {
+                            ?>
+                                <p style=" font-weight: bold"><?php echo $test_result_details_value->test_configuration_value ?></p>
+                            <?php
+                            } else {
+                                echo $test_result_details_value->test_configuration_value;
+                            }
+                            ?>
+                        </td>
+
+                        <td style="text-align: left"><?php echo $test_configuration->normal_range ?></td>
+                    </tr>
+                <?php
 
 
-            }
-            ?>
+                }
+                ?>
             </tbody>
         </table>
         <?php

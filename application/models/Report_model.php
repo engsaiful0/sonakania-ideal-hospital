@@ -213,6 +213,23 @@ class Report_model extends CI_Model
             $row->panel_test_group_name = trim((string) $tg_from_report->test_group_name);
         }
 
+        $row->mobile_number = '';
+        if (isset($row->patient_id) && trim((string) $row->patient_id) !== '') {
+            $this->db->reset_query();
+            $pte = $this->db->where('invoice_no', trim((string) $row->patient_id))
+                ->order_by('patient_test_entry_id', 'DESC')
+                ->limit(1)
+                ->get('patient_test_entry')
+                ->row();
+            if ($pte) {
+                if (isset($pte->mobile_number) && trim((string) $pte->mobile_number) !== '') {
+                    $row->mobile_number = trim((string) $pte->mobile_number);
+                } elseif (isset($pte->mobile) && trim((string) $pte->mobile) !== '') {
+                    $row->mobile_number = trim((string) $pte->mobile);
+                }
+            }
+        }
+
         return $row;
     }
 
