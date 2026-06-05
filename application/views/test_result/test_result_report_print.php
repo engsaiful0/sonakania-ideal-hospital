@@ -1,5 +1,14 @@
 <style>
     @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #report,
+        #report * {
+            visibility: visible;
+            overflow: visible;
+        }
 
         /* Hide layout chrome; keep #report in normal flow for correct page breaks. */
         #tray,
@@ -35,9 +44,9 @@
         }
 
         #report {
-            position: static !important;
-            left: auto !important;
-            top: auto !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
@@ -54,6 +63,19 @@
             max-height: none !important;
         }
 
+        #report thead {
+            display: table-header-group !important;
+        }
+
+        #report #result-header th {
+            visibility: visible !important;
+            color: #000 !important;
+            border: 1px solid #000 !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
         #report .product table td,
         #report .product table th {
             white-space: normal !important;
@@ -61,8 +83,6 @@
             overflow-wrap: break-word !important;
         }
 
-        /* Make sure background fills (e.g. status badges) and panel borders
-         * are actually printed by Chrome/Edge. */
         #report,
         #report * {
             -webkit-print-color-adjust: exact !important;
@@ -79,28 +99,29 @@
         }
     }
 
-    #report .product table {
+    #report .print-result-table {
         width: 100%;
         border-collapse: collapse;
         border: none !important;
         margin-bottom: 10px;
     }
 
-    /* Header row only — bordered box */
     #report #result-header th {
         border: 1px solid #333 !important;
         padding: 6px 8px;
-        vertical-align: top;
+        vertical-align: middle;
         text-align: left;
         font-weight: bold;
-        background: transparent !important;
+        color: #000 !important;
+        background: #fff !important;
     }
 
-    #report .product table tbody td {
+    #report .print-result-table tbody td {
         border: none !important;
         padding: 6px 8px;
         vertical-align: top;
         background: transparent !important;
+        color: #000 !important;
     }
 
     .p1 {
@@ -186,12 +207,12 @@
         <?php
 
         ?>
-        <table  border="0" style="width: 100%;border-collapse:collapse">
+        <table class="print-result-table table-bordered" border="0" style="width: 100%;border-collapse:collapse">
             <thead>
             <tr id="result-header">
-                <th>Investigation</th>
-                <th>Result</th>
-                <th colspan="2">Normal Range</th>
+                <th style="width:40%;">Investigation</th>
+                <th style="width:25%;">Value</th>
+                <th style="width:35%;">Normal Range</th>
             </tr>
             </thead>
      
@@ -224,7 +245,7 @@
                         ?>
                     </td>
 
-                    <td colspan="2" style="text-align: left"><?php echo $test_configuration->normal_range ?></td>
+                    <td style="text-align: left"><?php echo $test_configuration->normal_range ?></td>
                 </tr>
             <?php
 
