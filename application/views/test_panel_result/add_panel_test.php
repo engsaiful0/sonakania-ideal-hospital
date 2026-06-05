@@ -110,8 +110,12 @@
             }
         });
 
-        // Validate the form
+        // Validate the form. We explicitly tell jQuery Validate to ignore
+        // the dynamically-injected panel parameter inputs (.panel-param) so
+        // that lab values outside the configured normal range never trigger
+        // errors like "Please enter a value less than or equal to 5.9."
         $("#test_result_entry_form").validate({
+            ignore: ":hidden, .panel-param",
             rules: {
                 invoice_no: "required",
                 test_group_id: "required",
@@ -133,24 +137,6 @@
             // Panel-test mode: when a panel is selected, save via the panel endpoint and print.
             if (panel_test_id) {
                 var $btn = $(this);
-                var hasAnyValue = false;
-                $('.panel-param').each(function() {
-                    if ($.trim($(this).val() || '') !== '') {
-                        hasAnyValue = true;
-                        return false;
-                    }
-                });
-                if (!hasAnyValue) {
-                    $.toast({
-                        heading: 'Error',
-                        text: 'Enter at least one parameter value before saving.',
-                        showHideTransition: 'slide',
-                        position: 'top-right',
-                        hideAfter: 3000,
-                        icon: 'error'
-                    });
-                    return;
-                }
 
                 $('#test_result_entry_form :input').prop('disabled', true);
                 $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');

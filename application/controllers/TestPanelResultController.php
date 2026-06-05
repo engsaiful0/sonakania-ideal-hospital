@@ -388,9 +388,12 @@ class TestPanelResultController extends CI_Controller
                                                 <label class="control-label col-sm-5"><?php echo html_escape($p->parameter_name) . $unit; ?></label>
                                                 <div class="col-sm-7">
                                                     <?php if ($type === 'numeric') {
-                                                        $min = isset($p->min_value) && $p->min_value !== null && $p->min_value !== '' ? ' min="' . html_escape($p->min_value) . '"' : '';
-                                                        $max = isset($p->max_value) && $p->max_value !== null && $p->max_value !== '' ? ' max="' . html_escape($p->max_value) . '"' : '';
-                                                        echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '"' . $min . $max . '>';
+                                                        // NOTE: do NOT emit min/max attributes here. jQuery Validate
+                                                        // (loaded globally for this form) would auto-enforce them and
+                                                        // surface errors like "Please enter a value less than or
+                                                        // equal to 5.9." The normal range is purely informational
+                                                        // for the lab and is shown on the printed report.
+                                                        echo '<input type="number" step="any" class="form-control panel-param" name="' . $pname . '">';
                                                     } elseif ($type === 'boolean') {
                                                         echo '<select class="form-control panel-param" name="' . $pname . '">'
                                                             . '<option value="">—</option>'
