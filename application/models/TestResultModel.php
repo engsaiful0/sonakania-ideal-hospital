@@ -421,4 +421,128 @@ class TestResultModel extends CI_Model
 
         return $this->db->count_all_results('test_result');
     }
+
+    /**
+     * Ensure a test_result header exists for panel/unique test description saves.
+     *
+     * @return int test_result_id
+     */
+    public function ensure_panel_test_result_header($patient_test_entry_id, $test_group_id, $invoice_no, $test_result_id = 0, $test_result_no = '')
+    {
+        $patient_test_entry_id = (int) $patient_test_entry_id;
+        $test_group_id = (int) $test_group_id;
+        $test_result_id = (int) $test_result_id;
+
+        if ($test_result_id > 0) {
+            $existing = $this->db->where('test_result_id', $test_result_id)->get('test_result')->row();
+            if ($existing && (int) $existing->patient_test_entry_id === $patient_test_entry_id) {
+                return $test_result_id;
+            }
+        }
+
+        if ($patient_test_entry_id > 0 && $test_group_id > 0) {
+            $found = $this->find_existing_test_result_for_group($patient_test_entry_id, $test_group_id);
+            if ($found > 0) {
+                return $found;
+            }
+        }
+
+        if ($patient_test_entry_id < 1) {
+            return 0;
+        }
+
+        if ($test_result_no === '') {
+            $serial = $this->db->select('*')->get('test_result');
+            $test_result_no = 'TR' . str_pad($serial->num_rows() + 1, 5, '0', STR_PAD_LEFT);
+        }
+
+        $header = array(
+            'patient_test_entry_id' => $patient_test_entry_id,
+            'test_group_id' => $test_group_id > 0 ? $test_group_id : null,
+            'invoice_no' => (string) $invoice_no,
+            'manual_or_dynamic_report' => 'Dynamic',
+            'date' => date('Y-m-d'),
+            'time' => date('H:i:s'),
+            'user_id' => $this->session->userdata('user_id'),
+            'manual_report' => '',
+            'test_result_no' => $test_result_no,
+        );
+        if (!$this->db->insert('test_result', $header)) {
+            return 0;
+        }
+
+        return (int) $this->db->insert_id();
+    }
+
+    /**
+     * Saved section descriptions keyed by section_id.
+     *
+     * @return array<int,string>
+     */
+    public function get_test_result_descriptions_map($test_result_id, $test_id = 0)
+    {
+        $map = array();
+        $test_result_id = (int) $test_result_id;
+        if ($test_result_id < 1 || !$this->db->table_exists('test_result_description')) {
+            return $map;
+        }
+
+        $this->db->where('test_result_id', $test_result_id);
+        if ((int) $test_id > 0) {
+            $this->db->where('test_id', (int) $test_id);
+        }
+        foreach ($this->db->get('test_result_description')->result() as $row) {
+            $map[(int) $row->section_id] = isset($row->description) ? (string) $row->description : '';
+        }
+
+        return $map;
+    }
+
+    /**
+     * Upsert section descriptions for a test result.
+     *
+     * @param int   $test_result_id
+     * @param int   $test_id
+     * @param array $section_descriptions [section_id => description]
+     * @return bool
+     */
+    public function save_test_result_descriptions($test_result_id, $test_id, $section_descriptions)
+    {
+        $test_result_id = (int) $test_result_id;
+        $test_id = (int) $test_id;
+        if ($test_result_id < 1 || $test_id < 1 || !$this->db->table_exists('test_result_description')) {
+            return false;
+        }
+        if (!is_array($section_descriptions)) {
+            $section_descriptions = array();
+        }
+
+        foreach ($section_descriptions as $section_id => $description) {
+            $section_id = (int) $section_id;
+            if ($section_id < 1) {
+                continue;
+            }
+            $description = trim((string) $description);
+
+            $existing = $this->db->where('test_result_id', $test_result_id)
+                ->where('test_id', $test_id)
+                ->where('section_id', $section_id)
+                ->get('test_result_description')
+                ->row();
+
+            if ($existing) {
+                $this->db->where('test_result_description_id', (int) $existing->test_result_description_id)
+                    ->update('test_result_description', array('description' => $description));
+            } else {
+                $this->db->insert('test_result_description', array(
+                    'test_result_id' => $test_result_id,
+                    'test_id' => $test_id,
+                    'section_id' => $section_id,
+                    'description' => $description,
+                ));
+            }
+        }
+
+        return true;
+    }
 }

@@ -576,6 +576,11 @@ class TestResultController extends CI_Controller
             $panel_test_group_id = (int) $panel->test_group_id;
         }
 
+        $test_result_id = $this->TestResultModel->find_existing_test_result_id(
+            (int) $entry->patient_test_entry_id,
+            (int) $entry->test_id
+        );
+
         $page_data = array(
             'page_name' => 'test_result/enter_panel_test_result',
             'page_title' => 'Enter Panel Test Result',
@@ -585,6 +590,8 @@ class TestResultController extends CI_Controller
             'panel' => $panel,
             'panel_id' => (int) $panel->id,
             'panel_test_group_id' => $panel_test_group_id,
+            'test_id' => (int) $entry->test_id,
+            'test_result_id' => $test_result_id,
             'require_lab_test_group' => $this->db->field_exists('test_group_id', 'lab_reports'),
             'referring_doctor_label' => $this->format_referring_doctor_label($entry),
             'back_url' => site_url('add-test-result'),

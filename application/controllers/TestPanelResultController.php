@@ -471,6 +471,8 @@ class TestPanelResultController extends CI_Controller
         }
 
         $report_id = (int) $this->input->post('report_id', true);
+        $test_result_id = (int) $this->input->post('test_result_id', true);
+        $test_id = (int) $this->input->post('test_id', true);
         $value_map = array();
         if ($report_id > 0) {
             $existing = $this->Report_model->get_report($report_id);
@@ -483,11 +485,27 @@ class TestPanelResultController extends CI_Controller
                 }
             }
         }
+
+        $description_map = array();
+        if ($test_result_id > 0) {
+            $this->load->model('TestResultModel');
+            $description_map = $this->TestResultModel->get_test_result_descriptions_map($test_result_id, $test_id);
+        }
         ?>
         <h4 class="text-primary" style="margin-top:0;">
             <?php echo html_escape($panel->panel_name); ?>
         </h4>
         <?php foreach ($sections as $s) {
+            $heading = isset($s->heading) ? trim((string) $s->heading) : '';
+            if ($heading === '' && isset($s->section_name)) {
+                $heading = trim((string) $s->section_name);
+            }
+            $section_desc = '';
+            if (isset($description_map[(int) $s->id]) && trim($description_map[(int) $s->id]) !== '') {
+                $section_desc = $description_map[(int) $s->id];
+            } elseif (isset($s->description) && trim((string) $s->description) !== '') {
+                $section_desc = (string) $s->description;
+            }
             // Each section sits inside its own full-width row + clearfix so
             // section blocks always start on a fresh line and parameter
             // columns from different sections can never float into each other.
@@ -496,7 +514,7 @@ class TestPanelResultController extends CI_Controller
                 <div class="col-md-12">
                     <div class="well well-sm panel-section-well" style="margin-bottom:18px;">
                         <h4 style="margin-top:0;border-bottom:1px solid #ddd;padding-bottom:6px;">
-                            <?php echo html_escape($s->section_name); ?>
+                            <?php echo html_escape($heading); ?>
                         </h4>
                         <?php if (empty($s->parameters)) { ?>
                             <p class="text-muted">No parameters in this section.</p>
@@ -516,6 +534,9 @@ class TestPanelResultController extends CI_Controller
                                             : '';
                                         $type = isset($p->input_type) ? $p->input_type : 'text';
                                         $cur = isset($value_map[(int) $p->id]) ? $value_map[(int) $p->id] : '';
+                                        if ($cur === '' && isset($p->default_value) && trim((string) $p->default_value) !== '') {
+                                            $cur = trim((string) $p->default_value);
+                                        }
                                         $cur_esc = html_escape($cur, true);
                                     ?>
                                         <div class="col-md-6">
@@ -551,6 +572,17 @@ class TestPanelResultController extends CI_Controller
                                 </div>
                             <?php }
                         } ?>
+                        <div class="row" style="margin-top:10px;">
+                            <div class="col-md-12">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="control-label">Description</label>
+                                    <textarea class="form-control panel-section-desc" rows="4"
+                                        id="panel_section_desc_<?php echo (int) $s->id; ?>"
+                                        data-section-id="<?php echo (int) $s->id; ?>"
+                                        name="section_descriptions[<?php echo (int) $s->id; ?>]"><?php echo htmlspecialchars($section_desc, ENT_QUOTES, 'UTF-8'); ?></textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -650,11 +682,13 @@ class TestPanelResultController extends CI_Controller
         }
 
         $print_url = site_url('TestPanelResultController/panel_test_print/' . $report_id) . '?print=1';
+        $saved_test_result_id = $this->save_panel_section_descriptions();
 
         $this->output->set_content_type('application/json')->set_output(json_encode(array(
             'success' => true,
             'message' => 'Panel test report saved.',
             'report_id' => $report_id,
+            'test_result_id' => $saved_test_result_id,
             'rows' => $saved_rows,
             'print_url' => $print_url,
         )));
@@ -763,11 +797,13 @@ class TestPanelResultController extends CI_Controller
         }
 
         $print_url = site_url('TestPanelResultController/panel_test_print/' . $report_id) . '?print=1';
+        $saved_test_result_id = $this->save_panel_section_descriptions();
 
         $this->output->set_content_type('application/json')->set_output(json_encode(array(
             'success' => true,
             'message' => 'Panel test report updated.',
             'report_id' => $report_id,
+            'test_result_id' => $saved_test_result_id,
             'rows' => $saved_rows,
             'print_url' => $print_url,
         )));
@@ -1517,5 +1553,54 @@ class TestPanelResultController extends CI_Controller
         $sdata['deleted'] = 'saved successully';
         $this->session->set_userdata($sdata);
         redirect('TestResultController/view_test_configuration', 'refresh');
+    }
+
+    /**
+     * Strip rich-text markup from section description defaults.
+     *
+     * @param mixed $raw
+     * @return string
+     */
+    private function clean_panel_rich_text($raw)
+    {
+        $clean = strip_tags((string) $raw);
+        $clean = html_entity_decode($clean, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $clean = preg_replace('/\s+/u', ' ', $clean);
+
+        return trim($clean);
+    }
+
+    /**
+     * Persist per-section descriptions to test_result_description when
+     * patient_test_entry_id and test_id are posted (enter-test-result flow).
+     *
+     * @return int test_result_id or 0
+     */
+    private function save_panel_section_descriptions()
+    {
+        $this->load->model('TestResultModel');
+
+        $patient_test_entry_id = (int) $this->input->post('patient_test_entry_id', true);
+        $test_group_id = (int) $this->input->post('test_group_id', true);
+        $test_id = (int) $this->input->post('test_id', true);
+        if ($patient_test_entry_id < 1 || $test_id < 1) {
+            return 0;
+        }
+
+        $test_result_id = (int) $this->input->post('test_result_id', true);
+        $test_result_id = $this->TestResultModel->ensure_panel_test_result_header(
+            $patient_test_entry_id,
+            $test_group_id,
+            (string) $this->input->post('invoice_no', true),
+            $test_result_id
+        );
+        if ($test_result_id < 1) {
+            return 0;
+        }
+
+        $section_descriptions = $this->input->post('section_descriptions');
+        $this->TestResultModel->save_test_result_descriptions($test_result_id, $test_id, $section_descriptions);
+
+        return $test_result_id;
     }
 }

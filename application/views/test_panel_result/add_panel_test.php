@@ -1,4 +1,5 @@
 <?php $require_lab_test_group = $this->db->field_exists('test_group_id', 'lab_reports'); ?>
+<?php $this->load->view('test_panel_result/partials/panel_section_ckeditor'); ?>
 <script>
     $(document).ready(function() {
         <?php //if (!empty($require_lab_test_group)) { ?>
@@ -77,6 +78,9 @@
 
     function panel_test_load(panel_test_id) {
         var $cfg = $('#test_configuration');
+        if (typeof destroyPanelSectionEditors === 'function') {
+            destroyPanelSectionEditors();
+        }
         $cfg.empty();
         if (!panel_test_id) {
             return;
@@ -91,6 +95,9 @@
             $cfg.html(html).show();
             $('#manual_or_dynamic_report').val('Dynamic');
             $('#manual_report_container').hide();
+            if (typeof initPanelSectionEditors === 'function') {
+                initPanelSectionEditors();
+            }
         }).fail(function() {
             $cfg.html('<p class="text-danger">Could not load panel test inputs.</p>');
         }).always(function() {
@@ -197,6 +204,9 @@
                 }
 
                 window.__panelTestFormSubmitting = true;
+                if (typeof syncPanelSectionEditors === 'function') {
+                    syncPanelSectionEditors();
+                }
                 var formData = new FormData($('#test_result_entry_form')[0]);
                 $('#test_result_entry_form :input').prop('disabled', true);
                 $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');

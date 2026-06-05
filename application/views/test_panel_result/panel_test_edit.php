@@ -21,6 +21,7 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
     $saved_test_group_id = (int) $report->test_group_id;
 }
 ?>
+<?php $this->load->view('test_panel_result/partials/panel_section_ckeditor'); ?>
 <script>
     $(document).ready(function() {
         <?php if (!empty($require_lab_test_group)) { ?>
@@ -31,6 +32,9 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
 
     function panel_test_load(panel_test_id, report_id) {
         var $cfg = $('#test_configuration');
+        if (typeof destroyPanelSectionEditors === 'function') {
+            destroyPanelSectionEditors();
+        }
         $cfg.empty();
         if (!panel_test_id) {
             return;
@@ -51,6 +55,9 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
             $cfg.html(html).show();
             $('#manual_or_dynamic_report').val('Dynamic');
             $('#manual_report_container').hide();
+            if (typeof initPanelSectionEditors === 'function') {
+                initPanelSectionEditors();
+            }
         }).fail(function() {
             $cfg.html('<p class="text-danger">Could not load panel test inputs.</p>');
         }).always(function() {
@@ -160,6 +167,9 @@ if (!empty($require_lab_test_group) && isset($report->test_group_id)) {
 
             window.__panelTestEditSubmitting = true;
             var $btn = $('#submit_button');
+            if (typeof syncPanelSectionEditors === 'function') {
+                syncPanelSectionEditors();
+            }
             var formData = new FormData($('#test_result_entry_form')[0]);
             var $togglable = $('#test_result_entry_form').find('input, select, textarea, button').not('[type=hidden]');
             $togglable.prop('disabled', true);

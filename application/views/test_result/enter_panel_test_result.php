@@ -23,6 +23,8 @@ if (isset($patient->mobile_number) && trim((string) $patient->mobile_number) !==
 }
 $invoice_date = !empty($entry->test_date) ? date('d-m-Y', strtotime($entry->test_date)) : '';
 $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
+$test_id = isset($test_id) ? (int) $test_id : (isset($entry->test_id) ? (int) $entry->test_id : 0);
+$test_result_id = isset($test_result_id) ? (int) $test_result_id : 0;
 ?>
 <div class="panel panel-primary">
     <div class="panel-heading clearfix">
@@ -35,8 +37,13 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
         <div id="result-message"></div>
         <form class="form-horizontal" id="panel-result-entry-form" method="post">
             <input type="hidden" name="panel_test_id" id="panel_test_id" value="<?php echo (int) $panel_id; ?>">
+            <input type="hidden" name="patient_test_entry_id" id="patient_test_entry_id" value="<?php echo (int) $entry->patient_test_entry_id; ?>">
+            <input type="hidden" name="test_id" id="test_id" value="<?php echo (int) $test_id; ?>">
+            <input type="hidden" name="test_result_id" id="test_result_id" value="<?php echo $test_result_id > 0 ? (int) $test_result_id : ''; ?>">
             <?php if ($require_lab_test_group) { ?>
                 <input type="hidden" name="test_group_id" id="test_group_id" value="<?php echo (int) $panel_test_group_id; ?>">
+            <?php } else { ?>
+                <input type="hidden" name="test_group_id" id="test_group_id" value="<?php echo (int) $entry->test_group_id; ?>">
             <?php } ?>
             <input type="hidden" name="invoice_no" value="<?php echo html_escape($invoice_val); ?>">
             <input type="hidden" name="patient_name" id="patient_name" value="<?php echo html_escape($patient_name_val); ?>">
@@ -161,6 +168,7 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
         </form>
     </div>
 </div>
+<?php $this->load->view('test_panel_result/partials/panel_section_ckeditor'); ?>
 <script>
     (function($) {
         function showMessage(type, text) {
@@ -174,6 +182,9 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
 
         function panel_test_load(panel_test_id) {
             var $cfg = $('#test_configuration');
+            if (typeof destroyPanelSectionEditors === 'function') {
+                destroyPanelSectionEditors();
+            }
             $cfg.empty();
             if (!panel_test_id) {
                 return;
@@ -183,7 +194,9 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                 url: "<?php echo site_url('TestPanelResultController/panel_test_load'); ?>",
                 type: 'POST',
                 data: {
-                    panel_test_id: panel_test_id
+                    panel_test_id: panel_test_id,
+                    test_id: $('#test_id').val(),
+                    test_result_id: $('#test_result_id').val()
                 },
                 dataType: 'html',
                 headers: {
@@ -191,6 +204,9 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
                 }
             }).done(function(html) {
                 $cfg.html(html);
+                if (typeof initPanelSectionEditors === 'function') {
+                    initPanelSectionEditors();
+                }
             }).fail(function() {
                 $cfg.html('<p class="text-danger">Could not load panel test parameters.</p>');
             }).always(function() {
@@ -233,6 +249,9 @@ $invoice_time = isset($entry->test_time) ? (string) $entry->test_time : '';
             }
 
             window.__panelResultEntrySubmitting = true;
+            if (typeof syncPanelSectionEditors === 'function') {
+                syncPanelSectionEditors();
+            }
             var formData = new FormData(this);
             var $form = $(this);
             $form.find(':input').prop('disabled', true);
