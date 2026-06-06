@@ -195,7 +195,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                     $group_name = $this->db->where('test_group_id', $report->test_group_id)->get('test_group')->row();
                     if ($group_name && isset($group_name->test_group_name) && $group_name->test_group_name) {
                     ?>
-                        <p style="margin-bottom:0;text-align: center;font-weight: bold;"><?php echo strtoupper(html_escape($group_name->test_group_name . ' Report')); ?></p>
+                        <p style="margin-bottom:0;text-align: center;"><strong><u><?php echo strtoupper(html_escape($group_name->test_group_name . ' Report')); ?></u></strong></p>
 
                     <?php } ?>
                     <p style="text-align: center;font-weight: bold;"><?php echo isset($group_name->machine_name) ? strtoupper(html_escape($group_name->machine_name)) : ''; ?></p>
