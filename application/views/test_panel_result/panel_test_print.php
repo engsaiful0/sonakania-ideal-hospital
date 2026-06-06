@@ -154,6 +154,12 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 }
 
                 $age_display = !empty($age_parts) ? implode(' ', $age_parts) : '—';
+                $test_name_display = '';
+                if (isset($report->test_name) && trim((string) $report->test_name) !== '') {
+                    $test_name_display = trim((string) $report->test_name);
+                } elseif (isset($report->panel_name) && trim((string) $report->panel_name) !== '') {
+                    $test_name_display = trim((string) $report->panel_name);
+                }
             ?>
                 <div class="well well-sm" style="background:#f9f9f9;margin-bottom:10px;">
                     <table border="0" style="width: 100%;border-collapse:collapse;margin:0 auto;color:black;">
@@ -181,7 +187,7 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                         </tr>
                         <tr>
                             <td>Test Name</td>
-                            <td colspan="5"><b><?php echo isset($report->panel_name) ? html_escape($report->panel_name) : ''; ?></b></td>
+                            <td colspan="5" class="test-name"><b><?php echo html_escape($test_name_display); ?></b></td>
                         </tr>
                     </table>
                     <?php
