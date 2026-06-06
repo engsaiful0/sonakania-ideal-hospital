@@ -203,9 +203,12 @@ $compnay = $this->db->where('company_id', '1')->get('company')->row();
                 </div>
                 <?php if (!empty($section_blocks)) { ?>
                     <?php foreach ($section_blocks as $block) {
-                        $section_heading = isset($block['section_heading']) ? trim((string) $block['section_heading']) : '';
-                        if ($section_heading === '' && isset($block['section_name'])) {
-                            $section_heading = trim((string) $block['section_name']);
+                        $section_heading = '';
+                        if (!empty($block['rows'])) {
+                            $first_row = $block['rows'][0];
+                            if (isset($first_row->heading) && trim((string) $first_row->heading) !== '') {
+                                $section_heading = trim((string) $first_row->heading);
+                            }
                         }
                         $section_description = isset($block['result_description']) ? trim((string) $block['result_description']) : '';
                     ?>
